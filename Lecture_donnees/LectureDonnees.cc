@@ -3,7 +3,7 @@
 #include <fstream>                          // for ifstream
 #include <string>                           // for string
 #include <unordered_map>                    // for unordered_map
-#include "EucclhydRemap.h"                  // for EucclhydRemap::Options
+#include "../eucclhyd_remap/EucclhydRemap.h"                  // for EucclhydRemap::Options
 /**
  * Job LectureDonnees called by main.
  * In variables: fichier 

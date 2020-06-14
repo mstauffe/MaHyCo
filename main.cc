@@ -2,7 +2,7 @@
 #include <cstdlib>                          // for atof, atoi, exit
 #include <iostream>                         // for operator<<, endl, basic_o...
 #include <string>                           // for string
-#include "LectureDonnees.h"                 // for LectureDonnees
+#include "Lecture_donnees/LectureDonnees.h" // for LectureDonnees
 #include "EucclhydRemap.h"                  // for EucclhydRemap::Options
 #include "mesh/CartesianMesh2D.h"           // for CartesianMesh2D
 #include "mesh/CartesianMesh2DGenerator.h"  // for CartesianMesh2DGenerator

@@ -16,12 +16,12 @@ set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
 add_subdirectory( "./cppnabla" )
 add_subdirectory( "./eucclhyd_remap" )
+add_subdirectory( "./Lecture_donnees" )
 add_subdirectory( "./tests" )
 
 add_executable( mahyco )
 target_sources( mahyco 
     PRIVATE
-	LectureDonnees.cc
         main.cc
 )
-target_link_libraries( mahyco PRIVATE eucclhydremap )
+target_link_libraries( mahyco PRIVATE eucclhydremap Lecture_donnees)
