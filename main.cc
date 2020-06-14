@@ -2,6 +2,7 @@
 #include <cstdlib>                          // for atof, atoi, exit
 #include <iostream>                         // for operator<<, endl, basic_o...
 #include <string>                           // for string
+#include "LectureDonnees.h"                 // for LectureDonnees
 #include "EucclhydRemap.h"                  // for EucclhydRemap::Options
 #include "mesh/CartesianMesh2D.h"           // for CartesianMesh2D
 #include "mesh/CartesianMesh2DGenerator.h"  // for CartesianMesh2DGenerator
@@ -38,7 +39,7 @@ int main(int argc, char* argv[]) {
     o->projectionLimiterIdPure = std::atof(argv[11]);
     output = argv[11];
   } else if (argc == 2) {
-    o->testCase = std::atof(argv[1]);
+    LectureDonnees(argv[1], o);
   } else if (argc != 1) {
     std::cerr << "[ERROR] Wrong number of arguments. Expecting 4 or 5 args: X "
                  "Y Xlength Ylength (output)."

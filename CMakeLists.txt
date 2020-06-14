@@ -21,6 +21,7 @@ add_subdirectory( "./tests" )
 add_executable( mahyco )
 target_sources( mahyco 
     PRIVATE
+	LectureDonnees.cc
         main.cc
 )
 target_link_libraries( mahyco PRIVATE eucclhydremap )
