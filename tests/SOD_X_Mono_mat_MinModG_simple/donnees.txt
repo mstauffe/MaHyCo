@@ -1,0 +1,34 @@
+# Cas test
+SodCase
+# Nombre de Mailles en X
+200
+# Nombre de Mailles en Y
+5
+# DELTA_X
+0.005
+# DELTA_Y
+0.02
+# temps final
+0.2
+# Temps entre deux sorties
+1.e-2
+# Pas de temps initial
+1.e-4
+# Pas de temps minimal
+1.e-12
+# ordre en espace du schéma Lagrange
+2
+# projection conservative
+non
+# Limite fraction volumique
+1.e-16
+# Ordre de la projection
+2
+# Limiteurs
+minmodG
+# option Pente Borne
+non
+# option Pente Borne Mixte
+non
+# limiteur Pente Borne Pure
+arithmeticG
