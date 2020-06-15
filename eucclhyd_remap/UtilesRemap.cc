@@ -1,8 +1,6 @@
-#include <math.h>    // for fabs
-#include <stdlib.h>  // for abs
-
-#include <array>  // for array
-
+#include <math.h>                 // for fabs
+#include <stdlib.h>               // for abs
+#include <array>                  // for array
 #include "EucclhydRemap.h"        // for EucclhydRemap, EucclhydRemap::Options
 #include "types/MathFunctions.h"  // for min, max
 

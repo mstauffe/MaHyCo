@@ -4,15 +4,13 @@
 /*---------------------------------------*/
 /*---------------------------------------*/
 
-#include <stddef.h>  // for size_t
-
+#include <stddef.h>                       // for size_t
 #include <Kokkos_Core.hpp>                // for KOKKOS_LAMBDA
 #include <OpenMP/Kokkos_OpenMP_Exec.hpp>  // for OpenMP::impl_is_initialized
 #include <algorithm>                      // for copy
 #include <array>                          // for array
 #include <string>                         // for allocator, string
 #include <vector>                         // for vector
-
 #include "EucclhydRemap.h"
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D, CartesianM...
 #include "mesh/MeshGeometry.h"     // for MeshGeometry
@@ -40,7 +38,6 @@ class EucclhydRemap {
     RealArray1D<nbmatmax> zeroVectmat = {{0.0, 0.0, 0.0}};
     RealArray1D<nbequamax> Uzero = {
         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
-    // cas test
     int UnitTestCase = 0;
     int SedovTestCase = 1;
     int TriplePoint = 2;
@@ -52,7 +49,6 @@ class EucclhydRemap {
     int BiShockBubble = 13;
     int BiSodCase = 14;
     int BiNohTestCase = 15;
-    // EOS
     int eosPerfectGas = 100;
     int symmetry = 200;
     int imposedVelocity = 201;
@@ -91,11 +87,6 @@ class EucclhydRemap {
     int projectionAvecPlateauPente = 0;
     int projectionConservative = 0;
     int projectionLimiteurMixte = 0;
-    int AvecProjection = 1;
-    int AvecParticules = 0;
-    int Adiabatique = 1;
-    int Isotherme = 2;
-    int AvecEquilibrage = -1;
 
     int leftFluxBC = 0;
     RealArray1D<nbequamax> leftFluxBCValue = Uzero;
@@ -267,9 +258,6 @@ class EucclhydRemap {
   Kokkos::View<double*> fracvol1;
   Kokkos::View<double*> fracvol2;
   Kokkos::View<double*> fracvol3;
-  Kokkos::View<double*> p1;
-  Kokkos::View<double*> p2;
-  Kokkos::View<double*> p3;
 
   Kokkos::View<double*> vpart;
   Kokkos::View<double*> wpart;
@@ -371,9 +359,6 @@ class EucclhydRemap {
         lplus("lplus", nbNodes, nbCellsOfNode),
         lminus("lminus", nbNodes, nbCellsOfNode),
         p("p", nbCells),
-        p1("p1", nbCells),
-        p2("p2", nbCells),
-        p3("p3", nbCells),
         pp("pp", nbCells),
         m("m", nbCells),
         mp("mp", nbCells),
@@ -465,9 +450,9 @@ class EucclhydRemap {
         Mnode("Mnode", nbNodes) {
     // Copy node coordinates
     const auto& gNodes = mesh->getGeometry()->getNodes();
-    Kokkos::parallel_for(
-        nbNodes,
-        KOKKOS_LAMBDA(const int& rNodes) { X(rNodes) = gNodes[rNodes]; });
+    Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const int& rNodes) {
+      X(rNodes) = gNodes[rNodes];
+    });
   }
 
  private:

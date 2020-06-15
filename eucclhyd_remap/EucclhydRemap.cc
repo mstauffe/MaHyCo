@@ -1,14 +1,11 @@
 #include "EucclhydRemap.h"
-
-#include <stdlib.h>  // for exit
-
-#include <Kokkos_Core.hpp>  // for finalize
-#include <iomanip>          // for operator<<, setw, setiosflags
-#include <iostream>         // for operator<<, basic_ostream, cha...
-#include <limits>           // for numeric_limits
-#include <map>              // for map
-#include <utility>          // for pair, swap
-
+#include <stdlib.h>               // for exit
+#include <Kokkos_Core.hpp>        // for finalize
+#include <iomanip>                // for operator<<, setw, setiosflags
+#include <iostream>               // for operator<<, basic_ostream, cha...
+#include <limits>                 // for numeric_limits
+#include <map>                    // for map
+#include <utility>                // for pair, swap
 #include "types/MathFunctions.h"  // for min
 #include "utils/Utils.h"          // for __RESET__, __BOLD__, __GREEN__
 
@@ -92,40 +89,37 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
                 << setiosflags(std::ios::scientific) << setprecision(8)
                 << setw(16) << t_n << __RESET__;
 
-    if (options->AvecParticules == 1) switchalpharho_rho();
+    if (nbPart != 0) switchalpharho_rho();
     computeEOS();  // @1.0
-    if (options->AvecParticules == 1) switchrho_alpharho();
-    computeGradients();                         // @1.0
-    computeMass();                              // @1.0
-    computeDissipationMatrix();                 // @2.0
-    computedeltatc();                           // @2.0
-    dumpVariables();                            // @2.0
-    extrapolateValue();                         // @2.0
-    computeG();                                 // @3.0
-    computeNodeDissipationMatrixAndG();         // @3.0
-    computedeltat();                            // @3.0
-    computeBoundaryNodeVelocities();            // @4.0
-    computeNodeVelocity();                      // @4.0
-    updateTime();                               // @4.0
-    computeFaceVelocity();                      // @5.0
-    computeLagrangePosition();                  // @5.0
-    computeSubCellForce();                      // @5.0
-    computeLagrangeVolumeAndCenterOfGravity();  // @6.0
-    computeFacedeltaxLagrange();                // @7.0
-    updateCellCenteredLagrangeVariables();      // @7.0
-
-    if (options->AvecProjection == 1) {
-      computeGradPhiFace1();                        // @8.0
-      computeGradPhi1();                            // @9.0
-      computeUpwindFaceQuantitiesForProjection1();  // @10.0
-      computeUremap1();                             // @11.0
-      computeGradPhiFace2();                        // @12.0
-      computeGradPhi2();                            // @13.0
-      computeUpwindFaceQuantitiesForProjection2();  // @14.0
-      computeUremap2();                             // @15.0
-      remapCellcenteredVariable();                  // @16.0
-    }
-    if (options->AvecParticules == 1) {
+    if (nbPart != 0) switchrho_alpharho();
+    computeGradients();                           // @1.0
+    computeMass();                                // @1.0
+    computeDissipationMatrix();                   // @2.0
+    computedeltatc();                             // @2.0
+    dumpVariables();                              // @2.0
+    extrapolateValue();                           // @2.0
+    computeG();                                   // @3.0
+    computeNodeDissipationMatrixAndG();           // @3.0
+    computedeltat();                              // @3.0
+    computeBoundaryNodeVelocities();              // @4.0
+    computeNodeVelocity();                        // @4.0
+    updateTime();                                 // @4.0
+    computeFaceVelocity();                        // @5.0
+    computeLagrangePosition();                    // @5.0
+    computeSubCellForce();                        // @5.0
+    computeLagrangeVolumeAndCenterOfGravity();    // @6.0
+    computeFacedeltaxLagrange();                  // @7.0
+    updateCellCenteredLagrangeVariables();        // @7.0
+    computeGradPhiFace1();                        // @8.0
+    computeGradPhi1();                            // @9.0
+    computeUpwindFaceQuantitiesForProjection1();  // @10.0
+    computeUremap1();                             // @11.0
+    computeGradPhiFace2();                        // @12.0
+    computeGradPhi2();                            // @13.0
+    computeUpwindFaceQuantitiesForProjection2();  // @14.0
+    computeUremap2();                             // @15.0
+    remapCellcenteredVariable();                  // @16.0
+    if (nbPart != 0) {
       updateParticlePosition();
       updateParticleCoefficients();
       updateParticleVelocity();
@@ -151,17 +145,8 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
       std::swap(F1_nplus1, F1_n);
       std::swap(F2_nplus1, F2_n);
       std::swap(F3_nplus1, F3_n);
-      if (options->AvecParticules == 1) {
-        std::swap(Vpart_nplus1, Vpart_n);
-        std::swap(Xpart_nplus1, Xpart_n);
-      }
-      if (options->AvecProjection == 0) {
-        std::swap(vLagrange, v);
-        std::swap(XLagrange, X);
-        std::swap(XfLagrange, Xf);
-        std::swap(faceLengthLagrange, faceLength);
-        std::swap(XcLagrange, Xc);
-      }
+      std::swap(Vpart_nplus1, Vpart_n);
+      std::swap(Xpart_nplus1, Xpart_n);
     }
 
     cpu_timer.stop();
@@ -202,12 +187,11 @@ void EucclhydRemap::computedeltat() noexcept {
   double reduction10(numeric_limits<double>::max());
   {
     Kokkos::Min<double> reducer(reduction10);
-    Kokkos::parallel_reduce(
-        "reduction10", nbCells,
-        KOKKOS_LAMBDA(const int& cCells, double& x) {
-          reducer.join(x, deltatc(cCells));
-        },
-        reducer);
+    Kokkos::parallel_reduce("reduction10", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducer.join(x, deltatc(cCells));
+                            },
+                            reducer);
   }
   deltat_nplus1 =
       MathFunctions::min(options->cfl * reduction10, deltat_n * 1.05);

@@ -1,5 +1,4 @@
-#include <array>  // for array, array<>::value_type
-
+#include <array>                  // for array, array<>::value_type
 #include "EucclhydRemap.h"        // for EucclhydRemap
 #include "types/MathFunctions.h"  // for det
 
