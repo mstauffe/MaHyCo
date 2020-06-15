@@ -13,6 +13,7 @@ int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
   auto o = new EucclhydRemap::Options();
   string output;
+  // passage par argument à retirer plus tard
   if (argc == 12) {
     o->X_EDGE_ELEMS = std::atoi(argv[1]);
     o->Y_EDGE_ELEMS = std::atoi(argv[2]);
