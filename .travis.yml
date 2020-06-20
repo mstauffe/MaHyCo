@@ -123,7 +123,7 @@ jobs:
         script:
           - ctest -j 4
 stages:
-  - name: "Pre-check"
-    if: branch = master
   - name: "Compilation"
   - name: "Integration tests"
+  - name: "Pre-check"
+    if: branch = master
