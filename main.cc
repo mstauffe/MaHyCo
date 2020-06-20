@@ -21,6 +21,7 @@ int main(int argc, char* argv[]) {
   }
   auto nm = CartesianMesh2DGenerator::generate(
       o->X_EDGE_ELEMS, o->Y_EDGE_ELEMS, o->X_EDGE_LENGTH, o->Y_EDGE_LENGTH);
+  // appel au schéma Lagrange Eucclhyd + schéma de projection ADI (en option)
   auto c = new EucclhydRemap(o, nm, output);
   c->simulate();
   delete c;
