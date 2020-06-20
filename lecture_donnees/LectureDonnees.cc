@@ -134,11 +134,11 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
               << std::endl;
     mesdonnees.ignore();
 
-    // getline(mesdonnees, ligne); // Avec projection
-    // mesdonnees >> mot;
-    // o->AvecProjection = ouiOUnon[mot];
-    // std::cout << " Avec Projection " << mot << " ( " << o->AvecProjection <<
-    // " ) " << std::endl; mesdonnees.ignore();
+    getline(mesdonnees, ligne); // Avec projection
+    mesdonnees >> mot;
+    o->AvecProjection = ouiOUnon[mot];
+    std::cout << " Avec Projection " << mot << " ( " << o->AvecProjection
+              << " ) " << std::endl; mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // Projection conservative
     mesdonnees >> mot;

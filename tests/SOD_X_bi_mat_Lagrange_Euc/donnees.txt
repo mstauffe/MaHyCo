@@ -1,5 +1,5 @@
 # Cas test
-SodCase
+BiSodCase
 # Nombre de Mailles en X
 200
 # Nombre de Mailles en Y
@@ -19,7 +19,7 @@ SodCase
 # ordre en espace du schéma Lagrange
 2
 # avec projection (mode euler)
-oui
+non
 # projection conservative
 non
 # Limite fraction volumique
@@ -27,7 +27,7 @@ non
 # Ordre de la projection
 2
 # Limiteurs
-minmodG
+minmod
 # option Pente Borne
 non
 # option Pente Borne Mixte

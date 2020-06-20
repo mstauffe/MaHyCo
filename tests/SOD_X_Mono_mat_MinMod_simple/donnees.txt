@@ -18,6 +18,8 @@ SodCase
 1.e-12
 # ordre en espace du schéma Lagrange
 2
+# avec projection (mode euler)
+oui
 # projection conservative
 non
 # Limite fraction volumique
