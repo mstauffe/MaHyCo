@@ -1,5 +1,5 @@
 # Cas test
-SodCase
+BiSodCase
 # Nombre de Mailles en X
 200
 # Nombre de Mailles en Y
@@ -27,10 +27,10 @@ non
 # Ordre de la projection
 2
 # Limiteurs
-minmodG
+superBee
 # option Pente Borne
-non
+oui
 # option Pente Borne Mixte
-non
+oui
 # limiteur Pente Borne Pure
 arithmeticG

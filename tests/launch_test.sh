@@ -8,11 +8,7 @@ function launch_computation {
   local readonly exe_path=$1
   local readonly data_dir=$2
   local return_code=0
-  if [[ ! -f $data_dir/donnees.txt ]]; then
-      OMP_NUM_THREADS=1 $1 $(cat "$data_dir/args.txt")
-  else
-      OMP_NUM_THREADS=1 $1 $data_dir/donnees.txt
-  fi
+  OMP_NUM_THREADS=1 $1 $data_dir/donnees.txt
   if [[ $? -ne 0 ]]; then
     echo "A problem occured during test execution."
     return_code=1

@@ -27,7 +27,7 @@ non
 # Ordre de la projection
 2
 # Limiteurs
-minmodG
+superBee
 # option Pente Borne
 non
 # option Pente Borne Mixte

@@ -189,14 +189,14 @@ RealArray1D<d> EucclhydRemap::computeIntersectionPP(
   for (imat = 0; imat < nbmatmax; imat++) {
     Flux[nbmatmax + imat] =
         phi[nbmatmax + imat] * Flux[imat];  // flux de masse de imat
-    Flux[2 * nbmatmax + 2 + imat] =
-        phi[2 * nbmatmax + 2 + imat] *
+    Flux[2 * nbmatmax + imat] =
+        phi[2 * nbmatmax + imat] *
         Flux[nbmatmax + imat];  // flux de masse energy de imat
     somme_flux_masse += Flux[nbmatmax + imat];
   }
-  Flux[2 * nbmatmax] =
-      phi[2 * nbmatmax] * somme_flux_masse;  // flux de quantité de mouvement x
-  Flux[2 * nbmatmax + 1] = phi[2 * nbmatmax + 1] *
+  Flux[3 * nbmatmax] =
+      phi[3 * nbmatmax] * somme_flux_masse;  // flux de quantité de mouvement x
+  Flux[3 * nbmatmax + 1] = phi[3 * nbmatmax + 1] *
                            somme_flux_masse;  // flux de quantité de mouvement y
   Flux[3 * nbmatmax + 2] =
       phi[3 * nbmatmax + 2] * somme_flux_masse;  // flux d'energie cinetique
@@ -359,14 +359,14 @@ RealArray1D<d> EucclhydRemap::computeIntersectionPPPure(
   // deduisent des flux de volumes
   double somme_flux_masse = 0.;
   for (imat = 0; imat < nbmatmax; imat++) {
-    Flux[2 * nbmatmax + 2 + imat] =
-        phi[2 * nbmatmax + 2 + imat] *
+    Flux[2 * nbmatmax + imat] =
+        phi[2 * nbmatmax + imat] *
         Flux[nbmatmax + imat];  // flux de masse energy de imat
     somme_flux_masse += Flux[nbmatmax + imat];
   }
-  Flux[2 * nbmatmax] =
-      phi[2 * nbmatmax] * somme_flux_masse;  // flux de quantité de mouvement x
-  Flux[2 * nbmatmax + 1] = phi[2 * nbmatmax + 1] *
+  Flux[3 * nbmatmax] =
+      phi[3 * nbmatmax] * somme_flux_masse;  // flux de quantité de mouvement x
+  Flux[3 * nbmatmax + 1] = phi[3 * nbmatmax + 1] *
                            somme_flux_masse;  // flux de quantité de mouvement y
   Flux[3 * nbmatmax + 2] =
       phi[3 * nbmatmax + 2] * somme_flux_masse;  // flux d'energie cinetique
