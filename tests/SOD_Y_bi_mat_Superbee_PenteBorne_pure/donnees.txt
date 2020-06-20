@@ -1,0 +1,36 @@
+# Cas test
+BiSodCase
+# Nombre de Mailles en X
+5
+# Nombre de Mailles en Y
+200
+# DELTA_X
+0.02
+# DELTA_Y
+0.005
+# temps final
+0.2
+# Temps entre deux sorties
+1.e-2
+# Pas de temps initial
+1.e-4
+# Pas de temps minimal
+1.e-12
+# ordre en espace du schéma Lagrange
+2
+# avec projection (mode euler)
+oui
+# projection conservative
+non
+# Limite fraction volumique
+1.e-16
+# Ordre de la projection
+2
+# Limiteurs
+superBee
+# option Pente Borne
+oui
+# option Pente Borne Mixte
+non
+# limiteur Pente Borne Pure
+arithmeticG

@@ -88,15 +88,15 @@ void EucclhydRemap::remapCellcenteredVariable() noexcept {
         }
 
         RealArray1D<dim> V_np1 = {
-            {Uremap2(cCells)[2 * nbmatmax] / (rho_np1 * vol),
-             Uremap2(cCells)[2 * nbmatmax + 1] / (rho_np1 * vol)}};
+            {Uremap2(cCells)[3 * nbmatmax] / (rho_np1 * vol),
+             Uremap2(cCells)[3 * nbmatmax + 1] / (rho_np1 * vol)}};
 
         // double eps_np1 = Uremap2(cCells)[6] / (rho_np1 * vol);
         RealArray1D<nbmatmax> pesp_np1 = options->zeroVectmat;
         for (imat = 0; imat < nbmatmax; imat++) {
           if ((fracvol(cCells)[imat] > options->threshold) &&
               (Uremap2(cCells)[nbmatmax + imat] != 0.))
-            pesp_np1[imat] = Uremap2(cCells)[2 * nbmatmax + imat + 2] /
+            pesp_np1[imat] = Uremap2(cCells)[2 * nbmatmax + imat] /
                              Uremap2(cCells)[nbmatmax + imat];
         }
         rho_nplus1(cCells) = rho_np1;

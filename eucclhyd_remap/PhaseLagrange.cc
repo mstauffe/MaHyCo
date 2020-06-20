@@ -827,14 +827,14 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
           ULagrange(cCells)[nbmatmax + imat] =
               fracmass(cCells)[imat] * vLagrange(cCells) * rhoLagrange;
 
-          ULagrange(cCells)[2 * nbmatmax + imat + 2] =
+          ULagrange(cCells)[2 * nbmatmax + imat] =
               fracmass(cCells)[imat] * vLagrange(cCells) * rhoLagrange *
               pepsLagrange[imat];
         }
 
-        ULagrange(cCells)[2 * nbmatmax] =
+        ULagrange(cCells)[3 * nbmatmax] =
             vLagrange(cCells) * rhoLagrange * VLagrange[0];
-        ULagrange(cCells)[2 * nbmatmax + 1] =
+        ULagrange(cCells)[3 * nbmatmax + 1] =
             vLagrange(cCells) * rhoLagrange * VLagrange[1];
         // projection de l'energie cinétique
         if (options->projectionConservative == 1)
@@ -916,18 +916,18 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
             somme_masse += ULagrange(cCells)[nbmatmax + imat];
           }
           // Phi Vitesse
-          Phi(cCells)[2 * nbmatmax] =
-              ULagrange(cCells)[2 * nbmatmax] / somme_masse;
-          Phi(cCells)[2 * nbmatmax + 1] =
-              ULagrange(cCells)[2 * nbmatmax + 1] / somme_masse;
+          Phi(cCells)[3 * nbmatmax] =
+              ULagrange(cCells)[3 * nbmatmax] / somme_masse;
+          Phi(cCells)[3 * nbmatmax + 1] =
+              ULagrange(cCells)[3 * nbmatmax + 1] / somme_masse;
           // Phi energie
           for (imat = 0; imat < nbmatmax; imat++) {
             if (ULagrange(cCells)[nbmatmax + imat] != 0.)
-              Phi(cCells)[2 * nbmatmax + imat + 2] =
-                  ULagrange(cCells)[2 * nbmatmax + imat + 2] /
+              Phi(cCells)[2 * nbmatmax + imat] =
+                  ULagrange(cCells)[2 * nbmatmax + imat] /
                   ULagrange(cCells)[nbmatmax + imat];
             else
-              Phi(cCells)[2 * nbmatmax + imat + 2] = 0.;
+              Phi(cCells)[2 * nbmatmax + imat] = 0.;
           }
           // Phi energie cinétique
           if (options->projectionConservative == 1)
