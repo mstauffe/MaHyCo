@@ -1,18 +1,9 @@
-set( LIBRARY_NAME "eucclhydremap" )
+set( LIBRARY_NAME "lecture_donnees" )
 
 add_library( ${LIBRARY_NAME} )
 target_sources( ${LIBRARY_NAME} 
     PRIVATE
-        EucclhydRemap.cc
-        ConditionsLimites.cc
-        Init.cc
-        PhaseLagrange.cc
-        PhaseRemap1.cc
-        PhaseRemap2.cc
-        PhaseRemapFinal.cc
-        SchemaParticules.cc
-        Utiles.cc
-        UtilesRemap.cc
+        LectureDonnees.cc
 )
 target_include_directories( ${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} )
 if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
@@ -22,7 +13,7 @@ if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
             stdc++fs
     )
 elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
-    target_link_libraries( ${LIBRARY_NAME} 
+	target_link_libraries( ${LIBRARY_NAME} 
         PUBLIC
             cppnabla
     )
