@@ -13,7 +13,10 @@ set( TEST_NAMES "SOD_X_bi_mat_Superbee_PenteBorne_mix"
                 "SOD_X_Mono_mat_MinMod_simple"
                 "SOD_X_Mono_mat_SuperBee_simple"
                 "SOD_X_Mono_mat_VanLeer_simple" 
-                "SOD_X_bi_mat_Lagrange_Euc")
+                "SOD_X_bi_mat_Lagrange_Euc"
+		"POINT_TRIPLE_MinMod_simple"
+		"POINT_TRIPLE_SuperBee_PenteBorne_pure"
+		"POINT_TRIPLE_SuperBee_PenteBorne_mixte")
 
 foreach( TEST_NAME ${TEST_NAMES} )
     add_test( NAME ${TEST_NAME}
