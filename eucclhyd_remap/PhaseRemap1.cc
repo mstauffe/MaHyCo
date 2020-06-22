@@ -1,9 +1,11 @@
 #include <math.h>  // for sqrt
+
 #include <Kokkos_Core.hpp>
-#include <algorithm>                // for copy
-#include <array>                    // for array
-#include <iostream>                 // for operator<<, basic_ostream::operat...
-#include <vector>                   // for allocator, vector
+#include <algorithm>  // for copy
+#include <array>      // for array
+#include <iostream>   // for operator<<, basic_ostream::operat...
+#include <vector>     // for allocator, vector
+
 #include "EucclhydRemap.h"          // for EucclhydRemap, EucclhydRemap::Opt...
 #include "UtilesRemap-Impl.h"       // for EucclhydRemap::computeIntersectionPP
 #include "mesh/CartesianMesh2D.h"   // for CartesianMesh2D
@@ -648,18 +650,18 @@ void EucclhydRemap::computeUremap1() noexcept {
             somme_masse += Uremap1(cCells)[nbmatmax + imat];
           }
           // Phi Vitesse
-          Phi(cCells)[2 * nbmatmax] =
-              Uremap1(cCells)[2 * nbmatmax] / somme_masse;
-          Phi(cCells)[2 * nbmatmax + 1] =
-              Uremap1(cCells)[2 * nbmatmax + 1] / somme_masse;
+          Phi(cCells)[3 * nbmatmax] =
+              Uremap1(cCells)[3 * nbmatmax] / somme_masse;
+          Phi(cCells)[3 * nbmatmax + 1] =
+              Uremap1(cCells)[3 * nbmatmax + 1] / somme_masse;
           // Phi energie
           for (imat = 0; imat < nbmatmax; imat++) {
             if (Uremap1(cCells)[nbmatmax + imat] != 0.)
-              Phi(cCells)[2 * nbmatmax + imat + 2] =
-                  Uremap1(cCells)[2 * nbmatmax + imat + 2] /
+              Phi(cCells)[2 * nbmatmax + imat] =
+                  Uremap1(cCells)[2 * nbmatmax + imat] /
                   Uremap1(cCells)[nbmatmax + imat];
             else
-              Phi(cCells)[2 * nbmatmax + imat + 2] = 0.;
+              Phi(cCells)[2 * nbmatmax + imat] = 0.;
           }
           // Phi energie cinétique
           if (options->projectionConservative == 1)
