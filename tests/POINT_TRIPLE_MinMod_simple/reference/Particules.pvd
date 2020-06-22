@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<VTKFile type="Collection" version="0.1">
+	<Collection>
+			<DataSet timestep="0" group="" part="0" file="Particules.1.vtp"/>
+			<DataSet timestep="0.0100459" group="" part="0" file="Particules.230.vtp"/>
+			<DataSet timestep="0.0200613" group="" part="0" file="Particules.446.vtp"/>
+			<DataSet timestep="0.0300636" group="" part="0" file="Particules.661.vtp"/>
+			<DataSet timestep="0.0400828" group="" part="0" file="Particules.869.vtp"/>
+	</Collection>
+</VTKFile>
