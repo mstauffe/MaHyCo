@@ -200,5 +200,6 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
 
   } else {
     cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
+    exit(1);
   }
 }
