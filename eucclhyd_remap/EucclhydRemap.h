@@ -44,14 +44,16 @@ class EucclhydRemap {
     int UnitTestCase = 0;
     int SedovTestCase = 1;
     int TriplePoint = 2;
-    int SodCase = 4;
-    int NohTestCase = 5;
+    int SodCaseX = 4;
+    int SodCaseY = 5;
+    int NohTestCase = 6;
     int BiUnitTestCase = 10;
     int BiSedovTestCase = 11;
     int BiTriplePoint = 12;
     int BiShockBubble = 13;
-    int BiSodCase = 14;
-    int BiNohTestCase = 15;
+    int BiSodCaseX = 14;
+    int BiSodCaseY = 15;
+    int BiNohTestCase = 16;
     // EOS
     int eosPerfectGas = 100;
     int symmetry = 200;

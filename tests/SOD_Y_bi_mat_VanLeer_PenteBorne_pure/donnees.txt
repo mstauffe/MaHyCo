@@ -1,5 +1,5 @@
 # Cas test
-BiSodCase
+BiSodCaseY
 # Nombre de Mailles en X
 5
 # Nombre de Mailles en Y
