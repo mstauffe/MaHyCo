@@ -235,7 +235,7 @@ void EucclhydRemap::initCellInternalEnergy() noexcept {
           double r = 0.;
           // r= sqrt(Xc(cCells)[0]*Xc(cCells)[0]+Xc(cCells)[1]*Xc(cCells)[1]);
           r = Xc(cCells)[0];  // sod en X
-          // r= Xc(cCells)[1]; //
+          // r = Xc(cCells)[1]; // sod en Y
           if (r <= 0.5) {
             pInit = 1.0;
             rhoInit = 1.0;
@@ -480,8 +480,7 @@ void EucclhydRemap::initDensity() noexcept {
           // r=
           // sqrt(Xc(cCells)[0]*Xc(cCells)[0]+Xc(cCells)[1]*Xc(cCells)[1]);
           r = Xc(cCells)[0];  // sod en X
-          // r= Xc(cCells)[1]; // sod en Y
-
+          // r = Xc(cCells)[1]; // sod en Y
           if (r <= 0.5) {
             fracvol(cCells)[0] = 1.;
             fracvol(cCells)[1] = 0.;

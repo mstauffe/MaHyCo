@@ -167,7 +167,7 @@ RealArray1D<EucclhydRemap::nbequamax> EucclhydRemap::computeBoundaryFluxes(
     std::cout << " Bottom cell   " << cCells << std::endl;
     if (proj == 1) phiFace_fFaces = phiFace1(ftFaces);
     if (proj == 2) phiFace_fFaces = phiFace2(ftFaces);
-    return computeRemapFlux(
+    return computeRemapFlux(options->projectionOrder,
         options->projectionAvecPlateauPente, faceNormalVelocity(fbFaces),
         faceNormal(fbFaces), faceLength(fbFaces), phiFace_fFaces,
         outerFaceNormal(cCells, fbFacesOfCellC), exy, deltat_n);
@@ -189,7 +189,7 @@ RealArray1D<EucclhydRemap::nbequamax> EucclhydRemap::computeBoundaryFluxes(
 
     if (proj == 1) phiFace_fFaces = phiFace1(fbFaces);
     if (proj == 2) phiFace_fFaces = phiFace2(fbFaces);
-    return computeRemapFlux(
+    return computeRemapFlux(options->projectionOrder,
         options->projectionAvecPlateauPente, faceNormalVelocity(ftFaces),
         faceNormal(ftFaces), faceLength(ftFaces), phiFace_fFaces,
         outerFaceNormal(cCells, ftFacesOfCellC), exy, deltat_n);
@@ -214,7 +214,7 @@ RealArray1D<EucclhydRemap::nbequamax> EucclhydRemap::computeBoundaryFluxes(
 
         if (proj == 1) phiFace_fFaces = phiFace1(frFaces);
         if (proj == 2) phiFace_fFaces = phiFace2(frFaces);
-        return computeRemapFlux(
+        return computeRemapFlux(options->projectionOrder,
             options->projectionAvecPlateauPente, faceNormalVelocity(flFaces),
             faceNormal(flFaces), faceLength(flFaces), phiFace_fFaces,
             outerFaceNormal(cCells, flFacesOfCellC), exy, deltat_n);
@@ -268,7 +268,7 @@ RealArray1D<EucclhydRemap::nbequamax> EucclhydRemap::computeBoundaryFluxes(
                     << " frFacesOfCellC " << frFacesOfCellC << std::endl;
         }
         //
-        return computeRemapFlux(
+        return computeRemapFlux(options->projectionOrder,
             options->projectionAvecPlateauPente, faceNormalVelocity(frFaces),
             faceNormal(frFaces), faceLength(frFaces), phiFace_fFaces,
             outerFaceNormal(cCells, frFacesOfCellC), exy, deltat_n);

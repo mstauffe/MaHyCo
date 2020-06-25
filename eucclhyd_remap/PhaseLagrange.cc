@@ -896,7 +896,7 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
           // ce qui permet d'ecrire le flux telque
           // Flux = (dv1 = f1dv, dv2=f2*dv, dm1=rho1*df1, dm2=rho2*df2, d(mV) =
           // V*(dm1+dm2), d(m1e1) = e1*dm1,  d(m2e2) = e2*dm2 dans
-          // computeIntersectionPP
+          // computeFluxPP
 
           double somme_volume = 0.;
           for (imat = 0; imat < nbmatmax; imat++) {

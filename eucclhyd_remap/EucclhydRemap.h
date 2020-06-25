@@ -130,6 +130,10 @@ class EucclhydRemap {
   };
   Options* options;
 
+  struct interval {
+    double inf, sup;
+  };
+
  private:
   CartesianMesh2D* mesh;
   PvdFileWriter2D writer;
@@ -553,13 +557,13 @@ class EucclhydRemap {
       RealArray1D<d> gradphimoins, RealArray1D<d> phi, RealArray1D<d> phiplus,
       RealArray1D<d> phimoins, double h0, double hplus, double hmoins);
   template <size_t d>
-  RealArray1D<d> computeIntersectionPP(
+  RealArray1D<d> computeFluxPP(
       RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
       RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
       double face_normal_velocity, double deltat_n, int type, int cell,
       double flux_threhold);
   template <size_t d>
-  RealArray1D<d> computeIntersectionPPPure(
+  RealArray1D<d> computeFluxPPPure(
       RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
       RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
       double face_normal_velocity, double deltat_n, int type, int cell,
@@ -572,13 +576,34 @@ class EucclhydRemap {
       RealArray1D<dim> x_cf);
   RealArray1D<dim> xThenYToDirection(bool x_then_y_);
   template <size_t d>
-  RealArray1D<d> computeRemapFlux(int projectionAvecPlateauPente,
+  RealArray1D<d> computeRemapFlux(int projectionOrder,
+				  int projectionAvecPlateauPente,
                                   double face_normal_velocity,
                                   RealArray1D<dim> face_normal,
                                   double face_length, RealArray1D<d> phi_face,
                                   RealArray1D<dim> outer_face_normal,
                                   RealArray1D<dim> exy, double deltat_n);
-
+  template <size_t d>
+  RealArray1D<d> computeVecFluxOrdre3(RealArray1D<d> phimmm, RealArray1D<d> phimm,
+				      RealArray1D<d> phim,
+				      RealArray1D<d> phip, RealArray1D<d> phipp,
+				      RealArray1D<d> phippp,
+				      double hmmm, double hmm, double hm,
+				      double hp, double hpp, double hppp,
+				      double face_normal_velocity, double deltat_n);
+  interval define_interval(double a, double b);
+  interval intersection(interval I1, interval I2);
+  double evaluate_grad(double hm, double h0, double hp,
+		       double ym, double y0, double yp);
+  double evaluate_ystar(double hmm, double hm, double hp, double hpp,
+			double ymm, double ym, double yp, double ypp,
+			double gradm, double gradp);
+  double evaluate_fm(double x, double dx, double up, double du, double u6);
+  double evaluate_fp(double x, double dx, double um, double du, double u6);
+  double ComputeFluxOrdre3(double ymmm, double ymm, double ym,
+			   double yp, double ypp, double yppp,
+			   double hmmm, double hmm, double hm,
+			   double hp, double hpp, double hppp, double v_dt);
   /**
    * Job dumpVariables called @2.0 in executeTimeLoopN method.
    * In variables: Xc_x, Xc_y, eps_n, m, p, rho_n, t_n, v
