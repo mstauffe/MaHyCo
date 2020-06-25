@@ -14,8 +14,10 @@
 #include "utils/Utils.h"            // for indexOf
 
 void EucclhydRemap::initBoundaryConditions() noexcept {
-  if (options->testCase == options->SodCase ||
-      options->testCase == options->BiSodCase) {
+  if (options->testCase == options->SodCaseX ||
+      options->testCase == options->SodCaseY ||
+      options->testCase == options->BiSodCaseX||
+      options->testCase == options->BiSodCaseY) {
     // maillage 200 5 0.005 0.02
     options->leftBC = options->symmetry;
     options->leftBCValue = options->ey;
@@ -209,13 +211,16 @@ void EucclhydRemap::initCellInternalEnergy() noexcept {
           eps_n0(cCells) = eps0;
           for (imat = 0; imat < nbmatmax; imat++) epsp_n0(cCells)[imat] = eps0;
         });
-  } else if (options->testCase == options->SodCase) {
+  } else if (options->testCase == options->SodCaseX || options->testCase == options->SodCaseY) {
     Kokkos::parallel_for(
         "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           double pInit;
           double rhoInit;
           double epsInit;
-          if (Xc(cCells)[0] <= 0.5) {
+	  double r(0.);
+	  if (options->testCase == options->SodCaseX) r = Xc(cCells)[0];
+	  if (options->testCase == options->SodCaseY) r = Xc(cCells)[1];
+          if (r <= 0.5) {
             pInit = 1.0;
             rhoInit = 1.0;
           } else {
@@ -226,16 +231,16 @@ void EucclhydRemap::initCellInternalEnergy() noexcept {
           eps_n0(cCells) = epsInit;
           epsp_n0(cCells)[0] = epsInit;
         });
-  } else if (options->testCase == options->BiSodCase) {
+  } else if (options->testCase == options->BiSodCaseX || options->testCase == options->BiSodCaseY) {
     Kokkos::parallel_for(
         "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           double pInit;
           double rhoInit;
           double epsInit;
           double r = 0.;
-          // r= sqrt(Xc(cCells)[0]*Xc(cCells)[0]+Xc(cCells)[1]*Xc(cCells)[1]);
-          r = Xc(cCells)[0];  // sod en X
-          // r = Xc(cCells)[1]; // sod en Y
+          // r= sqrt(Xc(cCells)[0]*Xc(cCells)[0]+Xc(cCells)[1]*Xc(cCells)[1]); en rayon
+	  if (options->testCase == options->BiSodCaseX) r = Xc(cCells)[0];
+	  if (options->testCase == options->BiSodCaseY) r = Xc(cCells)[1];
           if (r <= 0.5) {
             pInit = 1.0;
             rhoInit = 1.0;
@@ -380,10 +385,12 @@ void EucclhydRemap::initCellVelocity() noexcept {
           V_n0(cCells)[0] = -options->u0 * n1 / normVect;
           V_n0(cCells)[1] = -options->u0 * n2 / normVect;
         } else if (options->testCase == options->SedovTestCase ||
-                   options->testCase == options->SodCase ||
+                   options->testCase == options->SodCaseX ||
+                   options->testCase == options->SodCaseY ||
                    options->testCase == options->TriplePoint ||
                    options->testCase == options->BiSedovTestCase ||
-                   options->testCase == options->BiSodCase ||
+                   options->testCase == options->BiSodCaseX ||
+                   options->testCase == options->BiSodCaseY ||
                    options->testCase == options->BiTriplePoint) {
           V_n0(cCells)[0] = 0.0;
           V_n0(cCells)[1] = 0.0;
@@ -456,14 +463,17 @@ void EucclhydRemap::initDensity() noexcept {
             rhop_n0(cCells)[1] = 1.0;
           }
         });
-  } else if (options->testCase == options->SodCase) {
+  } else if (options->testCase == options->SodCaseX || options->testCase == options->SodCaseY) {
     Kokkos::parallel_for(
         "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           fracvol(cCells)[0] = 1.;
           fracvol(cCells)[1] = 0.;
           fracmass(cCells)[0] = 1.;
-          fracmass(cCells)[1] = 0.;
-          if (Xc(cCells)[0] <= 0.5) {
+          fracmass(cCells)[1] = 0.;	 
+          double r(0.); 
+	  if (options->testCase == options->SodCaseX) r = Xc(cCells)[0];
+	  if (options->testCase == options->SodCaseY) r = Xc(cCells)[1];
+          if (r <= 0.5) {
             rho_n0(cCells) = 1.0;
             rhop_n0(cCells)[0] = 1.0;
             rhop_n0(cCells)[1] = 1.0;
@@ -473,14 +483,12 @@ void EucclhydRemap::initDensity() noexcept {
             rhop_n0(cCells)[1] = 0.125;
           }
         });
-  } else if (options->testCase == options->BiSodCase) {
+  } else if (options->testCase == options->BiSodCaseX || options->testCase == options->BiSodCaseY) {
     Kokkos::parallel_for(
         "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-          double r = 0.;
-          // r=
-          // sqrt(Xc(cCells)[0]*Xc(cCells)[0]+Xc(cCells)[1]*Xc(cCells)[1]);
-          r = Xc(cCells)[0];  // sod en X
-          // r = Xc(cCells)[1]; // sod en Y
+          double r(0.);
+	  if (options->testCase == options->BiSodCaseX) r = Xc(cCells)[0];
+	  if (options->testCase == options->BiSodCaseY) r = Xc(cCells)[1];
           if (r <= 0.5) {
             fracvol(cCells)[0] = 1.;
             fracvol(cCells)[1] = 0.;
@@ -693,8 +701,10 @@ void EucclhydRemap::initPart() noexcept {
         mpart(ipart) = rhopart(ipart) * vpart(ipart);
       });
 
-  if (options->testCase == options->BiSodCase ||
-      options->testCase == options->SodCase)
+  if (options->testCase == options->BiSodCaseX ||
+      options->testCase == options->BiSodCaseY ||
+      options->testCase == options->SodCaseX ||
+      options->testCase == options->SodCaseY )
     Kokkos::parallel_for(
         "initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
           Xpart_n0(ipart)[1] = (ipart % 10) * 0.01 + ipart * 0.0001;
@@ -760,8 +770,10 @@ void EucclhydRemap::setUpTimeLoopN() noexcept {
   deep_copy(F_n, F_n0);
   deep_copy(Xpart_n, Xpart_n0);
 
-  if (options->testCase == options->SodCase ||
-      options->testCase == options->BiSodCase) {
+  if (options->testCase == options->SodCaseX ||
+      options->testCase == options->SodCaseY ||
+      options->testCase == options->BiSodCaseX ||
+      options->testCase == options->BiSodCaseY) {
     // const ℝ δt_init = 1.0e-4;
     options->deltat_init = 1.0e-4;
     deltat_n = options->deltat_init;

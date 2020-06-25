@@ -16,14 +16,16 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
   castestToOptions["UnitTestCase"] = 0;
   castestToOptions["SedovTestCase"] = 1;
   castestToOptions["TriplePoint"] = 2;
-  castestToOptions["SodCase"] = 4;
-  castestToOptions["NohTestCase"] = 5;
+  castestToOptions["SodCaseX"] = 4;
+  castestToOptions["SodCaseY"] = 5;
+  castestToOptions["NohTestCase"] = 6;
   castestToOptions["BiUnitTestCase"] = 10;
   castestToOptions["BiSedovTestCase"] = 11;
   castestToOptions["BiTriplePoint"] = 12;
   castestToOptions["BiShockBubble"] = 13;
-  castestToOptions["BiSodCase"] = 14;
-  castestToOptions["BiNohTestCase"] = 15;
+  castestToOptions["BiSodCaseX"] = 14;
+  castestToOptions["BiSodCaseY"] = 15;
+  castestToOptions["BiNohTestCase"] = 16;
 
   std::unordered_map<string, int> schema_lagrange;
   schema_lagrange["Eucclhyd"] = 2000;
