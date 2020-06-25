@@ -217,7 +217,7 @@ double EucclhydRemap::evaluate_ystar(double hmm, double hm, double hp, double hp
   tmp2 = - hm * (hmm + hm) / (2. * hm + hp) * gradp
     + hp * (hp + hpp) / (hm + 2. * hp) * gradm;
   ystar = ym + hm / (hm + hp) * (yp - ym)
-    + 2. / (hmm + hm + hp + hpp) * (tmp1 + tmp2);
+    + 1. / (hmm + hm + hp + hpp) * (tmp1 + tmp2);
   return ystar;
 }
 // ----------------------------------

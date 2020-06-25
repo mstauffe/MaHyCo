@@ -415,8 +415,8 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
 							deltaPhiFaceAr(cfCells));
 	    }
 	  } else if (options->projectionOrder == 3) {
-	    // cfCells est à gauche de cCells
-	    // cbCells est à droite de cCells
+	    // cfCells est à droite de cCells
+	    // cbCells est à gauche de cCells
 	    int cffCells(cfId);
 	    int cfffCells(cfId);
 	    int frRightFaceOfCellC(mesh->getRightFaceOfCell(cfId));
@@ -465,14 +465,14 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
 	    // cellule à droite de cbbcells = cbbbcells
 	    
 	    phiFace1(fFaces) = computeVecFluxOrdre3(
-	     	    ArrayOperations::divide(ULagrange(cfffCells), vLagrange(cfffCells)),
-	    	    ArrayOperations::divide(ULagrange(cffCells), vLagrange(cffCells)),
-	    	    ArrayOperations::divide(ULagrange(cfCells), vLagrange(cfCells)),
-	    	    ArrayOperations::divide(ULagrange(cbCells), vLagrange(cbCells)),
+	     	    ArrayOperations::divide(ULagrange(cbbbCells), vLagrange(cbbbCells)),
 	    	    ArrayOperations::divide(ULagrange(cbbCells), vLagrange(cbbCells)),
-	    	    ArrayOperations::divide(ULagrange(cbbbCells), vLagrange(cbbbCells)),		    
-	    	    HvLagrange(cfffCells), HvLagrange(cffCells), HvLagrange(cfCells),
-	    	    HvLagrange(cbCells), HvLagrange(cbbCells), HvLagrange(cbbbCells),
+	    	    ArrayOperations::divide(ULagrange(cbCells), vLagrange(cbCells)),
+	    	    ArrayOperations::divide(ULagrange(cfCells), vLagrange(cfCells)),
+	    	    ArrayOperations::divide(ULagrange(cffCells), vLagrange(cffCells)),
+	    	    ArrayOperations::divide(ULagrange(cfffCells), vLagrange(cfffCells)),		    
+	    	    HvLagrange(cbbbCells), HvLagrange(cbbCells), HvLagrange(cbCells),
+	    	    HvLagrange(cfCells), HvLagrange(cffCells), HvLagrange(cfffCells),
 	    	    faceNormalVelocity(fFaces),deltat_n);
 	  }
         });
@@ -506,17 +506,6 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
 	    } else {
 	      phiFace1(fFaces) = ArrayOperations::minus(deltaPhiFaceAv(cfCells),
 							deltaPhiFaceAr(cbCells));
-	      // cfCells maille arriere, cbCells maille devant
-	      // std::cout << " ----------------------------------" << std::endl;
-	      // std::cout << " Phase Projection 1 Verticale " << std::endl;
-	      // std::cout << " cfCells " << cfCells << " cbCells " << cbCells <<
-	      // std::endl; std::cout << " fFaces " << fFaces << " fId" << fId <<
-	      // std::endl; std::cout << " phiFace1(fFaces) " << phiFace1(fFaces)
-	      // <<  std::endl; std::cout << " deltaPhiFaceAv(cfCells) " <<
-	      // deltaPhiFaceAv(cfCells) <<  std::endl; std::cout << "
-	      // deltaPhiFaceAr(cbCells) " << deltaPhiFaceAr(cbCells) <<
-	      // std::endl;
-	      // std::cout << " face " << fFaces << " flux " << phiFace1(fFaces) << std::endl;
 	    }
 	  } else if (options->projectionOrder == 3) {
 	    // cfCells est en dessous de cCells
@@ -571,7 +560,7 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
 	    // cellule au dessus de cbcells = cbbcells
 	    // cellule au dessus de cbbcells = cbbbcells
 	    
-	    phiFace1(fFaces) = computeVecFluxOrdre3(
+	     phiFace1(fFaces) = computeVecFluxOrdre3(
 	    	    ArrayOperations::divide(ULagrange(cfffCells), vLagrange(cfffCells)),
 	    	    ArrayOperations::divide(ULagrange(cffCells), vLagrange(cffCells)),
 	    	    ArrayOperations::divide(ULagrange(cfCells), vLagrange(cfCells)),
@@ -643,18 +632,10 @@ void EucclhydRemap::computeUremap1() noexcept {
             }
           }
         }
+	
+
         Uremap1(cCells) = ArrayOperations::minus(ULagrange(cCells), reduction8);
 	
-        if ((cCells == dbgcell3 || cCells == dbgcell2 || cCells == dbgcell1)) {
-          std::cout << " cell   " << cCells << "ULagrange " << ULagrange(cCells)
-                    << std::endl;
-          std::cout << " cell   " << cCells << "reduction8 " << reduction8
-                    << std::endl;
-          std::cout << " cell   " << cCells << "Uremap1 " << Uremap1(cCells)
-                    << std::endl;
-          std::cout << " cell   " << cCells << "Phi" << Phi(cCells)
-                    << std::endl;
-        }
 
         if (options->projectionAvecPlateauPente == 1) {
           // option ou on ne regarde pas la variation de rho, V et e
