@@ -21,15 +21,15 @@ using namespace nablalib;
  */
 KOKKOS_INLINE_FUNCTION
 void EucclhydRemap::dumpVariables() noexcept {
-  std::cout << " Deltat = " << deltat_n << std::endl;
-  std::cout << " ---------------------------"
-            << " Energie totale(t=0) = " << ETOTALE_0
-            << " Energie totale(Lagrange) = " << ETOTALE_L
-            << " Energie totale(time) = " << ETOTALE_T << std::endl;
-  std::cout << " ---------------------------"
-            << " Masse totale(t=0) = " << MASSET_0
-            << " Masse totale(Lagrange) = " << MASSET_L
-            << " Masse totale(time) = " << MASSET_T << std::endl;
+  // std::cout << " Deltat = " << deltat_n << std::endl;
+  // std::cout << " ---------------------------"
+  //           << " Energie totale(t=0) = " << ETOTALE_0
+  //           << " Energie totale(Lagrange) = " << ETOTALE_L
+  //           << " Energie totale(time) = " << ETOTALE_T << std::endl;
+  // std::cout << " ---------------------------"
+  //           << " Masse totale(t=0) = " << MASSET_0
+  //           << " Masse totale(Lagrange) = " << MASSET_L
+  //           << " Masse totale(time) = " << MASSET_T << std::endl;
   nbCalls++;
   if (!writer.isDisabled() &&
       (t_n >= lastDump + options->output_time || t_n == 0.)) {

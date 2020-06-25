@@ -54,8 +54,15 @@ class EucclhydRemap {
     int BiSodCaseX = 14;
     int BiSodCaseY = 15;
     int BiNohTestCase = 16;
+    //
+    int nbmat = -1;
     // EOS
-    int eosPerfectGas = 100;
+    int Void = 100;
+    int PerfectGas = 101;
+    int StiffenedGas = 102;
+    int Murnhagan = 103;
+    int SolidLinear = 104;
+    // conditions aux limites
     int symmetry = 200;
     int imposedVelocity = 201;
     int freeSurface = 202;
@@ -85,7 +92,7 @@ class EucclhydRemap {
     double threshold = 1.0E-16;
     double deltat_init = 0.;
     double deltat_min = 1.0E-10;
-    int eos = eosPerfectGas;
+    IntArray1D<nbmatmax> eos = {{PerfectGas, PerfectGas, PerfectGas}};
     int spaceOrder = 2;
     int projectionOrder = 2;
     int projectionLimiterId = superBee;
@@ -539,6 +546,13 @@ class EucclhydRemap {
   template <size_t N, size_t M>
   RealArray2D<N, M> tensProduct(RealArray1D<N> a, RealArray1D<M> b);
   double crossProduct2d(RealArray1D<2> a, RealArray1D<2> b);
+
+
+  int getLeftCells(const int cells);
+  int getRightCells(const int cells);
+  int getBottomCells(const int cells);
+  int getTopCells(const int cells);
+
 
   double fluxLimiter(int projectionLimiterId, double r);
   double fluxLimiterPP(int projectionLimiterId, double gradplus,

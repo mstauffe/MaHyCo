@@ -55,13 +55,14 @@ RealArray1D<d> EucclhydRemap::computeFluxPP(
     double face_normal_velocity, double deltat_n, int type, int cell,
     double flux_threhold) {
   RealArray1D<d> Flux = options->Uzero;
+  int nbmat = options->nbmat;
   double y0plus, y0moins, xd, xg, yd, yg;
   double flux1, flux2, flux3, flux1m, flux2m, flux3m;
   double partie_positive_v =
       0.5 * (face_normal_velocity + abs(face_normal_velocity)) * deltat_n;
   if (partie_positive_v == 0.) return Flux;
   int cas_PP = 0;
-  for (size_t i = 0; i < nbmatmax; i++) {
+  for (size_t i = 0; i < nbmat; i++) {
     // calcul des seuils y0plus, y0moins pour cCells
     y0plus = computeY0(options->projectionLimiterId, phi[i], phiplus[i],
                        phimoins[i], h0, hplus, hmoins, 0);
@@ -201,20 +202,20 @@ RealArray1D<d> EucclhydRemap::computeFluxPP(
   // les flux de masse, de quantité de mouvement et d'energie massique se
   // deduisent des flux de volumes
   double somme_flux_masse = 0.;
-  for (imat = 0; imat < nbmatmax; imat++) {
-    Flux[nbmatmax + imat] =
-        phi[nbmatmax + imat] * Flux[imat];  // flux de masse de imat
-    Flux[2 * nbmatmax + imat] =
-        phi[2 * nbmatmax + imat] *
-        Flux[nbmatmax + imat];  // flux de masse energy de imat
-    somme_flux_masse += Flux[nbmatmax + imat];
+  for (imat = 0; imat < nbmat; imat++) {
+    Flux[nbmat + imat] =
+        phi[nbmat + imat] * Flux[imat];  // flux de masse de imat
+    Flux[2 * nbmat + imat] =
+        phi[2 * nbmat + imat] *
+        Flux[nbmat + imat];  // flux de masse energy de imat
+    somme_flux_masse += Flux[nbmat + imat];
   }
-  Flux[3 * nbmatmax] =
-      phi[3 * nbmatmax] * somme_flux_masse;  // flux de quantité de mouvement x
-  Flux[3 * nbmatmax + 1] = phi[3 * nbmatmax + 1] *
+  Flux[3 * nbmat] =
+      phi[3 * nbmat] * somme_flux_masse;  // flux de quantité de mouvement x
+  Flux[3 * nbmat + 1] = phi[3 * nbmat + 1] *
                            somme_flux_masse;  // flux de quantité de mouvement y
-  Flux[3 * nbmatmax + 2] =
-      phi[3 * nbmatmax + 2] * somme_flux_masse;  // flux d'energie cinetique
+  Flux[3 * nbmat + 2] =
+      phi[3 * nbmat + 2] * somme_flux_masse;  // flux d'energie cinetique
 
   return Flux;
 }
@@ -226,6 +227,7 @@ RealArray1D<d> EucclhydRemap::computeFluxPPPure(
     double face_normal_velocity, double deltat_n, int type, int cell,
     double flux_threhold) {
   RealArray1D<d> Flux = options->Uzero;
+  int nbmat = options->nbmat;
   double y0plus, y0moins, xd, xg, yd, yg;
   double flux1, flux2, flux3, flux1m, flux2m, flux3m;
   double partie_positive_v =
@@ -233,7 +235,7 @@ RealArray1D<d> EucclhydRemap::computeFluxPPPure(
   if (partie_positive_v == 0.) return Flux;
   int cas_PP = 0;
   // on ne fait que la projection des volumes et masses
-  for (size_t i = 0; i < 2 * nbmatmax; i++) {
+  for (size_t i = 0; i < 2 * nbmat; i++) {
     // calcul des seuils y0plus, y0moins pour cCells
     y0plus = computeY0(options->projectionLimiterIdPure, phi[i], phiplus[i],
                        phimoins[i], h0, hplus, hmoins, 0);
@@ -373,18 +375,18 @@ RealArray1D<d> EucclhydRemap::computeFluxPPPure(
   // les flux de masse, de quantité de mouvement et d'energie massique se
   // deduisent des flux de volumes
   double somme_flux_masse = 0.;
-  for (imat = 0; imat < nbmatmax; imat++) {
-    Flux[2 * nbmatmax + imat] =
-        phi[2 * nbmatmax + imat] *
-        Flux[nbmatmax + imat];  // flux de masse energy de imat
-    somme_flux_masse += Flux[nbmatmax + imat];
+  for (imat = 0; imat < nbmat; imat++) {
+    Flux[2 * nbmat + imat] =
+        phi[2 * nbmat + imat] *
+        Flux[nbmat + imat];  // flux de masse energy de imat
+    somme_flux_masse += Flux[nbmat + imat];
   }
-  Flux[3 * nbmatmax] =
-      phi[3 * nbmatmax] * somme_flux_masse;  // flux de quantité de mouvement x
-  Flux[3 * nbmatmax + 1] = phi[3 * nbmatmax + 1] *
+  Flux[3 * nbmat] =
+      phi[3 * nbmat] * somme_flux_masse;  // flux de quantité de mouvement x
+  Flux[3 * nbmat + 1] = phi[3 * nbmat + 1] *
                            somme_flux_masse;  // flux de quantité de mouvement y
-  Flux[3 * nbmatmax + 2] =
-      phi[3 * nbmatmax + 2] * somme_flux_masse;  // flux d'energie cinetique
+  Flux[3 * nbmat + 2] =
+      phi[3 * nbmat + 2] * somme_flux_masse;  // flux d'energie cinetique
 
   return Flux;
 }

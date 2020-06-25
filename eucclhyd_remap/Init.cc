@@ -211,7 +211,8 @@ void EucclhydRemap::initCellInternalEnergy() noexcept {
           eps_n0(cCells) = eps0;
           for (imat = 0; imat < nbmatmax; imat++) epsp_n0(cCells)[imat] = eps0;
         });
-  } else if (options->testCase == options->SodCaseX || options->testCase == options->SodCaseY) {
+  } else if (options->testCase == options->SodCaseX ||
+	     options->testCase == options->SodCaseY) {
     Kokkos::parallel_for(
         "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           double pInit;
@@ -231,7 +232,8 @@ void EucclhydRemap::initCellInternalEnergy() noexcept {
           eps_n0(cCells) = epsInit;
           epsp_n0(cCells)[0] = epsInit;
         });
-  } else if (options->testCase == options->BiSodCaseX || options->testCase == options->BiSodCaseY) {
+  } else if (options->testCase == options->BiSodCaseX ||
+	     options->testCase == options->BiSodCaseY) {
     Kokkos::parallel_for(
         "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           double pInit;
@@ -668,14 +670,6 @@ void EucclhydRemap::initMeshGeometryForFaces() noexcept {
                 (ArrayOperations::minus(X_face, Xc(cCells))),
                 MathFunctions::norm(
                     ArrayOperations::minus(X_face, Xc(cCells))));
-            if ((cCells == dbgcell3 || cCells == dbgcell2 ||
-                 cCells == dbgcell1)) {
-              std::cout << " cell   " << cCells << std::endl;
-              std::cout << "fId " << fId
-                        << " outerFaceNormal(cCells,fFacesOfCellC) "
-                        << outerFaceNormal(cCells, fFacesOfCellC)
-                        << " fFaceOfCellC " << fFacesOfCellC << std::endl;
-            }
           }
         }
         RealArray1D<dim> face_normal;
