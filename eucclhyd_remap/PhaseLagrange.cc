@@ -68,30 +68,43 @@ void EucclhydRemap::computeCornerNormal() noexcept {
  * Out variables: c, p
  */
 void EucclhydRemap::computeEOS() noexcept {
-  if (options->eos == options->eosPerfectGas)
-    Kokkos::parallel_for(
-        "computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-          p(cCells) = 0.;
-          for (imat = 0; imat < nbmatmax; imat++) {
-            pp(cCells)[imat] = (options->gammap[imat] - 1.0) *
-                               rhop_n(cCells)[imat] * epsp_n(cCells)[imat];
-            p(cCells) += fracvol(cCells)[imat] * pp(cCells)[imat];
-            if (rhop_n(cCells)[imat] > 0.) {
-              vitsonp(cCells)[imat] =
-                  MathFunctions::sqrt(options->gammap[imat] * pp(cCells)[imat] /
-                                      rhop_n(cCells)[imat]);
-            } else
-              vitsonp(cCells)[imat] = 0.;
-          }
-          if (rho_n(cCells) > 0.) {
-            vitson(cCells) =
-                MathFunctions::sqrt(options->gamma * p(cCells) / rho_n(cCells));
-          } else {
-            std::cout << " cell " << cCells
-                      << " densité moyenne négative ou nulle " << rho_n(cCells)
-                      << std::endl;
-          }
-        });
+  int nbmat = options->nbmat;
+  Kokkos::parallel_for(
+      "computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+	p(cCells) = 0.;
+	for (imat = 0; imat < nbmat; imat++) {
+	  if (options->eos[imat] == options->Void) {
+	    pp(cCells)[imat] = 0.;
+	  } else if (options->eos[imat] == options->PerfectGas) {
+	    pp(cCells)[imat] = (options->gammap[imat] - 1.0) *
+	      rhop_n(cCells)[imat] * epsp_n(cCells)[imat];	    
+	    if (rhop_n(cCells)[imat] > 0.) {
+	      vitsonp(cCells)[imat] =
+		MathFunctions::sqrt(options->gammap[imat] * pp(cCells)[imat] /
+				    rhop_n(cCells)[imat]);
+	    } else
+	      vitsonp(cCells)[imat] = 0.;
+	  } else if (options->eos[imat] == options->StiffenedGas) {
+	    std::cout << " cell " << cCells
+		    << " EOS pas encore code "  << std::endl;
+	  } else if (options->eos[imat] == options->Murnhagan) {
+	    std::cout << " cell " << cCells
+		    << " EOS pas encore code "  << std::endl;
+	  } else if (options->eos[imat] == options->SolidLinear) {
+	    std::cout << " cell " << cCells
+		    << " EOS pas encore code "  << std::endl;
+	  }
+	  p(cCells) += fracvol(cCells)[imat] * pp(cCells)[imat];
+	}
+	if (rho_n(cCells) > 0.) {
+	  vitson(cCells) =
+	    MathFunctions::sqrt(options->gamma * p(cCells) / rho_n(cCells));
+	} else {
+	  std::cout << " cell " << cCells
+		    << " densité moyenne négative ou nulle " << rho_n(cCells)
+		    << std::endl;
+	}
+      });
 }
 /**
  * Job computeGradients called @1.0 in executeTimeLoopN method.
@@ -99,18 +112,19 @@ void EucclhydRemap::computeEOS() noexcept {
  * Out variables: gradV, gradp, gradp1, gradp2, gradp3
  */
 void EucclhydRemap::computeGradients() noexcept {
+  int nbmat = options->nbmat;
   Kokkos::parallel_for(
       "computeDissipationMatrix", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
         int pId(pNodes);
         {
-          for (imat = 0; imat < nbmatmax; imat++)
+          for (imat = 0; imat < nbmat; imat++)
             fracvolnode(pNodes)[imat] = 0.;
           auto cellsOfNodeP(mesh->getCellsOfNode(pId));
           for (int cCellsOfNodeP = 0; cCellsOfNodeP < cellsOfNodeP.size();
                cCellsOfNodeP++) {
             int cId(cellsOfNodeP[cCellsOfNodeP]);
             int cCells(cId);
-            for (imat = 0; imat < nbmatmax; imat++)
+            for (imat = 0; imat < nbmat; imat++)
               fracvolnode(pNodes)[imat] += fracvol(cCells)[imat] * 0.25;
           }
         }
@@ -201,10 +215,11 @@ void EucclhydRemap::computeGradients() noexcept {
  * Out variables: m
  */
 void EucclhydRemap::computeMass() noexcept {
+  int nbmat = options->nbmat;
   Kokkos::parallel_for(
       "computeMass", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         m(cCells) = rho_n(cCells) * v(cCells);
-        for (imat = 0; imat < nbmatmax; imat++)
+        for (imat = 0; imat < nbmat; imat++)
           mp(cCells)[imat] = fracmass(cCells)[imat] * m(cCells);
       });
 }
@@ -270,6 +285,7 @@ void EucclhydRemap::computedeltatc() noexcept {
  * Out variables: V_extrap, p_extrap, pp_extrap
  */
 void EucclhydRemap::extrapolateValue() noexcept {
+  int nbmat = options->nbmat;
   if (options->spaceOrder == 1) {
     Kokkos::parallel_for(
         "extrapolateValue", nbCells, KOKKOS_LAMBDA(const int& cCells) {
@@ -280,7 +296,7 @@ void EucclhydRemap::extrapolateValue() noexcept {
                  pNodesOfCellC++) {
               V_extrap(cCells, pNodesOfCellC) = V_n(cCells);
               p_extrap(cCells, pNodesOfCellC) = p(cCells);
-              for (imat = 0; imat < nbmatmax; imat++)
+              for (imat = 0; imat < nbmat; imat++)
                 pp_extrap(cCells, pNodesOfCellC)[imat] = pp(cCells)[imat];
             }
           }
@@ -408,7 +424,7 @@ void EucclhydRemap::extrapolateValue() noexcept {
 
               p_extrap(cCells, pNodesOfCellC) = 0.;
               // et on recalcule la moyenne
-              for (imat = 0; imat < nbmatmax; imat++)
+              for (imat = 0; imat < nbmat; imat++)
                 p_extrap(cCells, pNodesOfCellC) +=
                     fracvol(cCells)[imat] *
                     pp_extrap(cCells, pNodesOfCellC)[imat];
@@ -630,7 +646,8 @@ void EucclhydRemap::computeSubCellForce() noexcept {
  * Job computeLagrangeVolumeAndCenterOfGravity called @6.0 in executeTimeLoopN
  * method. In variables: XLagrange Out variables: XcLagrange, vLagrange
  */
-void EucclhydRemap::computeLagrangeVolumeAndCenterOfGravity() noexcept {
+void EucclhydRemap::computeLagrangeVolumeAndCenterOfGravity() noexcept {  
+  int nbmat = options->nbmat;
   Kokkos::parallel_for(
       "computeLagrangeVolumeAndCenterOfGravity", nbCells,
       KOKKOS_LAMBDA(const int& cCells) {
@@ -651,7 +668,7 @@ void EucclhydRemap::computeLagrangeVolumeAndCenterOfGravity() noexcept {
         }
         double vol = 0.5 * reduction6;
         vLagrange(cCells) = vol;
-        for (imat = 0; imat < nbmatmax; imat++)
+        for (imat = 0; imat < nbmat; imat++)
           vpLagrange(cCells)[imat] = fracvol(cCells)[imat] * vol;
         RealArray1D<dim> reduction7 = options->zeroVect;
         {
@@ -702,7 +719,8 @@ void EucclhydRemap::computeFacedeltaxLagrange() noexcept {
  * method. In variables: F_nplus1, V_n, Vnode_nplus1, deltat_n, eps_n, lpc_n, m,
  * rho_n, vLagrange Out variables: ULagrange
  */
-void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
+void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {  
+  int nbmat = options->nbmat;
   Kokkos::parallel_for(
       "updateCellCenteredLagrangeVariables", nbCells,
       KOKKOS_LAMBDA(const int& cCells) {
@@ -812,7 +830,7 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
         double epsLagrange = eps_n(cCells) + deltat_n / m(cCells) * reduction4;
         RealArray1D<nbmatmax> pepsLagrange;
         RealArray1D<nbmatmax> pepsLagrangec;
-        for (imat = 0; imat < nbmatmax; imat++) {
+        for (imat = 0; imat < nbmat; imat++) {
           pepsLagrange[imat] = 0.;
           pepsLagrangec[imat] = 0.;
           if (fracvol(cCells)[imat] > options->threshold &&
@@ -821,24 +839,24 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
                 epsp_n(cCells)[imat] + fracvol(cCells)[imat] * deltat_n /
                                            mp(cCells)[imat] * preduction4[imat];
         }
-        for (imat = 0; imat < nbmatmax; imat++) {
+        for (imat = 0; imat < nbmat; imat++) {
           ULagrange(cCells)[imat] = vpLagrange(cCells)[imat];
 
-          ULagrange(cCells)[nbmatmax + imat] =
+          ULagrange(cCells)[nbmat + imat] =
               fracmass(cCells)[imat] * vLagrange(cCells) * rhoLagrange;
 
-          ULagrange(cCells)[2 * nbmatmax + imat] =
+          ULagrange(cCells)[2 * nbmat + imat] =
               fracmass(cCells)[imat] * vLagrange(cCells) * rhoLagrange *
               pepsLagrange[imat];
         }
 
-        ULagrange(cCells)[3 * nbmatmax] =
+        ULagrange(cCells)[3 * nbmat] =
             vLagrange(cCells) * rhoLagrange * VLagrange[0];
-        ULagrange(cCells)[3 * nbmatmax + 1] =
+        ULagrange(cCells)[3 * nbmat + 1] =
             vLagrange(cCells) * rhoLagrange * VLagrange[1];
         // projection de l'energie cinétique
         if (options->projectionConservative == 1)
-          ULagrange(cCells)[3 * nbmatmax + 2] =
+          ULagrange(cCells)[3 * nbmat + 2] =
               0.5 * vLagrange(cCells) * rhoLagrange *
               (VLagrange[0] * VLagrange[0] + VLagrange[1] * VLagrange[1]);
 
@@ -849,7 +867,7 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
           // densites et energies
           rho_nplus1(cCells) = 0.;
           eps_nplus1(cCells) = 0.;
-          for (imat = 0; imat < nbmatmax; imat++) {
+          for (imat = 0; imat < nbmat; imat++) {
             // densités
             rho_nplus1(cCells) += fracmass(cCells)[imat] * rhoLagrange;
             if (fracvol(cCells)[imat] > options->threshold) {
@@ -899,40 +917,40 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
           // computeFluxPP
 
           double somme_volume = 0.;
-          for (imat = 0; imat < nbmatmax; imat++) {
+          for (imat = 0; imat < nbmat; imat++) {
             somme_volume += ULagrange(cCells)[imat];
           }
           // Phi volume
           double somme_masse = 0.;
-          for (imat = 0; imat < nbmatmax; imat++) {
+          for (imat = 0; imat < nbmat; imat++) {
             Phi(cCells)[imat] = ULagrange(cCells)[imat] / somme_volume;
 
             // Phi masse
             if (ULagrange(cCells)[imat] != 0.)
-              Phi(cCells)[nbmatmax + imat] =
-                  ULagrange(cCells)[nbmatmax + imat] / ULagrange(cCells)[imat];
+              Phi(cCells)[nbmat + imat] =
+                  ULagrange(cCells)[nbmat + imat] / ULagrange(cCells)[imat];
             else
-              Phi(cCells)[nbmatmax + imat] = 0.;
-            somme_masse += ULagrange(cCells)[nbmatmax + imat];
+              Phi(cCells)[nbmat + imat] = 0.;
+            somme_masse += ULagrange(cCells)[nbmat + imat];
           }
           // Phi Vitesse
-          Phi(cCells)[3 * nbmatmax] =
-              ULagrange(cCells)[3 * nbmatmax] / somme_masse;
-          Phi(cCells)[3 * nbmatmax + 1] =
-              ULagrange(cCells)[3 * nbmatmax + 1] / somme_masse;
+          Phi(cCells)[3 * nbmat] =
+              ULagrange(cCells)[3 * nbmat] / somme_masse;
+          Phi(cCells)[3 * nbmat + 1] =
+              ULagrange(cCells)[3 * nbmat + 1] / somme_masse;
           // Phi energie
-          for (imat = 0; imat < nbmatmax; imat++) {
-            if (ULagrange(cCells)[nbmatmax + imat] != 0.)
-              Phi(cCells)[2 * nbmatmax + imat] =
-                  ULagrange(cCells)[2 * nbmatmax + imat] /
-                  ULagrange(cCells)[nbmatmax + imat];
+          for (imat = 0; imat < nbmat; imat++) {
+            if (ULagrange(cCells)[nbmat + imat] != 0.)
+              Phi(cCells)[2 * nbmat + imat] =
+                  ULagrange(cCells)[2 * nbmat + imat] /
+                  ULagrange(cCells)[nbmat + imat];
             else
-              Phi(cCells)[2 * nbmatmax + imat] = 0.;
+              Phi(cCells)[2 * nbmat + imat] = 0.;
           }
           // Phi energie cinétique
           if (options->projectionConservative == 1)
-            Phi(cCells)[3 * nbmatmax + 2] =
-                ULagrange(cCells)[3 * nbmatmax + 2] / somme_masse;
+            Phi(cCells)[3 * nbmat + 2] =
+                ULagrange(cCells)[3 * nbmat + 2] / somme_masse;
 
         } else {
           Phi(cCells) =
@@ -981,7 +999,7 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
              fracmass(cCells)[1] * pepsLagrange[1] +
              fracmass(cCells)[2] * pepsLagrange[2] +
              0.5 * (VLagrange[0] * VLagrange[0] + VLagrange[1] * VLagrange[1]));
-        for (imat = 0; imat < nbmatmax; imat++) {
+        for (imat = 0; imat < nbmat; imat++) {
           MTOT_L(cCells) +=
               fracmass(cCells)[imat] * (rhoLagrange * vLagrange(cCells));
         }
