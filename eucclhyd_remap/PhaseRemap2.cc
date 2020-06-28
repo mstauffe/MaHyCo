@@ -70,7 +70,7 @@ void EucclhydRemap::computeGradPhiFace2() noexcept {
             int frFaces(utils::indexOf(mesh->getFaces(), frId));
             HvLagrange(cfCells) += 0.5 * faceLengthLagrange(frFaces);
 
-            int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cbId));
+            int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cfId));
             int flId(flLeftFaceOfCellC);
             int flFaces(utils::indexOf(mesh->getFaces(), flId));
             HvLagrange(cfCells) += 0.5 * faceLengthLagrange(flFaces);
