@@ -53,7 +53,6 @@ void EucclhydRemap::initBoundaryConditions() noexcept {
     // const ℕ rightBC = imposedVelocity; const ℝ[2] rightBCValue = zeroVect;
     // const ℕ topBC = imposedVelocity; const ℝ[2] topBCValue = zeroVect;
     // const ℕ bottomBC = symmetry; const ℝ[2] bottomBCValue = ex;
-
     options->leftBC = options->symmetry;
     options->leftBCValue = options->ey;
 
@@ -65,6 +64,7 @@ void EucclhydRemap::initBoundaryConditions() noexcept {
 
     options->bottomBC = options->symmetry;
     options->bottomBCValue = options->ex;
+    
   } else if (options->testCase == options->TriplePoint ||
              options->testCase == options->BiTriplePoint) {
     // maillage 140 60 0.0005 0.0005
@@ -298,27 +298,29 @@ void EucclhydRemap::initCellInternalEnergy() noexcept {
         "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           int cId(cCells);
           bool isCenterCell = false;
-	  double r_min = 2. * options->X_EDGE_LENGTH * MathFunctions::sqrt(2.);
-	  double eps1 = options->p0 / ((options->gamma - 1.0) * options->rho0);
+	  double pInit = 1.e-6;
+	  double rhoInit = 1.;
+	  double rmin = options->threshold; // depot sur 1 maille
+	  double eps1 = pInit / ((options->gamma - 1.0) * rhoInit);
           {
             auto nodesOfCellC(mesh->getNodesOfCell(cId));
             for (int pNodesOfCellC = 0; pNodesOfCellC < nodesOfCellC.size();
                  pNodesOfCellC++) {
               int pId(nodesOfCellC[pNodesOfCellC]);
               int pNodes(pId);
-              if (MathFunctions::norm(X(pNodes)) < r_min)
+              if (MathFunctions::norm(X(pNodes)) < rmin)
                 isCenterCell = true;
             }
           }
           if (isCenterCell) {
-	  std::cout << " r_min " << r_min << std::endl;
-            double total_energy_deposit = 0.979264;
+	    double total_energy_deposit = 0.244816 ;
             double dx = options->X_EDGE_LENGTH;
             double dy = options->Y_EDGE_LENGTH;
-            eps_n0(cCells) = (eps1 + total_energy_deposit / (4.0 * dx * dy));
+            eps_n0(cCells) = eps1 + total_energy_deposit / (dx * dy);
           } else {
             eps_n0(cCells) = eps1;
           }
+	  epsp_n0(cCells)[0] = eps_n0(cCells) ;
         });
   } else if (options->testCase == options->TriplePoint) {
     Kokkos::parallel_for(
@@ -599,15 +601,23 @@ void EucclhydRemap::initDensity() noexcept {
             }
           }
         });
-  } else {
+  } else if (options->testCase == options->SedovTestCase)  {
+    Kokkos::parallel_for(
+        "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+	  rho_n0(cCells) = 1.0;
+	  rhop_n0(cCells)[0] = 1.0;
+        });
+  }
+  if (options->nbmat == 1) {
     Kokkos::parallel_for(
         "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           fracvol(cCells)[0] = 1.;
           fracvol(cCells)[1] = 0.;
+          fracvol(cCells)[2] = 0.;
 
           fracmass(cCells)[0] = 1.;
           fracmass(cCells)[1] = 0.;
-          rho_n0(cCells) = options->rho0;
+          fracmass(cCells)[2] = 0.;
         });
   }
   Kokkos::parallel_for(
