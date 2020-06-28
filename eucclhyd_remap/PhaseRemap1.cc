@@ -50,42 +50,22 @@ void EucclhydRemap::computeGradPhiFace1() noexcept {
                          (XLagrange(n1Nodes)[0] - XLagrange(n2Nodes)[0]) +
                      (XLagrange(n1Nodes)[1] - XLagrange(n2Nodes)[1]) *
                          (XLagrange(n1Nodes)[1] - XLagrange(n2Nodes)[1]));
-            HvLagrange(cfCells) = vLagrange(cfCells) / LfLagrange(fFaces);
-            HvLagrange(cbCells) = vLagrange(cbCells) / LfLagrange(fFaces);
+          });
+      
+      Kokkos::parallel_for(
+          "computeGradPhiFace1", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+            int cId(cCells);
+            HvLagrange(cCells) = 0.;
 
-            // seconde methode
-            HvLagrange(cfCells) = 0.;
-            HvLagrange(cbCells) = 0.;
-            int cbfbBottomFaceOfCellC(mesh->getBottomFaceOfCell(cbId));
-            int cbfbId(cbfbBottomFaceOfCellC);
-            int cbfbFaces(utils::indexOf(mesh->getFaces(), cbfbId));
-            HvLagrange(cbCells) += 0.5 * faceLengthLagrange(cbfbFaces);
-
-            int cbftTopFaceOfCellC(mesh->getTopFaceOfCell(cbId));
-            int cbftId(cbftTopFaceOfCellC);
-            int cbftFaces(utils::indexOf(mesh->getFaces(), cbftId));
-            HvLagrange(cbCells) += 0.5 * faceLengthLagrange(cbftFaces);
-
-            int fbBottomFaceOfCellC(mesh->getBottomFaceOfCell(cfId));
+            int fbBottomFaceOfCellC(mesh->getBottomFaceOfCell(cId));
             int fbId(fbBottomFaceOfCellC);
             int fbFaces(utils::indexOf(mesh->getFaces(), fbId));
-            HvLagrange(cfCells) += 0.5 * faceLengthLagrange(fbFaces);
+            HvLagrange(cCells) += 0.5 * faceLengthLagrange(fbFaces);
 
-            int ftTopFaceOfCellC(mesh->getTopFaceOfCell(cfId));
+            int ftTopFaceOfCellC(mesh->getTopFaceOfCell(cId));
             int ftId(ftTopFaceOfCellC);
             int ftFaces(utils::indexOf(mesh->getFaces(), ftId));
-            HvLagrange(cfCells) += 0.5 * faceLengthLagrange(ftFaces);
-
-            if (fFaces == face_debug1 || fFaces == face_debug2) {
-              std::cout << " Pour Proj Hori fFaces " << fFaces << " Longeur L"
-                        << LfLagrange(fFaces) << std::endl;
-              std::cout << " FaceLengthLagrange " << faceLengthLagrange(fFaces)
-                        << std::endl;
-              std::cout << " HvLagrange(cfCells) " << fbFaces << " "
-                        << HvLagrange(cfCells) << std::endl;
-              std::cout << " HvLagrange(cbCells) " << cbfbFaces << " "
-                        << HvLagrange(cbCells) << std::endl;
-            }
+            HvLagrange(cCells) += 0.5 * faceLengthLagrange(ftFaces);
           });
     } else {
       auto innerHorizontalFaces(mesh->getInnerHorizontalFaces());
@@ -116,41 +96,22 @@ void EucclhydRemap::computeGradPhiFace1() noexcept {
                          (XLagrange(n1Nodes)[0] - XLagrange(n2Nodes)[0]) +
                      (XLagrange(n1Nodes)[1] - XLagrange(n2Nodes)[1]) *
                          (XLagrange(n1Nodes)[1] - XLagrange(n2Nodes)[1]));
-            HvLagrange(cfCells) = vLagrange(cfCells) / LfLagrange(fFaces);
-            HvLagrange(cbCells) = vLagrange(cbCells) / LfLagrange(fFaces);
+	  });           
+      Kokkos::parallel_for(
+          "computeGradPhiFace1", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+            int cId(cCells);
+
             // seconde methode
-            HvLagrange(cfCells) = 0.;
-            HvLagrange(cbCells) = 0.;
-            int cbfrRightFaceOfCellC(mesh->getRightFaceOfCell(cbId));
-            int cbfrId(cbfrRightFaceOfCellC);
-            int cbfrFaces(utils::indexOf(mesh->getFaces(), cbfrId));
-            HvLagrange(cbCells) += 0.5 * faceLengthLagrange(cbfrFaces);
-
-            int cbflLeftFaceOfCellC(mesh->getLeftFaceOfCell(cbId));
-            int cbflId(cbflLeftFaceOfCellC);
-            int cbflFaces(utils::indexOf(mesh->getFaces(), cbflId));
-            HvLagrange(cbCells) += 0.5 * faceLengthLagrange(cbflFaces);
-
-            int frRightFaceOfCellC(mesh->getRightFaceOfCell(cfId));
+            HvLagrange(cCells) = 0.;
+            int frRightFaceOfCellC(mesh->getRightFaceOfCell(cId));
             int frId(frRightFaceOfCellC);
             int frFaces(utils::indexOf(mesh->getFaces(), frId));
-            HvLagrange(cfCells) += 0.5 * faceLengthLagrange(frFaces);
+            HvLagrange(cCells) += 0.5 * faceLengthLagrange(frFaces);
 
-            int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cfId));
+            int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cId));
             int flId(flLeftFaceOfCellC);
             int flFaces(utils::indexOf(mesh->getFaces(), flId));
-            HvLagrange(cfCells) += 0.5 * faceLengthLagrange(flFaces);
-
-            if (fFaces == face_debug1 || fFaces == face_debug2) {
-              std::cout << " Pour Proj Verti fFaces " << fFaces << " Longeur L"
-                        << LfLagrange(fFaces) << std::endl;
-              std::cout << " FaceLengthLagrange " << faceLengthLagrange(fFaces)
-                        << std::endl;
-              std::cout << " HvLagrange(cfCells) " << frFaces << " "
-                        << HvLagrange(cfCells) << std::endl;
-              std::cout << " HvLagrange(cbCells) " << cbfrFaces << " "
-                        << HvLagrange(cbCells) << std::endl;
-            }
+            HvLagrange(cCells) += 0.5 * faceLengthLagrange(flFaces);
           });
     }
   }
@@ -518,12 +479,12 @@ void EucclhydRemap::computeUremap1() noexcept {
           // e2*dm2 dans computeFluxPP
 
           double somme_volume = 0.;
-          for (imat = 0; imat < nbmat; imat++) {
+          for (int imat = 0; imat < nbmat; imat++) {
             somme_volume += Uremap1(cCells)[imat];
           }
           // Phi volume
           double somme_masse = 0.;
-          for (imat = 0; imat < nbmat; imat++) {
+          for (int imat = 0; imat < nbmat; imat++) {
             Phi(cCells)[imat] = Uremap1(cCells)[imat] / somme_volume;
             // Phi masse
             if (Uremap1(cCells)[imat] != 0.)
@@ -539,7 +500,7 @@ void EucclhydRemap::computeUremap1() noexcept {
           Phi(cCells)[3 * nbmat + 1] =
               Uremap1(cCells)[3 * nbmat + 1] / somme_masse;
           // Phi energie
-          for (imat = 0; imat < nbmat; imat++) {
+          for (int imat = 0; imat < nbmat; imat++) {
             if (Uremap1(cCells)[nbmat + imat] != 0.)
               Phi(cCells)[2 * nbmat + imat] =
                   Uremap1(cCells)[2 * nbmat + imat] /

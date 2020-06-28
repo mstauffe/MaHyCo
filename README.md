@@ -42,6 +42,12 @@ For Mac users, replace the `cmake` command with :
 
 ```
 cmake ../kokkos -DKokkos_CXX_STANDARD=17 -DCMAKE_INSTALL_PREFIX=/path/to/desired/kokkos/install/dir -DKokkos_ENABLE_OPENMP=Off -DKokkos_ENABLE_HWLOC=On
+
+For multithreads MaHyCo on Mac users,  replace the `cmake` command with :
+
+cmake ../kokkos -DKokkos_CXX_STANDARD=17 -DCMAKE_INSTALL_PREFIX=/path/to/desired/kokkos/install/dir -DKokkos_ENABLE_OPENMP=Off -DKokkos_ENABLE_HWLOC=On
+-DKokkos_ENABLE_PTHREAD=On -DKokkos_PTHREAD_DIR=/usr/local/lib
+
 ```
 
 # Download *MaHyCo*

@@ -46,7 +46,7 @@ class EucclhydRemap {
     int TriplePoint = 2;
     int SodCaseX = 4;
     int SodCaseY = 5;
-    int NohTestCase = 6;
+    int NohTestCase = 6; 
     int BiUnitTestCase = 10;
     int BiSedovTestCase = 11;
     int BiTriplePoint = 12;
@@ -164,7 +164,6 @@ class EucclhydRemap {
   int n, nbCalls;
   bool x_then_y_n, x_then_y_nplus1;
   double t_n, t_nplus1, deltat_n, deltat_nplus1, lastDump;
-  int imat;
   double ETOTALE_L, ETOTALE_T, ETOTALE_0;
   double MASSET_L, MASSET_T, MASSET_0;
 
@@ -310,8 +309,8 @@ class EucclhydRemap {
   utils::Timer global_timer;
   utils::Timer cpu_timer;
   utils::Timer io_timer;
-  // const size_t maxHardThread =
-  // Kokkos::DefaultExecutionSpace::max_hardware_threads();
+  const size_t maxHardThread = 
+    Kokkos::DefaultExecutionSpace::impl_max_hardware_threads();
 
  public:
   EucclhydRemap(Options* aOptions, CartesianMesh2D* aCartesianMesh2D,
@@ -506,7 +505,13 @@ class EucclhydRemap {
   void setUpTimeLoopN() noexcept;
 
   void computeCornerNormal() noexcept;
-  void computeEOS() noexcept;
+  void computeEOS();
+  void computeEOSGP(int imat);  
+  void computeEOSVoid(int imat);   
+  void computeEOSSTIFG(int imat);
+  void computeEOSMur(int imat);
+  void computeEOSSL(int imat);
+  void computePressionMoyenne() noexcept;
   void computeGradients() noexcept;
   void computeMass() noexcept;
   void computeDissipationMatrix() noexcept;
