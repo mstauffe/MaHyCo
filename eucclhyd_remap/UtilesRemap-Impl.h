@@ -202,7 +202,7 @@ RealArray1D<d> EucclhydRemap::computeFluxPP(
   // les flux de masse, de quantité de mouvement et d'energie massique se
   // deduisent des flux de volumes
   double somme_flux_masse = 0.;
-  for (imat = 0; imat < nbmat; imat++) {
+  for (size_t imat = 0; imat < nbmat; imat++) {
     Flux[nbmat + imat] =
         phi[nbmat + imat] * Flux[imat];  // flux de masse de imat
     Flux[2 * nbmat + imat] =
@@ -375,7 +375,7 @@ RealArray1D<d> EucclhydRemap::computeFluxPPPure(
   // les flux de masse, de quantité de mouvement et d'energie massique se
   // deduisent des flux de volumes
   double somme_flux_masse = 0.;
-  for (imat = 0; imat < nbmat; imat++) {
+  for (size_t imat = 0; imat < nbmat; imat++) {
     Flux[2 * nbmat + imat] =
         phi[2 * nbmat + imat] *
         Flux[nbmat + imat];  // flux de masse energy de imat

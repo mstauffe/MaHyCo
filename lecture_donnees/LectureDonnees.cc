@@ -123,7 +123,7 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
       getline(mesdonnees, ligne); // Equation d'etat
       mesdonnees >> mot;
       o->eos[imat] = eosToOptions[mot];
-      std::cout << " Equation d'etat " << mot << " ( " << o->eos << " ) " <<
+      std::cout << " Equation d'etat " << mot << " ( " << o->eos[imat] << " ) " <<
 	std::endl; mesdonnees.ignore();
     }
     

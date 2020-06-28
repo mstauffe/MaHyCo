@@ -50,9 +50,8 @@ void EucclhydRemap::computeGradPhiFace2() noexcept {
                          (XLagrange(n1Nodes)[0] - XLagrange(n2Nodes)[0]) +
                      (XLagrange(n1Nodes)[1] - XLagrange(n2Nodes)[1]) *
                          (XLagrange(n1Nodes)[1] - XLagrange(n2Nodes)[1]));
-            HvLagrange(cfCells) = vLagrange(cfCells) / LfLagrange(fFaces);
-            HvLagrange(cbCells) = vLagrange(cbCells) / LfLagrange(fFaces);
-            // seconde methode
+	    
+	    // seconde methode
             HvLagrange(cfCells) = 0.;
             HvLagrange(cbCells) = 0.;
             int cbfrRightFaceOfCellC(mesh->getRightFaceOfCell(cbId));
@@ -70,12 +69,26 @@ void EucclhydRemap::computeGradPhiFace2() noexcept {
             int frFaces(utils::indexOf(mesh->getFaces(), frId));
             HvLagrange(cfCells) += 0.5 * faceLengthLagrange(frFaces);
 
-            int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cbId));
+            int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cfId));
             int flId(flLeftFaceOfCellC);
             int flFaces(utils::indexOf(mesh->getFaces(), flId));
-            HvLagrange(cfCells) += 0.5 * faceLengthLagrange(flFaces);
-	    
+            HvLagrange(cfCells) += 0.5 * faceLengthLagrange(flFaces);	    
           });
+      // Kokkos::parallel_for(
+      //     "computeGradPhiFace2", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+      //       int cId(cCells);
+      //       // seconde methode
+      //       HvLagrange(cCells) = 0.;
+      //       int frRightFaceOfCellC(mesh->getRightFaceOfCell(cId));
+      //       int frId(frRightFaceOfCellC);
+      //       int frFaces(utils::indexOf(mesh->getFaces(), frId));
+      //       HvLagrange(cCells) += 0.5 * faceLengthLagrange(frFaces);
+
+      //       int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cId));
+      //       int flId(flLeftFaceOfCellC);
+      //       int flFaces(utils::indexOf(mesh->getFaces(), flId));
+      //       HvLagrange(cCells) += 0.5 * faceLengthLagrange(flFaces);	    
+      //     });
     } else {
       auto innerVerticalFaces(mesh->getInnerVerticalFaces());
       Kokkos::parallel_for(
@@ -105,10 +118,8 @@ void EucclhydRemap::computeGradPhiFace2() noexcept {
                          (XLagrange(n1Nodes)[0] - XLagrange(n2Nodes)[0]) +
                      (XLagrange(n1Nodes)[1] - XLagrange(n2Nodes)[1]) *
                          (XLagrange(n1Nodes)[1] - XLagrange(n2Nodes)[1]));
-            HvLagrange(cfCells) = vLagrange(cfCells) / LfLagrange(fFaces);
-            HvLagrange(cbCells) = vLagrange(cbCells) / LfLagrange(fFaces);
 
-            // seconde methode
+	    // seconde methode
             HvLagrange(cfCells) = 0.;
             HvLagrange(cbCells) = 0.;
             int cbfbBottomFaceOfCellC(mesh->getBottomFaceOfCell(cbId));
@@ -130,8 +141,22 @@ void EucclhydRemap::computeGradPhiFace2() noexcept {
             int ftId(ftTopFaceOfCellC);
             int ftFaces(utils::indexOf(mesh->getFaces(), ftId));
             HvLagrange(cfCells) += 0.5 * faceLengthLagrange(ftFaces);
+          });           
+      // Kokkos::parallel_for(
+      //     "computeGradPhiFace2", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+      //       int cId(cCells);
+      //       // seconde methode
+      //       HvLagrange(cCells) = 0.;
+      //       int fbBottomFaceOfCellC(mesh->getBottomFaceOfCell(cId));
+      //       int fbId(fbBottomFaceOfCellC);
+      //       int fbFaces(utils::indexOf(mesh->getFaces(), fbId));
+      //       HvLagrange(cCells) += 0.5 * faceLengthLagrange(fbFaces);
 
-          });
+      //       int ftTopFaceOfCellC(mesh->getTopFaceOfCell(cId));
+      //       int ftId(ftTopFaceOfCellC);
+      //       int ftFaces(utils::indexOf(mesh->getFaces(), ftId));
+      //       HvLagrange(cCells) += 0.5 * faceLengthLagrange(ftFaces);
+      //     });
     }
   }
 }
