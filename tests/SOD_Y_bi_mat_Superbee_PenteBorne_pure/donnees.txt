@@ -1,5 +1,5 @@
 # Cas test
-BiSodCase
+BiSodCaseY
 # Nombre de Mailles en X
 5
 # Nombre de Mailles en Y
@@ -16,6 +16,10 @@ BiSodCase
 1.e-4
 # Pas de temps minimal
 1.e-12
+# equation d'etat
+PerfectGas
+# equation d'etat
+PerfectGas
 # ordre en espace du schéma Lagrange
 2
 # avec projection (mode euler)

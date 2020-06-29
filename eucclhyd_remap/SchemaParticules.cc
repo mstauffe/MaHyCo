@@ -188,7 +188,7 @@ void EucclhydRemap::switchalpharho_rho() noexcept {
   Kokkos::parallel_for(
       "updateParticleCoefficient", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         rho_n(cCells) /= fracpart(cCells);
-        for (imat = 0; imat < nbmatmax; imat++)
+        for (int imat = 0; imat < nbmatmax; imat++)
           rhop_n(cCells)[imat] /= fracpart(cCells);
       });
 }
@@ -197,7 +197,7 @@ void EucclhydRemap::switchrho_alpharho() noexcept {
   Kokkos::parallel_for(
       "updateParticleCoefficient", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         rho_n(cCells) *= fracpart(cCells);
-        for (imat = 0; imat < nbmatmax; imat++)
+        for (int imat = 0; imat < nbmatmax; imat++)
           rhop_n(cCells)[imat] *= fracpart(cCells);
       });
 }

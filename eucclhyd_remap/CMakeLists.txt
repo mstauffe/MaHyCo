@@ -13,6 +13,7 @@ target_sources( ${LIBRARY_NAME}
         SchemaParticules.cc
         Utiles.cc
         UtilesRemap.cc
+	UtilesMesh.cc
 )
 target_include_directories( ${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} )
 if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )

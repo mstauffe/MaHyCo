@@ -16,14 +16,16 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
   castestToOptions["UnitTestCase"] = 0;
   castestToOptions["SedovTestCase"] = 1;
   castestToOptions["TriplePoint"] = 2;
-  castestToOptions["SodCase"] = 4;
-  castestToOptions["NohTestCase"] = 5;
+  castestToOptions["SodCaseX"] = 4;
+  castestToOptions["SodCaseY"] = 5;
+  castestToOptions["NohTestCase"] = 6;
   castestToOptions["BiUnitTestCase"] = 10;
   castestToOptions["BiSedovTestCase"] = 11;
   castestToOptions["BiTriplePoint"] = 12;
   castestToOptions["BiShockBubble"] = 13;
-  castestToOptions["BiSodCase"] = 14;
-  castestToOptions["BiNohTestCase"] = 15;
+  castestToOptions["BiSodCaseX"] = 14;
+  castestToOptions["BiSodCaseY"] = 15;
+  castestToOptions["BiNohTestCase"] = 16;
 
   std::unordered_map<string, int> schema_lagrange;
   schema_lagrange["Eucclhyd"] = 2000;
@@ -44,8 +46,8 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
   ouiOUnon["oui"] = 1;
 
   std::unordered_map<string, int> eosToOptions;
-  eosToOptions["PerfectGas"] = 100;
-  eosToOptions["Void"] = 101;
+  eosToOptions["Void"] = 100;
+  eosToOptions["PerfectGas"] = 101;
   eosToOptions["StiffenedGas"] = 102;
   eosToOptions["Murnhagan"] = 103;
   eosToOptions["SolidLinear"] = 104;
@@ -67,6 +69,13 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
     std::cout << " Cas test " << mot << " ( " << o->testCase << " ) "
               << std::endl;
     mesdonnees.ignore();
+
+    // on en deduit le nombre de materiaux du calcul
+    if (o->testCase < o->BiUnitTestCase)
+      o->nbmat = 1;
+    else o->nbmat = 2;
+    if (o->testCase == o->BiTriplePoint) o->nbmat = 3;
+      
 
     getline(mesdonnees, ligne);  // ligne de commentaire Nombre de Mailles en X
     mesdonnees >> entier;
@@ -110,12 +119,14 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
     std::cout << " Pas de temps minimal " << o->deltat_min << std::endl;
     mesdonnees.ignore();
 
-    // getline(mesdonnees, ligne); // Equation d'etat
-    // mesdonnees >> mot;
-    // o->eos = eosToOptions[mot];
-    // std::cout << " Equation d'etat " << mot << " ( " << o->eos << " ) " <<
-    // std::endl; mesdonnees.ignore();
-
+    for (int imat = 0; imat < o->nbmat; ++imat) {
+      getline(mesdonnees, ligne); // Equation d'etat
+      mesdonnees >> mot;
+      o->eos[imat] = eosToOptions[mot];
+      std::cout << " Equation d'etat " << mot << " ( " << o->eos[imat] << " ) " <<
+	std::endl; mesdonnees.ignore();
+    }
+    
     // getline(mesdonnees, ligne); // Equilibrage des pressions
     // mesdonnees >> mot;
     // o->AvecEquilibrage = equilibrage[mot];

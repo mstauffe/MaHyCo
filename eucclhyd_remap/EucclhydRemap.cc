@@ -21,15 +21,15 @@ using namespace nablalib;
  */
 KOKKOS_INLINE_FUNCTION
 void EucclhydRemap::dumpVariables() noexcept {
-  std::cout << " Deltat = " << deltat_n << std::endl;
-  std::cout << " ---------------------------"
-            << " Energie totale(t=0) = " << ETOTALE_0
-            << " Energie totale(Lagrange) = " << ETOTALE_L
-            << " Energie totale(time) = " << ETOTALE_T << std::endl;
-  std::cout << " ---------------------------"
-            << " Masse totale(t=0) = " << MASSET_0
-            << " Masse totale(Lagrange) = " << MASSET_L
-            << " Masse totale(time) = " << MASSET_T << std::endl;
+  // std::cout << " Deltat = " << deltat_n << std::endl;
+  // std::cout << " ---------------------------"
+  //           << " Energie totale(t=0) = " << ETOTALE_0
+  //           << " Energie totale(Lagrange) = " << ETOTALE_L
+  //           << " Energie totale(time) = " << ETOTALE_T << std::endl;
+  // std::cout << " ---------------------------"
+  //           << " Masse totale(t=0) = " << MASSET_0
+  //           << " Masse totale(Lagrange) = " << MASSET_L
+  //           << " Masse totale(time) = " << MASSET_T << std::endl;
   nbCalls++;
   if (!writer.isDisabled() &&
       (t_n >= lastDump + options->output_time || t_n == 0.)) {
@@ -93,7 +93,14 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
                 << setw(16) << t_n << __RESET__;
 
     if (options->AvecParticules == 1) switchalpharho_rho();
-    computeEOS();  // @1.0
+    for (int imat = 0; imat < options->nbmat; ++imat)  {
+      if (options->eos[imat] == options->PerfectGas) computeEOSGP(imat);  
+      if (options->eos[imat] == options->Void) computeEOSVoid(imat);   
+      if (options->eos[imat] == options->StiffenedGas) computeEOSSTIFG(imat);
+      if (options->eos[imat] == options->Murnhagan) computeEOSMur(imat);
+      if (options->eos[imat] == options->SolidLinear) computeEOSSL(imat);
+    }
+    computePressionMoyenne();
     if (options->AvecParticules == 1) switchrho_alpharho();
     computeGradients();                         // @1.0
     computeMass();                              // @1.0
@@ -275,7 +282,7 @@ void EucclhydRemap::simulate() {
   initCellVelocity();          // @2.0
   initDensity();               // @2.0
   initMeshGeometryForFaces();  // @2.0
-  if (nbPart != 0) {
+  if (options->AvecParticules == 1) {
     initPart();
     updateParticleCoefficients();
     switchrho_alpharho();  // on travaille avec alpharho sauf pour l'EOS

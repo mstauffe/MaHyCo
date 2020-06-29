@@ -32,21 +32,37 @@ RealArray1D<d> EucclhydRemap::computeAndLimitGradPhi(
     return res;
   }
 }
+template <size_t d>
+RealArray1D<d> EucclhydRemap::computeVecFluxOrdre3(RealArray1D<d> phimmm, RealArray1D<d> phimm, RealArray1D<d> phim,
+						RealArray1D<d> phip, RealArray1D<d> phipp, RealArray1D<d> phippp,
+						double hmmm, double hmm, double hm,
+						double hp, double hpp, double hppp,
+						double face_normal_velocity, double deltat_n) {
+  RealArray1D<d> res;
+  double v_dt =  face_normal_velocity * deltat_n;
+  for (size_t i = 0; i < d; i++) {
+    res[i] =  ComputeFluxOrdre3(phimmm[i], phimm[i], phim[i], phip[i], phipp[i], phippp[i],
+				hmmm, hmm, hm, hp,  hpp, hppp, v_dt);
+  }
+  return res;
+}
+
 
 template <size_t d>
-RealArray1D<d> EucclhydRemap::computeIntersectionPP(
+RealArray1D<d> EucclhydRemap::computeFluxPP(
     RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
     double face_normal_velocity, double deltat_n, int type, int cell,
     double flux_threhold) {
   RealArray1D<d> Flux = options->Uzero;
+  int nbmat = options->nbmat;
   double y0plus, y0moins, xd, xg, yd, yg;
   double flux1, flux2, flux3, flux1m, flux2m, flux3m;
   double partie_positive_v =
       0.5 * (face_normal_velocity + abs(face_normal_velocity)) * deltat_n;
   if (partie_positive_v == 0.) return Flux;
   int cas_PP = 0;
-  for (size_t i = 0; i < nbmatmax; i++) {
+  for (size_t i = 0; i < nbmat; i++) {
     // calcul des seuils y0plus, y0moins pour cCells
     y0plus = computeY0(options->projectionLimiterId, phi[i], phiplus[i],
                        phimoins[i], h0, hplus, hmoins, 0);
@@ -186,31 +202,32 @@ RealArray1D<d> EucclhydRemap::computeIntersectionPP(
   // les flux de masse, de quantité de mouvement et d'energie massique se
   // deduisent des flux de volumes
   double somme_flux_masse = 0.;
-  for (imat = 0; imat < nbmatmax; imat++) {
-    Flux[nbmatmax + imat] =
-        phi[nbmatmax + imat] * Flux[imat];  // flux de masse de imat
-    Flux[2 * nbmatmax + imat] =
-        phi[2 * nbmatmax + imat] *
-        Flux[nbmatmax + imat];  // flux de masse energy de imat
-    somme_flux_masse += Flux[nbmatmax + imat];
+  for (size_t imat = 0; imat < nbmat; imat++) {
+    Flux[nbmat + imat] =
+        phi[nbmat + imat] * Flux[imat];  // flux de masse de imat
+    Flux[2 * nbmat + imat] =
+        phi[2 * nbmat + imat] *
+        Flux[nbmat + imat];  // flux de masse energy de imat
+    somme_flux_masse += Flux[nbmat + imat];
   }
-  Flux[3 * nbmatmax] =
-      phi[3 * nbmatmax] * somme_flux_masse;  // flux de quantité de mouvement x
-  Flux[3 * nbmatmax + 1] = phi[3 * nbmatmax + 1] *
+  Flux[3 * nbmat] =
+      phi[3 * nbmat] * somme_flux_masse;  // flux de quantité de mouvement x
+  Flux[3 * nbmat + 1] = phi[3 * nbmat + 1] *
                            somme_flux_masse;  // flux de quantité de mouvement y
-  Flux[3 * nbmatmax + 2] =
-      phi[3 * nbmatmax + 2] * somme_flux_masse;  // flux d'energie cinetique
+  Flux[3 * nbmat + 2] =
+      phi[3 * nbmat + 2] * somme_flux_masse;  // flux d'energie cinetique
 
   return Flux;
 }
 
 template <size_t d>
-RealArray1D<d> EucclhydRemap::computeIntersectionPPPure(
+RealArray1D<d> EucclhydRemap::computeFluxPPPure(
     RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
     double face_normal_velocity, double deltat_n, int type, int cell,
     double flux_threhold) {
   RealArray1D<d> Flux = options->Uzero;
+  int nbmat = options->nbmat;
   double y0plus, y0moins, xd, xg, yd, yg;
   double flux1, flux2, flux3, flux1m, flux2m, flux3m;
   double partie_positive_v =
@@ -218,7 +235,7 @@ RealArray1D<d> EucclhydRemap::computeIntersectionPPPure(
   if (partie_positive_v == 0.) return Flux;
   int cas_PP = 0;
   // on ne fait que la projection des volumes et masses
-  for (size_t i = 0; i < 2 * nbmatmax; i++) {
+  for (size_t i = 0; i < 2 * nbmat; i++) {
     // calcul des seuils y0plus, y0moins pour cCells
     y0plus = computeY0(options->projectionLimiterIdPure, phi[i], phiplus[i],
                        phimoins[i], h0, hplus, hmoins, 0);
@@ -358,18 +375,18 @@ RealArray1D<d> EucclhydRemap::computeIntersectionPPPure(
   // les flux de masse, de quantité de mouvement et d'energie massique se
   // deduisent des flux de volumes
   double somme_flux_masse = 0.;
-  for (imat = 0; imat < nbmatmax; imat++) {
-    Flux[2 * nbmatmax + imat] =
-        phi[2 * nbmatmax + imat] *
-        Flux[nbmatmax + imat];  // flux de masse energy de imat
-    somme_flux_masse += Flux[nbmatmax + imat];
+  for (size_t imat = 0; imat < nbmat; imat++) {
+    Flux[2 * nbmat + imat] =
+        phi[2 * nbmat + imat] *
+        Flux[nbmat + imat];  // flux de masse energy de imat
+    somme_flux_masse += Flux[nbmat + imat];
   }
-  Flux[3 * nbmatmax] =
-      phi[3 * nbmatmax] * somme_flux_masse;  // flux de quantité de mouvement x
-  Flux[3 * nbmatmax + 1] = phi[3 * nbmatmax + 1] *
+  Flux[3 * nbmat] =
+      phi[3 * nbmat] * somme_flux_masse;  // flux de quantité de mouvement x
+  Flux[3 * nbmat + 1] = phi[3 * nbmat + 1] *
                            somme_flux_masse;  // flux de quantité de mouvement y
-  Flux[3 * nbmatmax + 2] =
-      phi[3 * nbmatmax + 2] * somme_flux_masse;  // flux d'energie cinetique
+  Flux[3 * nbmat + 2] =
+      phi[3 * nbmat + 2] * somme_flux_masse;  // flux d'energie cinetique
 
   return Flux;
 }
@@ -395,23 +412,26 @@ RealArray1D<d> EucclhydRemap::computeUpwindFaceQuantities(
 }
 
 template <size_t d>
-RealArray1D<d> EucclhydRemap::computeRemapFlux(
+RealArray1D<d> EucclhydRemap::computeRemapFlux( int projectionOrder,
     int projectionAvecPlateauPente, double face_normal_velocity,
     RealArray1D<dim> face_normal, double face_length, RealArray1D<d> phi_face,
     RealArray1D<dim> outer_face_normal, RealArray1D<dim> exy, double deltat_n) {
+  
   RealArray1D<d> Flux;
   if (projectionAvecPlateauPente == 0) {
+    // cas projection ordre 3 ou 1 ou 2 sans plateau pente (flux calculé ici avec phi_face)
     if (MathFunctions::fabs(MathFunctions::dot(face_normal, exy)) < 1.0E-10)
       return ArrayOperations::multiply(0.0, phi_face);
     return ArrayOperations::multiply(
-        MathFunctions::dot(outer_face_normal, exy) * face_normal_velocity *
-            face_length * deltat_n,
-        phi_face);
+	   MathFunctions::dot(outer_face_normal, exy) * face_normal_velocity *
+	   face_length * deltat_n,
+	   phi_face);
   } else {
+    // cas projection ordre 2 avec plateau pente (flux dans la variable phi_face)
     if (MathFunctions::fabs(MathFunctions::dot(face_normal, exy)) < 1.0E-10)
       return ArrayOperations::multiply(0.0, phi_face);
     return ArrayOperations::multiply(
-        MathFunctions::dot(outer_face_normal, exy) * face_length, phi_face);
+	   MathFunctions::dot(outer_face_normal, exy) * face_length, phi_face);
   }
 }
 

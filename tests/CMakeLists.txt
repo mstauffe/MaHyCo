@@ -9,6 +9,10 @@ set( TEST_NAMES "SOD_X_bi_mat_Superbee_PenteBorne_mix"
                 "SOD_Y_bi_mat_Superbee_PenteBorne_mixte"
                 "SOD_Y_bi_mat_Superbee_PenteBorne_pure"
                 "SOD_Y_bi_mat_VanLeer_PenteBorne_pure"
+		"SOD_X_Mono_mat_proj_ordre_3"
+		"SOD_Y_Mono_mat_proj_ordre_3"
+		"SOD_X_bi_mat_proj_ordre_3"
+		"SOD_Y_bi_mat_proj_ordre_3"
                 "SOD_X_Mono_mat_MinModG_simple"
                 "SOD_X_Mono_mat_MinMod_simple"
                 "SOD_X_Mono_mat_SuperBee_simple"
@@ -16,7 +20,10 @@ set( TEST_NAMES "SOD_X_bi_mat_Superbee_PenteBorne_mix"
                 "SOD_X_bi_mat_Lagrange_Euc"
 		"POINT_TRIPLE_MinMod_simple"
 		"POINT_TRIPLE_SuperBee_PenteBorne_pure"
-		"POINT_TRIPLE_SuperBee_PenteBorne_mixte")
+		"POINT_TRIPLE_SuperBee_PenteBorne_mixte"
+		"POINT_TRIPLE_proj_ordre_3"
+		"SEDOV_Mono_Mat_Superbee_PenteBorne_mixte"
+		"SEDOV_Mono_Mat_MinModG_simple")
 
 foreach( TEST_NAME ${TEST_NAMES} )
     add_test( NAME ${TEST_NAME}

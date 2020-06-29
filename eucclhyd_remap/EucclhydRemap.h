@@ -44,16 +44,25 @@ class EucclhydRemap {
     int UnitTestCase = 0;
     int SedovTestCase = 1;
     int TriplePoint = 2;
-    int SodCase = 4;
-    int NohTestCase = 5;
+    int SodCaseX = 4;
+    int SodCaseY = 5;
+    int NohTestCase = 6; 
     int BiUnitTestCase = 10;
     int BiSedovTestCase = 11;
     int BiTriplePoint = 12;
     int BiShockBubble = 13;
-    int BiSodCase = 14;
-    int BiNohTestCase = 15;
+    int BiSodCaseX = 14;
+    int BiSodCaseY = 15;
+    int BiNohTestCase = 16;
+    //
+    int nbmat = -1;
     // EOS
-    int eosPerfectGas = 100;
+    int Void = 100;
+    int PerfectGas = 101;
+    int StiffenedGas = 102;
+    int Murnhagan = 103;
+    int SolidLinear = 104;
+    // conditions aux limites
     int symmetry = 200;
     int imposedVelocity = 201;
     int freeSurface = 202;
@@ -83,7 +92,7 @@ class EucclhydRemap {
     double threshold = 1.0E-16;
     double deltat_init = 0.;
     double deltat_min = 1.0E-10;
-    int eos = eosPerfectGas;
+    IntArray1D<nbmatmax> eos = {{PerfectGas, PerfectGas, PerfectGas}};
     int spaceOrder = 2;
     int projectionOrder = 2;
     int projectionLimiterId = superBee;
@@ -130,6 +139,10 @@ class EucclhydRemap {
   };
   Options* options;
 
+  struct interval {
+    double inf, sup;
+  };
+
  private:
   CartesianMesh2D* mesh;
   PvdFileWriter2D writer;
@@ -151,7 +164,6 @@ class EucclhydRemap {
   int n, nbCalls;
   bool x_then_y_n, x_then_y_nplus1;
   double t_n, t_nplus1, deltat_n, deltat_nplus1, lastDump;
-  int imat;
   double ETOTALE_L, ETOTALE_T, ETOTALE_0;
   double MASSET_L, MASSET_T, MASSET_0;
 
@@ -297,8 +309,8 @@ class EucclhydRemap {
   utils::Timer global_timer;
   utils::Timer cpu_timer;
   utils::Timer io_timer;
-  // const size_t maxHardThread =
-  // Kokkos::DefaultExecutionSpace::max_hardware_threads();
+  const size_t maxHardThread = 
+    Kokkos::DefaultExecutionSpace::impl_max_hardware_threads();
 
  public:
   EucclhydRemap(Options* aOptions, CartesianMesh2D* aCartesianMesh2D,
@@ -493,7 +505,13 @@ class EucclhydRemap {
   void setUpTimeLoopN() noexcept;
 
   void computeCornerNormal() noexcept;
-  void computeEOS() noexcept;
+  void computeEOS();
+  void computeEOSGP(int imat);  
+  void computeEOSVoid(int imat);   
+  void computeEOSSTIFG(int imat);
+  void computeEOSMur(int imat);
+  void computeEOSSL(int imat);
+  void computePressionMoyenne() noexcept;
   void computeGradients() noexcept;
   void computeMass() noexcept;
   void computeDissipationMatrix() noexcept;
@@ -534,6 +552,13 @@ class EucclhydRemap {
   RealArray2D<N, M> tensProduct(RealArray1D<N> a, RealArray1D<M> b);
   double crossProduct2d(RealArray1D<2> a, RealArray1D<2> b);
 
+
+  int getLeftCells(const int cells);
+  int getRightCells(const int cells);
+  int getBottomCells(const int cells);
+  int getTopCells(const int cells);
+
+
   double fluxLimiter(int projectionLimiterId, double r);
   double fluxLimiterPP(int projectionLimiterId, double gradplus,
                        double gradmoins, double y0, double yplus, double ymoins,
@@ -553,13 +578,13 @@ class EucclhydRemap {
       RealArray1D<d> gradphimoins, RealArray1D<d> phi, RealArray1D<d> phiplus,
       RealArray1D<d> phimoins, double h0, double hplus, double hmoins);
   template <size_t d>
-  RealArray1D<d> computeIntersectionPP(
+  RealArray1D<d> computeFluxPP(
       RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
       RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
       double face_normal_velocity, double deltat_n, int type, int cell,
       double flux_threhold);
   template <size_t d>
-  RealArray1D<d> computeIntersectionPPPure(
+  RealArray1D<d> computeFluxPPPure(
       RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
       RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
       double face_normal_velocity, double deltat_n, int type, int cell,
@@ -572,13 +597,34 @@ class EucclhydRemap {
       RealArray1D<dim> x_cf);
   RealArray1D<dim> xThenYToDirection(bool x_then_y_);
   template <size_t d>
-  RealArray1D<d> computeRemapFlux(int projectionAvecPlateauPente,
+  RealArray1D<d> computeRemapFlux(int projectionOrder,
+				  int projectionAvecPlateauPente,
                                   double face_normal_velocity,
                                   RealArray1D<dim> face_normal,
                                   double face_length, RealArray1D<d> phi_face,
                                   RealArray1D<dim> outer_face_normal,
                                   RealArray1D<dim> exy, double deltat_n);
-
+  template <size_t d>
+  RealArray1D<d> computeVecFluxOrdre3(RealArray1D<d> phimmm, RealArray1D<d> phimm,
+				      RealArray1D<d> phim,
+				      RealArray1D<d> phip, RealArray1D<d> phipp,
+				      RealArray1D<d> phippp,
+				      double hmmm, double hmm, double hm,
+				      double hp, double hpp, double hppp,
+				      double face_normal_velocity, double deltat_n);
+  interval define_interval(double a, double b);
+  interval intersection(interval I1, interval I2);
+  double evaluate_grad(double hm, double h0, double hp,
+		       double ym, double y0, double yp);
+  double evaluate_ystar(double hmm, double hm, double hp, double hpp,
+			double ymm, double ym, double yp, double ypp,
+			double gradm, double gradp);
+  double evaluate_fm(double x, double dx, double up, double du, double u6);
+  double evaluate_fp(double x, double dx, double um, double du, double u6);
+  double ComputeFluxOrdre3(double ymmm, double ymm, double ym,
+			   double yp, double ypp, double yppp,
+			   double hmmm, double hmm, double hm,
+			   double hp, double hpp, double hppp, double v_dt);
   /**
    * Job dumpVariables called @2.0 in executeTimeLoopN method.
    * In variables: Xc_x, Xc_y, eps_n, m, p, rho_n, t_n, v

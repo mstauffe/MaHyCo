@@ -1,5 +1,5 @@
 # Cas test
-SodCase
+SodCaseX
 # Nombre de Mailles en X
 200
 # Nombre de Mailles en Y
@@ -16,6 +16,8 @@ SodCase
 1.e-4
 # Pas de temps minimal
 1.e-12
+# equation d'etat
+PerfectGas
 # ordre en espace du schéma Lagrange
 2
 # avec projection (mode euler)
