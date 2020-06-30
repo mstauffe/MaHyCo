@@ -93,9 +93,9 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
                 << setw(16) << t_n << __RESET__;
 
     if (options->AvecParticules == 1) switchalpharho_rho();
-    for (int imat = 0; imat < options->nbmat; ++imat)  {
-      if (options->eos[imat] == options->PerfectGas) computeEOSGP(imat);  
-      if (options->eos[imat] == options->Void) computeEOSVoid(imat);   
+    for (int imat = 0; imat < options->nbmat; ++imat) {
+      if (options->eos[imat] == options->PerfectGas) computeEOSGP(imat);
+      if (options->eos[imat] == options->Void) computeEOSVoid(imat);
       if (options->eos[imat] == options->StiffenedGas) computeEOSSTIFG(imat);
       if (options->eos[imat] == options->Murnhagan) computeEOSMur(imat);
       if (options->eos[imat] == options->SolidLinear) computeEOSSL(imat);

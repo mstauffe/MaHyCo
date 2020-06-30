@@ -123,8 +123,12 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
       getline(mesdonnees, ligne); // Equation d'etat
       mesdonnees >> mot;
       o->eos[imat] = eosToOptions[mot];
-      std::cout << " Equation d'etat " << mot << " ( " << o->eos[imat] << " ) " <<
-	std::endl; mesdonnees.ignore();
+      std::cout << " Equation d'etat " << mot << " ( " << o->eos[imat] << " ) "
+                << std::endl; mesdonnees.ignore();
+      if (o->eos[imat] == o->StiffenedGas) {
+        o->gammap[imat] = 6.1;
+        o->pip[imat] = 2.e4;
+      }
     }
     
     // getline(mesdonnees, ligne); // Equilibrage des pressions

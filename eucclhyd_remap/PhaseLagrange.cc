@@ -112,8 +112,18 @@ void EucclhydRemap::computeEOSVoid(int imat)  {
  */
 void EucclhydRemap::computeEOSSTIFG(int imat)  {
   Kokkos::parallel_for(
-    "computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {	
-      std::cout << " Pas encore programmée" << std::endl;
+    "computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+      cout << "icell = " << cCells
+           << ", rho = " << rhop_n(cCells)[imat]
+           << ", e_i = " << epsp_n(cCells)[imat]
+           << ", p   = " << (options->gammap[imat] - 1.0) * rhop_n(cCells)[imat] * epsp_n(cCells)[imat] - options->gammap[imat] * options->pip[imat]
+           << ", c^2 = " << options->gammap[imat] * (pp(cCells)[imat] + options->pip[imat]) / rhop_n(cCells)[imat]
+           << endl;
+      pp(cCells)[imat] = (options->gammap[imat] - 1.0) * rhop_n(cCells)[imat] * epsp_n(cCells)[imat] - options->gammap[imat] * options->pip[imat];
+      if (rhop_n(cCells)[imat] > 0.) {
+	      vitsonp(cCells)[imat] = MathFunctions::sqrt(options->gammap[imat] * (pp(cCells)[imat] + options->pip[imat]) / rhop_n(cCells)[imat]);
+      } else
+	      vitsonp(cCells)[imat] = 1.e-20;
     });
 }
 /**

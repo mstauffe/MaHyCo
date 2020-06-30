@@ -78,6 +78,8 @@ class EucclhydRemap {
     double output_time = final_time;
     double gamma = 1.4;
     RealArray1D<nbmatmax> gammap = {{1.4, 1.4, 1.4}};
+    RealArray1D<nbmatmax> pip = {
+        {0., 0., 0.}}; // constant in stiffened gas eos
     double cfl = 0.45;
     double X_LENGTH = 1.2;
     double Y_LENGTH = X_LENGTH;

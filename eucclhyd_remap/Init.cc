@@ -228,7 +228,7 @@ void EucclhydRemap::initCellInternalEnergy() noexcept {
             pInit = 0.1;
             rhoInit = 0.125;
           }
-          epsInit = pInit / ((options->gamma - 1.0) * rhoInit);
+          epsInit = (pInit + options->gammap[0]*options->pip[0]) / ((options->gammap[0] - 1.0) * rhoInit);
           eps_n0(cCells) = epsInit;
           epsp_n0(cCells)[0] = epsInit;
         });
