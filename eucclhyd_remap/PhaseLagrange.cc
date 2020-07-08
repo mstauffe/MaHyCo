@@ -162,7 +162,7 @@ void EucclhydRemap::computePressionMoyenne() noexcept {
     // NONREG GP A SUPPRIMER
     if (rho_n(cCells) > 0.) {
       vitson(cCells) =
-	MathFunctions::sqrt(options->gamma * p(cCells) / rho_n(cCells));
+	MathFunctions::sqrt(options->gamma * (p(cCells) + options->pip[0]) / rho_n(cCells));
     } 
   }
 }
