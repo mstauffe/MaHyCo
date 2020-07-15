@@ -152,21 +152,21 @@ void EucclhydRemap::computeGradPhi1() noexcept {
             if (cbCells == -1) cbCells = cCells;
             if (cfCells == -1) cfCells = cCells;
             bool voisinage_pure =
-                (options->projectionLimiteurMixte == 1) &&
+                (limiteurs->projectionLimiteurMixte == 1) &&
                 (mixte(cCells) == 0 && mixte(cfCells) == 0 &&
                  mixte(cbCells) == 0 && pure(cCells) == pure(cfCells) &&
                  pure(cCells) == pure(cbCells));
 
-            int limiter = options->projectionLimiterId;
-            if ((options->projectionAvecPlateauPente == 1) && voisinage_pure)
-              limiter = options->projectionLimiterIdPure;
+            int limiter = limiteurs->projectionLimiterId;
+            if ((limiteurs->projectionAvecPlateauPente == 1) && voisinage_pure)
+              limiter = limiteurs->projectionLimiterIdPure;
 	    
             gradPhi1(cCells) = computeAndLimitGradPhi(
                 limiter, gradPhiFace1(frFaces), gradPhiFace1(flFaces),
                 Phi(cCells), Phi(cfCells), Phi(cbCells), HvLagrange(cCells),
                 HvLagrange(cfCells), HvLagrange(cbCells));
 
-            if (options->projectionAvecPlateauPente == 1) {
+            if (limiteurs->projectionAvecPlateauPente == 1) {
               double Flux_sortant_ar =
                   MathFunctions::dot(outerFaceNormal(cCells, flFacesOfCellC),
                                      exy) *
@@ -228,21 +228,21 @@ void EucclhydRemap::computeGradPhi1() noexcept {
             if (cbCells == -1) cbCells = cCells;
             if (cfCells == -1) cfCells = cCells;
             bool voisinage_pure =
-                (options->projectionLimiteurMixte == 1) &&
+                (limiteurs->projectionLimiteurMixte == 1) &&
                 (mixte(cCells) == 0 && mixte(cfCells) == 0 &&
                  mixte(cbCells) == 0 && pure(cCells) == pure(cfCells) &&
                  pure(cCells) == pure(cbCells));
 
-            int limiter = options->projectionLimiterId;
-            if ((options->projectionAvecPlateauPente == 1) && voisinage_pure)
-              limiter = options->projectionLimiterIdPure;
+            int limiter = limiteurs->projectionLimiterId;
+            if ((limiteurs->projectionAvecPlateauPente == 1) && voisinage_pure)
+              limiter = limiteurs->projectionLimiterIdPure;
 	    
             gradPhi1(cCells) = computeAndLimitGradPhi(
                 limiter, gradPhiFace1(fbFaces), gradPhiFace1(ftFaces),
                 Phi(cCells), Phi(cbCells), Phi(cfCells), HvLagrange(cCells),
                 HvLagrange(cbCells), HvLagrange(cfCells));
 	    
-            if (options->projectionAvecPlateauPente == 1) {
+            if (limiteurs->projectionAvecPlateauPente == 1) {
               RealArray1D<dim> exy = {{0.0, 1.0}};
 	      
               double Flux_sortant_av =
@@ -311,7 +311,7 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
 	  // à la valeur du flux (integration de phi(x)) pour l'ordre 2 avec Plateau-Pente
 	  // à la valeur du flux (integration de phi(x)) pour l'ordre 3
 	  if (options->projectionOrder == 2) {
-	    if (options->projectionAvecPlateauPente == 0) {
+	    if (limiteurs->projectionAvecPlateauPente == 0) {
 	      phiFace1(fFaces) = computeUpwindFaceQuantities(
 		 faceNormal(fFaces), faceNormalVelocity(fFaces),
 		 deltaxLagrange(fFaces), Xf(fFaces),
@@ -367,7 +367,7 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
 	  // à la valeur du flux (integration de phi(x)) pour l'ordre 2 avec Plateau-Pente
 	  // à la valeur du flux (integration de phi(x)) pour l'ordre 3
 	  if (options->projectionOrder == 2) {
-	    if (options->projectionAvecPlateauPente == 0) {
+	    if (limiteurs->projectionAvecPlateauPente == 0) {
 	      phiFace1(fFaces) = computeUpwindFaceQuantities(
 		     faceNormal(fFaces), faceNormalVelocity(fFaces),
 		     deltaxLagrange(fFaces), Xf(fFaces),
@@ -434,14 +434,14 @@ void EucclhydRemap::computeUremap1() noexcept {
             reduction8 = ArrayOperations::plus(
                 reduction8,
                 (computeRemapFlux(options->projectionOrder,
-                    options->projectionAvecPlateauPente,
+                    limiteurs->projectionAvecPlateauPente,
                     faceNormalVelocity(fFaces), faceNormal(fFaces),
                     faceLength(fFaces), phiFace1(fFaces),
                     outerFaceNormal(cCells, fFacesOfCellC), exy, deltat_n)));
             
             
           }
-          if (options->FluxBC > 0) {
+          if (cdl->FluxBC > 0) {
             // flux exterieur eventuel
             if ((cCells == dbgcell3 || cCells == dbgcell2 ||
                  cCells == dbgcell1)) {
@@ -470,7 +470,7 @@ void EucclhydRemap::computeUremap1() noexcept {
         Uremap1(cCells) = ArrayOperations::minus(ULagrange(cCells), reduction8);
 	
 
-        if (options->projectionAvecPlateauPente == 1) {
+        if (limiteurs->projectionAvecPlateauPente == 1) {
           // option ou on ne regarde pas la variation de rho, V et e
           // phi = (f1, f2, rho1*f1, rho2*f2, Vx, Vy, e1, e2
           // ce qui permet d'ecrire le flux telque

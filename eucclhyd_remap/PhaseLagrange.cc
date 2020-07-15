@@ -962,7 +962,7 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
           p3(cCells) = pp(cCells)[2];
         }
 
-        if (options->projectionAvecPlateauPente == 1) {
+        if (limiteurs->projectionAvecPlateauPente == 1) {
           // option ou on ne regarde pas la variation de rho, V et e
           // phi = (f1, f2, rho1, rho2, Vx, Vy, e1, e2
           // ce qui permet d'ecrire le flux telque

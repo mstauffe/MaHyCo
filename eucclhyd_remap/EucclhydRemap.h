@@ -13,16 +13,19 @@
 #include <string>                         // for allocator, string
 #include <vector>                         // for vector
 
-#include "EucclhydRemap.h"
+//#include "EucclhydRemap.h"
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D, CartesianM...
 #include "mesh/MeshGeometry.h"     // for MeshGeometry
 #include "mesh/PvdFileWriter2D.h"  // for PvdFileWriter2D
+#include "SchemaParticules.h"
+
 #include "types/Types.h"           // for RealArray1D, RealArray2D
 #include "utils/Timer.h"           // for Timer
 
 /*---------------------------------------*/
 /*---------------------------------------*/
 using namespace nablalib;
+using namespace particulelib;
 
 class EucclhydRemap {
  public:
@@ -31,6 +34,59 @@ class EucclhydRemap {
   static const int nbequamax =
       3 * nbmatmax + 2 + 1;  // (volumes, masses, energies internes) * nbmatmax
                              // + vitesses + energie cinétique
+
+
+  // conditions aux limites
+  struct Cdl {
+    RealArray1D<dim> ex = {{1.0, 0.0}};
+    RealArray1D<dim> ey = {{0.0, 1.0}};
+    RealArray1D<nbequamax> Uzero = {
+        {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};   
+    int symmetry = 200;
+    int imposedVelocity = 201;
+    int freeSurface = 202;
+    int leftFluxBC = 0;
+    RealArray1D<nbequamax> leftFluxBCValue = Uzero;
+    int rightFluxBC = 0;
+    RealArray1D<nbequamax> rightFluxBCValue = Uzero;
+    int bottomFluxBC = 0;
+    RealArray1D<nbequamax> bottomFluxBCValue = Uzero;
+    int topFluxBC = 0;
+    RealArray1D<nbequamax> topFluxBCValue = Uzero;
+    int FluxBC = leftFluxBC + rightFluxBC + bottomFluxBC + topFluxBC;
+    int leftBC = 0;
+    RealArray1D<dim> leftBCValue = ey;
+
+    int rightBC = 0;
+    RealArray1D<dim> rightBCValue = ey;
+
+    int topBC = 0;
+    RealArray1D<dim> topBCValue = ex;
+
+    int bottomBC = 0;
+    RealArray1D<dim> bottomBCValue = ex;
+  };
+  Cdl* cdl;
+  
+  struct Limiteurs {   
+    // limiteur
+    int minmod = 300;
+    int superBee = 301;
+    int vanLeer = 302;
+    int minmodG = 1300;
+    int superBeeG = 1301;
+    int vanLeerG = 1302;
+    int arithmeticG = 1303;
+    
+    int projectionAvecPlateauPente = 0;
+    
+    int projectionLimiterId = superBee;
+    int projectionLimiterIdPure = arithmeticG;
+    
+    int projectionLimiteurMixte = 0;
+  };
+  Limiteurs* limiteurs;
+
   struct Options {
     // Should be const but usefull to set them from main args
     RealArray1D<dim> ex = {{1.0, 0.0}};
@@ -62,18 +118,9 @@ class EucclhydRemap {
     int StiffenedGas = 102;
     int Murnhagan = 103;
     int SolidLinear = 104;
-    // conditions aux limites
-    int symmetry = 200;
-    int imposedVelocity = 201;
-    int freeSurface = 202;
-    int minmod = 300;
-    int superBee = 301;
-    int vanLeer = 302;
-    int minmodG = 1300;
-    int superBeeG = 1301;
-    int vanLeerG = 1302;
-    int arithmeticG = 1303;
+    
     int testCase = SedovTestCase;
+
     double final_time = 1.0;
     double output_time = final_time;
     double gamma = 1.4;
@@ -95,47 +142,12 @@ class EucclhydRemap {
     IntArray1D<nbmatmax> eos = {{PerfectGas, PerfectGas, PerfectGas}};
     int spaceOrder = 2;
     int projectionOrder = 2;
-    int projectionLimiterId = superBee;
-    int projectionLimiterIdPure = arithmeticG;
-    int projectionAvecPlateauPente = 0;
     int projectionConservative = 0;
-    int projectionLimiteurMixte = 0;
     int AvecProjection = 1;
     int AvecParticules = 0;
     int Adiabatique = 1;
     int Isotherme = 2;
     int AvecEquilibrage = -1;
-
-    int leftFluxBC = 0;
-    RealArray1D<nbequamax> leftFluxBCValue = Uzero;
-    int rightFluxBC = 0;
-    RealArray1D<nbequamax> rightFluxBCValue = Uzero;
-    int bottomFluxBC = 0;
-    RealArray1D<nbequamax> bottomFluxBCValue = Uzero;
-    int topFluxBC = 0;
-    RealArray1D<nbequamax> topFluxBCValue = Uzero;
-    int FluxBC = leftFluxBC + rightFluxBC + bottomFluxBC + topFluxBC;
-
-    int leftBC = 0;
-    RealArray1D<dim> leftBCValue = ey;
-
-    int rightBC = 0;
-    RealArray1D<dim> rightBCValue = ey;
-
-    int topBC = 0;
-    RealArray1D<dim> topBCValue = ex;
-
-    int bottomBC = 0;
-    RealArray1D<dim> bottomBCValue = ex;
-
-    int DragModel;
-    int Kliatchko = 20;
-    int Classique = 21;
-    int KliatchkoDragModel = 20;
-
-    double Reynolds_min = 1.e-4;
-    double Reynolds_max = 1.e3;
-    double Drag = 10.;
   };
   Options* options;
 
@@ -145,6 +157,7 @@ class EucclhydRemap {
 
  private:
   CartesianMesh2D* mesh;
+  particulelib::SchemaParticules::Particules* particules;
   PvdFileWriter2D writer;
   PvdFileWriter2D writerpart;
   int nbPartMax;
@@ -313,9 +326,12 @@ class EucclhydRemap {
     Kokkos::DefaultExecutionSpace::impl_max_hardware_threads();
 
  public:
-  EucclhydRemap(Options* aOptions, CartesianMesh2D* aCartesianMesh2D,
+  EucclhydRemap(Options* aOptions, Cdl* aCdl, Limiteurs* aLimiteurs, particulelib::SchemaParticules::Particules* aParticules, CartesianMesh2D* aCartesianMesh2D,
                 string output)
       : options(aOptions),
+	cdl(aCdl),
+	limiteurs(aLimiteurs),
+	particules(aParticules),
         mesh(aCartesianMesh2D),
         writer("EucclhydRemap", output),
         writerpart("Particules", output),
@@ -538,11 +554,12 @@ class EucclhydRemap {
   void computeUremap2() noexcept;
 
   void remapCellcenteredVariable() noexcept;
-
+  
   void updateParticlePosition() noexcept;
   void updateParticleCoefficients() noexcept;
   void updateParticleVelocity() noexcept;
   void updateParticleRetroaction() noexcept;
+
   void switchalpharho_rho() noexcept;
   void switchrho_alpharho() noexcept;
 

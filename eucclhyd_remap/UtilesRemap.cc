@@ -7,13 +7,13 @@
 #include "types/MathFunctions.h"  // for min, max
 
 double EucclhydRemap::fluxLimiter(int projectionLimiterId, double r) {
-  if (projectionLimiterId == options->minmod) {
+  if (projectionLimiterId == limiteurs->minmod) {
     return MathFunctions::max(0.0, MathFunctions::min(1.0, r));
-  } else if (projectionLimiterId == options->superBee) {
+  } else if (projectionLimiterId == limiteurs->superBee) {
     return MathFunctions::max(
         0.0, MathFunctions::max(MathFunctions::min(2.0 * r, 1.0),
                                 MathFunctions::min(r, 2.0)));
-  } else if (projectionLimiterId == options->vanLeer) {
+  } else if (projectionLimiterId == limiteurs->vanLeer) {
     if (r <= 0.0)
       return 0.0;
     else
@@ -30,19 +30,19 @@ double EucclhydRemap::fluxLimiterPP(int projectionLimiterId, double gradplus,
   // limitation rupture de pente (formule 16 si on utilise pas le plateau pente)
   if (gradplus * gradmoins < 0.0) return 0.;
 
-  if (projectionLimiterId == options->minmodG)  // formule 9c
+  if (projectionLimiterId == limiteurs->minmodG)  // formule 9c
   {
     if ((yplus - ymoins) > 0.)
       grady = MathFunctions::min(fabs(gradplus), fabs(gradmoins));
     else
       grady = -MathFunctions::min(fabs(gradplus), fabs(gradmoins));
-  } else if (projectionLimiterId == options->superBeeG)  // formule 9g
+  } else if (projectionLimiterId == limiteurs->superBeeG)  // formule 9g
   {
     if ((yplus - ymoins) > 0.)
       grady = MathFunctions::max(fabs(gradplus), fabs(gradmoins));
     else
       grady = -MathFunctions::max(fabs(gradplus), fabs(gradmoins));
-  } else if (projectionLimiterId == options->vanLeerG)  // formule 9e
+  } else if (projectionLimiterId == limiteurs->vanLeerG)  // formule 9e
   {
     double lambdaplus = (h0 / 2 + hplus) / (h0 + hplus + hmoins);
     double lambdamoins = (h0 / 2 + hmoins) / (h0 + hplus + hmoins);
@@ -51,7 +51,7 @@ double EucclhydRemap::fluxLimiterPP(int projectionLimiterId, double gradplus,
               (lambdaplus * gradplus + lambdamoins * gradmoins);
     } else
       grady = 0.;
-  } else if (projectionLimiterId == options->arithmeticG) {
+  } else if (projectionLimiterId == limiteurs->arithmeticG) {
     double lambdaplus = (h0 / 2 + hplus) / (h0 + hplus + hmoins);
     double lambdamoins = (h0 / 2 + hmoins) / (h0 + hplus + hmoins);
     grady = lambdamoins * gradplus + lambdaplus * gradmoins;
@@ -74,18 +74,18 @@ double EucclhydRemap::computeY0(int projectionLimiterId, double y0,
                                 double hplus, double hmoins, int type) {
   // retourne {{y0plus, y0moins}}
   double y0plus = 0., y0moins = 0.;
-  if (projectionLimiterId == options->minmodG ||
-      projectionLimiterId == options->minmod)  // minmod
+  if (projectionLimiterId == limiteurs->minmodG ||
+      projectionLimiterId == limiteurs->minmod)  // minmod
   {
     y0plus = yplus;
     y0moins = ymoins;
-  } else if (projectionLimiterId == options->superBeeG ||
-             projectionLimiterId == options->superBee)  // superbee
+  } else if (projectionLimiterId == limiteurs->superBeeG ||
+             projectionLimiterId == limiteurs->superBee)  // superbee
   {
     y0plus = ((h0 + hmoins) * yplus + h0 * ymoins) / (2 * h0 + hmoins);
     y0moins = ((h0 + hplus) * ymoins + h0 * yplus) / (2 * h0 + hplus);
-  } else if (projectionLimiterId == options->vanLeerG ||
-             projectionLimiterId == options->vanLeer)  // vanleer
+  } else if (projectionLimiterId == limiteurs->vanLeerG ||
+             projectionLimiterId == limiteurs->vanLeer)  // vanleer
   {
     double a = MathFunctions::min(yplus, ymoins);
     double b = MathFunctions::max(yplus, ymoins);
@@ -102,7 +102,7 @@ double EucclhydRemap::computeY0(int projectionLimiterId, double y0,
 
     y0plus = MathFunctions::min(MathFunctions::max(xplus, a), b);
     y0moins = MathFunctions::min(MathFunctions::max(xmoins, a), b);
-  } else if (projectionLimiterId == options->arithmeticG) {
+  } else if (projectionLimiterId == limiteurs->arithmeticG) {
     y0plus = ((h0 + hmoins + hplus) * yplus + h0 * ymoins) /
              (2 * h0 + hmoins + hplus);
     y0moins = ((h0 + hmoins + hplus) * ymoins + h0 * yplus) /

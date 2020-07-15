@@ -8,12 +8,16 @@
 #include <vector>     // for allocator, vector
 
 #include "EucclhydRemap.h"          // for EucclhydRemap, EucclhydRemap::Opt...
+#include "SchemaParticules.h"       // for SchemaParticules, SchemaParticules::Particules
 #include "types/ArrayOperations.h"  // for multiply, minus, plus
 #include "types/MathFunctions.h"    // for max
 
+#include "SchemaParticules.h"
+
+
 void EucclhydRemap::updateParticlePosition() noexcept {
   Kokkos::parallel_for(
-      "updateParticleCoefficient", nbCells,
+		       "updateParticleCoefficient", mesh->getNbCells(),
       KOKKOS_LAMBDA(const int& cCells) { listpart(cCells).clear(); });
   Kokkos::parallel_for(
       "initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
@@ -109,8 +113,8 @@ void EucclhydRemap::updateParticleCoefficients() noexcept {
                               (Vpart_n(ipart)[1] - VLagrange[1]);
         Repart(ipart) = max(2. * rho_n(icells) * rpart(ipart) *
                                 MathFunctions::sqrt(normvpvg) / viscosity,
-                            options->Reynolds_min);
-        if (options->DragModel == options->Kliatchko) {
+                            particules->Reynolds_min);
+        if (particules->DragModel == particules->Kliatchko) {
           if (Repart(ipart) > 1000)
             Cdpart(ipart) = 0.02 * pow(fracpart(icells), (-2.55)) +
                             0.4 * pow(fracpart(icells), (-1.78));
@@ -129,9 +133,9 @@ void EucclhydRemap::updateParticleCoefficients() noexcept {
             fMac_part = 0.2222;
           Cdpart(ipart) =
               fMac_part *
-              pow((24. + 4. * min(Repart(ipart), options->Reynolds_max)),
+              pow((24. + 4. * min(Repart(ipart), particules->Reynolds_max)),
                   2.13) /
-              (min(Repart(ipart), options->Reynolds_min));
+              (min(Repart(ipart), particules->Reynolds_min));
         }
         // std::cout << " Part  " << ipart << " cd " << Cdpart(ipart)  << "  Re
         // " << Repart(ipart) << " " << fracpart(icells) << std::endl;

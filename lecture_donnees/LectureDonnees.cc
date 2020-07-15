@@ -11,7 +11,7 @@
  * In variables: fichier
  * Out variables: Options
  */
-void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
+void LectureDonnees(string Fichier, EucclhydRemap::Options* o, EucclhydRemap::Limiteurs* l) {
   std::unordered_map<string, int> castestToOptions;
   castestToOptions["UnitTestCase"] = 0;
   castestToOptions["SedovTestCase"] = 1;
@@ -172,30 +172,30 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
 
     getline(mesdonnees, ligne);  // Limiteur
     mesdonnees >> mot;
-    o->projectionLimiterId = limiteur[mot];
-    std::cout << " Limiteur " << mot << " ( " << o->projectionLimiterId << " ) "
+    l->projectionLimiterId = limiteur[mot];
+    std::cout << " Limiteur " << mot << " ( " << l->projectionLimiterId << " ) "
               << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // Projection Avec Plateau Pente
     mesdonnees >> mot;
-    o->projectionAvecPlateauPente = ouiOUnon[mot];
+    l->projectionAvecPlateauPente = ouiOUnon[mot];
     std::cout << " Projection Avec Plateau Pente " << mot << " ( "
-              << o->projectionAvecPlateauPente << " ) " << std::endl;
+              << l->projectionAvecPlateauPente << " ) " << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // Projection Avec Plateau Pente Mixte
     mesdonnees >> mot;
-    o->projectionLimiteurMixte = ouiOUnon[mot];
+    l->projectionLimiteurMixte = ouiOUnon[mot];
     std::cout << " Projection Avec Plateau Pente Mixte " << mot << " ( "
-              << o->projectionLimiteurMixte << " ) " << std::endl;
+              << l->projectionLimiteurMixte << " ) " << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // Projection Limiteur pour Mailles Pures
     mesdonnees >> mot;
-    o->projectionLimiterIdPure = limiteur[mot];
+    l->projectionLimiterIdPure = limiteur[mot];
     std::cout << " Limiteur pour Mailles Pures " << mot << " ( "
-              << o->projectionLimiterIdPure << " ) " << std::endl;
+              << l->projectionLimiterIdPure << " ) " << std::endl;
     mesdonnees.ignore();
 
     // getline(mesdonnees, ligne); // Presence de Particules

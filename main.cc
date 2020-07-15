@@ -3,7 +3,7 @@
 #include <iostream>                         // for operator<<, endl, basic_o...
 #include <string>                           // for string
 #include "lecture_donnees/LectureDonnees.h" // for LectureDonnees
-#include "EucclhydRemap.h"                  // for EucclhydRemap::Options
+#include "EucclhydRemap.h"                  // for EucclhydRemap::Options et Cdl
 #include "mesh/CartesianMesh2D.h"           // for CartesianMesh2D
 #include "mesh/CartesianMesh2DGenerator.h"  // for CartesianMesh2DGenerator
 
@@ -12,9 +12,12 @@ using namespace nablalib;
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
   auto o = new EucclhydRemap::Options();
+  auto cl = new EucclhydRemap::Cdl();
+  auto lim = new EucclhydRemap::Limiteurs();
+  auto part = new particulelib::SchemaParticules::Particules();
   string output;
   if (argc == 2) {
-    LectureDonnees(argv[1], o);
+    LectureDonnees(argv[1], o, lim);
   } else if (argc != 1) {
     std::cerr << "[ERREUR] Fichier de donnees non passé en argument " << std::endl;
     exit(1);
@@ -22,11 +25,14 @@ int main(int argc, char* argv[]) {
   auto nm = CartesianMesh2DGenerator::generate(
       o->X_EDGE_ELEMS, o->Y_EDGE_ELEMS, o->X_EDGE_LENGTH, o->Y_EDGE_LENGTH);
   // appel au schéma Lagrange Eucclhyd + schéma de projection ADI (en option)
-  auto c = new EucclhydRemap(o, nm, output);
+  auto c = new EucclhydRemap(o, cl, lim, part, nm, output);
   c->simulate();
   delete c;
   delete nm;
   delete o;
+  delete cl;
+  delete lim;
+  delete part;
   Kokkos::finalize();
   return 0;
 }
