@@ -77,7 +77,7 @@ void EucclhydRemap::remapCellcenteredVariable() noexcept {
         for (int imat = 0; imat < nbmat; imat++)
           fracmass(cCells)[imat] /= fmasset;
 
-        RealArray1D<nbmatmax> rhop_np1 = options->zeroVectmat;
+        RealArray1D<nbmatmax> rhop_np1 = zeroVectmat;
         double rho_np1 = 0.;
         // std::cout << " cell--m   " << cCells << " " <<  volt << " " <<
         // vol_np1[0] << " " << vol_np1[1] << std::endl;
@@ -93,7 +93,7 @@ void EucclhydRemap::remapCellcenteredVariable() noexcept {
              Uremap2(cCells)[3 * nbmat + 1] / (rho_np1 * vol)}};
 
         // double eps_np1 = Uremap2(cCells)[6] / (rho_np1 * vol);
-        RealArray1D<nbmatmax> pesp_np1 = options->zeroVectmat;
+        RealArray1D<nbmatmax> pesp_np1 = zeroVectmat;
         for (int imat = 0; imat < nbmat; imat++) {
           if ((fracvol(cCells)[imat] > options->threshold) &&
               (Uremap2(cCells)[nbmat + imat] != 0.))

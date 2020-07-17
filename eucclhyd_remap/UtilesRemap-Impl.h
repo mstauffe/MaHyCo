@@ -10,7 +10,7 @@ RealArray1D<d> EucclhydRemap::computeAndLimitGradPhi(
     RealArray1D<d> gradphimoins, RealArray1D<d> phi, RealArray1D<d> phiplus,
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins) {
   RealArray1D<d> res;
-  if (projectionLimiterId < options->minmodG) {
+  if (projectionLimiterId < limiteurs->minmodG) {
     // std::cout << " Passage gradient limite Classique " << std::endl;
     for (size_t i = 0; i < d; i++) {
       res[i] = (fluxLimiter(projectionLimiterId,
@@ -54,7 +54,7 @@ RealArray1D<d> EucclhydRemap::computeFluxPP(
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
     double face_normal_velocity, double deltat_n, int type, int cell,
     double flux_threhold) {
-  RealArray1D<d> Flux = options->Uzero;
+  RealArray1D<d> Flux = Uzero;
   int nbmat = options->nbmat;
   double y0plus, y0moins, xd, xg, yd, yg;
   double flux1, flux2, flux3, flux1m, flux2m, flux3m;
@@ -64,9 +64,9 @@ RealArray1D<d> EucclhydRemap::computeFluxPP(
   int cas_PP = 0;
   for (size_t i = 0; i < nbmat; i++) {
     // calcul des seuils y0plus, y0moins pour cCells
-    y0plus = computeY0(options->projectionLimiterId, phi[i], phiplus[i],
+    y0plus = computeY0(limiteurs->projectionLimiterId, phi[i], phiplus[i],
                        phimoins[i], h0, hplus, hmoins, 0);
-    y0moins = computeY0(options->projectionLimiterId, phi[i], phiplus[i],
+    y0moins = computeY0(limiteurs->projectionLimiterId, phi[i], phiplus[i],
                         phimoins[i], h0, hplus, hmoins, 1);
 
     // calcul des points d'intersections xd,xg
@@ -226,7 +226,7 @@ RealArray1D<d> EucclhydRemap::computeFluxPPPure(
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
     double face_normal_velocity, double deltat_n, int type, int cell,
     double flux_threhold) {
-  RealArray1D<d> Flux = options->Uzero;
+  RealArray1D<d> Flux = Uzero;
   int nbmat = options->nbmat;
   double y0plus, y0moins, xd, xg, yd, yg;
   double flux1, flux2, flux3, flux1m, flux2m, flux3m;
@@ -237,9 +237,9 @@ RealArray1D<d> EucclhydRemap::computeFluxPPPure(
   // on ne fait que la projection des volumes et masses
   for (size_t i = 0; i < 2 * nbmat; i++) {
     // calcul des seuils y0plus, y0moins pour cCells
-    y0plus = computeY0(options->projectionLimiterIdPure, phi[i], phiplus[i],
+    y0plus = computeY0(limiteurs->projectionLimiterIdPure, phi[i], phiplus[i],
                        phimoins[i], h0, hplus, hmoins, 0);
-    y0moins = computeY0(options->projectionLimiterIdPure, phi[i], phiplus[i],
+    y0moins = computeY0(limiteurs->projectionLimiterIdPure, phi[i], phiplus[i],
                         phimoins[i], h0, hplus, hmoins, 1);
 
     // calcul des points d'intersections xd,xg
