@@ -147,21 +147,21 @@ void EucclhydRemap::computeGradPhi2() noexcept {
             if (cbCells == -1) cbCells = cCells;
             if (cfCells == -1) cfCells = cCells;
             bool voisinage_pure =
-                (options->projectionLimiteurMixte == 1) &&
+                (limiteurs->projectionLimiteurMixte == 1) &&
                 (mixte(cCells) == 0 && mixte(cfCells) == 0 &&
                  mixte(cbCells) == 0 && pure(cCells) == pure(cfCells) &&
                  pure(cCells) == pure(cbCells));
 
-            int limiter = options->projectionLimiterId;
-            if ((options->projectionAvecPlateauPente == 1) && voisinage_pure)
-              limiter = options->projectionLimiterIdPure;
+            int limiter = limiteurs->projectionLimiterId;
+            if ((limiteurs->projectionAvecPlateauPente == 1) && voisinage_pure)
+              limiter = limiteurs->projectionLimiterIdPure;
 	    
             gradPhi2(cCells) = computeAndLimitGradPhi(
                 limiter, gradPhiFace2(fbFaces), gradPhiFace2(ftFaces),
                 Phi(cCells), Phi(cbCells), Phi(cfCells), HvLagrange(cCells),
                 HvLagrange(cbCells), HvLagrange(cfCells));
             
-            if (options->projectionAvecPlateauPente == 1) {
+            if (limiteurs->projectionAvecPlateauPente == 1) {
               RealArray1D<dim> exy = {{0.0, 1.0}};
 
               double Flux_sortant_av =
@@ -226,21 +226,21 @@ void EucclhydRemap::computeGradPhi2() noexcept {
             if (cbCells == -1) cbCells = cCells;
             if (cfCells == -1) cfCells = cCells;
             bool voisinage_pure =
-                (options->projectionLimiteurMixte == 1) &&
+                (limiteurs->projectionLimiteurMixte == 1) &&
                 (mixte(cCells) == 0 && mixte(cfCells) == 0 &&
                  mixte(cbCells) == 0 && pure(cCells) == pure(cfCells) &&
                  pure(cCells) == pure(cbCells));
 
-            int limiter = options->projectionLimiterId;
-            if ((options->projectionAvecPlateauPente == 1) && voisinage_pure)
-              limiter = options->projectionLimiterIdPure;
+            int limiter = limiteurs->projectionLimiterId;
+            if ((limiteurs->projectionAvecPlateauPente == 1) && voisinage_pure)
+              limiter = limiteurs->projectionLimiterIdPure;
 	    //
             gradPhi2(cCells) = computeAndLimitGradPhi(
                 limiter, gradPhiFace2(frFaces), gradPhiFace2(flFaces),
                 Phi(cCells), Phi(cfCells), Phi(cbCells), HvLagrange(cCells),
                 HvLagrange(cfCells), HvLagrange(cbCells));
 	    //
-            if (options->projectionAvecPlateauPente == 1) {
+            if (limiteurs->projectionAvecPlateauPente == 1) {
               RealArray1D<dim> exy = {{1.0, 0.0}};
               double Flux_sortant_ar =
                   MathFunctions::dot(outerFaceNormal(cCells, flFacesOfCellC),
@@ -306,7 +306,7 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection2() noexcept {
 	  // à la valeur de phi(x) à la face pour l'ordre 2 sans plateau pente ou l'ordre 3
 	  // à la valeur du flux (integration de phi(x)) pour l'ordre 2 avec Plateau-Pente
 	  if (options->projectionOrder == 2) {
-	    if (options->projectionAvecPlateauPente == 0) {
+	    if (limiteurs->projectionAvecPlateauPente == 0) {
 	      phiFace2(fFaces) = computeUpwindFaceQuantities(
 							     faceNormal(fFaces), faceNormalVelocity(fFaces),
 							     deltaxLagrange(fFaces), Xf(fFaces),
@@ -362,7 +362,7 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection2() noexcept {
 	  // à la valeur de phi(x) à la face pour l'ordre 2 sans plateau pente ou l'ordre 3
 	  // à la valeur du flux (integration de phi(x)) pour l'ordre 2 avec Plateau-Pente
 	  if (options->projectionOrder == 2) {
-	    if (options->projectionAvecPlateauPente == 0) {
+	    if (limiteurs->projectionAvecPlateauPente == 0) {
 	      phiFace2(fFaces) = computeUpwindFaceQuantities(
 				   faceNormal(fFaces), faceNormalVelocity(fFaces),
 				   deltaxLagrange(fFaces), Xf(fFaces),
@@ -412,7 +412,7 @@ void EucclhydRemap::computeUremap2() noexcept {
   Kokkos::parallel_for(
       "computeUremap2", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         int cId(cCells);
-        RealArray1D<nbequamax> reduction9 = options->Uzero;
+        RealArray1D<nbequamax> reduction9 = Uzero;
         {
           auto neighbourCellsC(mesh->getNeighbourCells(cId));
           for (int dNeighbourCellsC = 0;
@@ -425,7 +425,7 @@ void EucclhydRemap::computeUremap2() noexcept {
             reduction9 = ArrayOperations::plus(
                 reduction9,
                 (computeRemapFlux(options->projectionOrder,
-                    options->projectionAvecPlateauPente,
+                    limiteurs->projectionAvecPlateauPente,
                     faceNormalVelocity(fFaces), faceNormal(fFaces),
                     faceLength(fFaces), phiFace2(fFaces),
                     outerFaceNormal(cCells, fFacesOfCellC), exy, deltat_n)));
@@ -433,7 +433,7 @@ void EucclhydRemap::computeUremap2() noexcept {
            
             //
           }
-          if (options->FluxBC > 0) {
+          if (cdl->FluxBC > 0) {
             // flux exterieur
 
             reduction9 = ArrayOperations::plus(

@@ -2,8 +2,7 @@
 
 #include <fstream>        // for ifstream
 #include <iostream>       // for operator<<, endl, basic_o...
-#include <string>         // for string
-#include <unordered_map>  // for unordered_map
+#include <string>         // for string#include <unordered_map>  // for unordered_map
 
 #include "../eucclhyd_remap/EucclhydRemap.h"  // for EucclhydRemap::Options
 /**
@@ -11,7 +10,10 @@
  * In variables: fichier
  * Out variables: Options
  */
-void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
+void LectureDonnees(string Fichier, EucclhydRemap::Options* o,
+		    limiteurslib::LimiteursClass::Limiteurs* l,
+		    eoslib::EquationDetat::Eos* eos,
+		    castestlib::CasTest::Test* test) {
   std::unordered_map<string, int> castestToOptions;
   castestToOptions["UnitTestCase"] = 0;
   castestToOptions["SedovTestCase"] = 1;
@@ -45,12 +47,12 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
   ouiOUnon["non"] = 0;
   ouiOUnon["oui"] = 1;
 
-  std::unordered_map<string, int> eosToOptions;
-  eosToOptions["Void"] = 100;
-  eosToOptions["PerfectGas"] = 101;
-  eosToOptions["StiffenedGas"] = 102;
-  eosToOptions["Murnhagan"] = 103;
-  eosToOptions["SolidLinear"] = 104;
+  std::unordered_map<string, int> liste_eos;
+  liste_eos["Void"] = 100;
+  liste_eos["PerfectGas"] = 101;
+  liste_eos["StiffenedGas"] = 102;
+  liste_eos["Murnhagan"] = 103;
+  liste_eos["SolidLinear"] = 104;
 
   std::unordered_map<string, int> equilibrage;
   equilibrage["sans"] = 0;
@@ -65,16 +67,16 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
     int entier;
     getline(mesdonnees, ligne);  // ligne de commentaire numero du cas test
     mesdonnees >> mot;
-    o->testCase = castestToOptions[mot];
-    std::cout << " Cas test " << mot << " ( " << o->testCase << " ) "
+    test->Nom = castestToOptions[mot];
+    std::cout << " Cas test " << mot << " ( " << test->Nom << " ) "
               << std::endl;
     mesdonnees.ignore();
 
     // on en deduit le nombre de materiaux du calcul
-    if (o->testCase < o->BiUnitTestCase)
+    if (test->Nom < test->BiUnitTestCase)
       o->nbmat = 1;
     else o->nbmat = 2;
-    if (o->testCase == o->BiTriplePoint) o->nbmat = 3;
+    if (test->Nom == test->BiTriplePoint) o->nbmat = 3;
       
 
     getline(mesdonnees, ligne);  // ligne de commentaire Nombre de Mailles en X
@@ -122,9 +124,9 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
     for (int imat = 0; imat < o->nbmat; ++imat) {
       getline(mesdonnees, ligne); // Equation d'etat
       mesdonnees >> mot;
-      o->eos[imat] = eosToOptions[mot];
-      std::cout << " Equation d'etat " << mot << " ( " << o->eos[imat] << " ) " <<
-	std::endl; mesdonnees.ignore();
+      eos->Nom[imat] = liste_eos[mot];
+      std::cout << " Equation d'etat " << mot << " ( " << eos->Nom[imat] << " ) "
+		<< std::endl; mesdonnees.ignore();
     }
     
     // getline(mesdonnees, ligne); // Equilibrage des pressions
@@ -172,30 +174,30 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o) {
 
     getline(mesdonnees, ligne);  // Limiteur
     mesdonnees >> mot;
-    o->projectionLimiterId = limiteur[mot];
-    std::cout << " Limiteur " << mot << " ( " << o->projectionLimiterId << " ) "
+    l->projectionLimiterId = limiteur[mot];
+    std::cout << " Limiteur " << mot << " ( " << l->projectionLimiterId << " ) "
               << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // Projection Avec Plateau Pente
     mesdonnees >> mot;
-    o->projectionAvecPlateauPente = ouiOUnon[mot];
+    l->projectionAvecPlateauPente = ouiOUnon[mot];
     std::cout << " Projection Avec Plateau Pente " << mot << " ( "
-              << o->projectionAvecPlateauPente << " ) " << std::endl;
+              << l->projectionAvecPlateauPente << " ) " << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // Projection Avec Plateau Pente Mixte
     mesdonnees >> mot;
-    o->projectionLimiteurMixte = ouiOUnon[mot];
+    l->projectionLimiteurMixte = ouiOUnon[mot];
     std::cout << " Projection Avec Plateau Pente Mixte " << mot << " ( "
-              << o->projectionLimiteurMixte << " ) " << std::endl;
+              << l->projectionLimiteurMixte << " ) " << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // Projection Limiteur pour Mailles Pures
     mesdonnees >> mot;
-    o->projectionLimiterIdPure = limiteur[mot];
+    l->projectionLimiterIdPure = limiteur[mot];
     std::cout << " Limiteur pour Mailles Pures " << mot << " ( "
-              << o->projectionLimiterIdPure << " ) " << std::endl;
+              << l->projectionLimiterIdPure << " ) " << std::endl;
     mesdonnees.ignore();
 
     // getline(mesdonnees, ligne); // Presence de Particules
