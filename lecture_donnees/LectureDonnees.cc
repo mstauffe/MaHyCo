@@ -2,7 +2,8 @@
 
 #include <fstream>        // for ifstream
 #include <iostream>       // for operator<<, endl, basic_o...
-#include <string>         // for string#include <unordered_map>  // for unordered_map
+#include <string>         // for string
+#include <unordered_map>  // for unordered_map
 
 #include "../eucclhyd_remap/EucclhydRemap.h"  // for EucclhydRemap::Options
 /**
