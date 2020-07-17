@@ -54,7 +54,7 @@ RealArray1D<d> EucclhydRemap::computeFluxPP(
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
     double face_normal_velocity, double deltat_n, int type, int cell,
     double flux_threhold) {
-  RealArray1D<d> Flux = options->Uzero;
+  RealArray1D<d> Flux = Uzero;
   int nbmat = options->nbmat;
   double y0plus, y0moins, xd, xg, yd, yg;
   double flux1, flux2, flux3, flux1m, flux2m, flux3m;
@@ -226,7 +226,7 @@ RealArray1D<d> EucclhydRemap::computeFluxPPPure(
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
     double face_normal_velocity, double deltat_n, int type, int cell,
     double flux_threhold) {
-  RealArray1D<d> Flux = options->Uzero;
+  RealArray1D<d> Flux = Uzero;
   int nbmat = options->nbmat;
   double y0plus, y0moins, xd, xg, yd, yg;
   double flux1, flux2, flux3, flux1m, flux2m, flux3m;

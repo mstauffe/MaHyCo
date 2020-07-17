@@ -12,12 +12,14 @@ using namespace nablalib;
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
   auto o = new EucclhydRemap::Options();
-  auto cl = new EucclhydRemap::Cdl();
-  auto lim = new EucclhydRemap::Limiteurs();
+  auto cl = new conditionslimiteslib::ConditionsLimites::Cdl();
+  auto lim = new limiteurslib::LimiteursClass::Limiteurs();
   auto part = new particulelib::SchemaParticules::Particules();
+  auto eos = new eoslib::EquationDetat::Eos();
+  auto test = new castestlib::CasTest::Test();
   string output;
   if (argc == 2) {
-    LectureDonnees(argv[1], o, lim);
+    LectureDonnees(argv[1], o, lim, eos, test);
   } else if (argc != 1) {
     std::cerr << "[ERREUR] Fichier de donnees non passé en argument " << std::endl;
     exit(1);
@@ -25,7 +27,7 @@ int main(int argc, char* argv[]) {
   auto nm = CartesianMesh2DGenerator::generate(
       o->X_EDGE_ELEMS, o->Y_EDGE_ELEMS, o->X_EDGE_LENGTH, o->Y_EDGE_LENGTH);
   // appel au schéma Lagrange Eucclhyd + schéma de projection ADI (en option)
-  auto c = new EucclhydRemap(o, cl, lim, part, nm, output);
+  auto c = new EucclhydRemap(o, test, cl, lim, part, eos, nm, output);
   c->simulate();
   delete c;
   delete nm;
@@ -33,6 +35,8 @@ int main(int argc, char* argv[]) {
   delete cl;
   delete lim;
   delete part;
+  delete eos;
+  delete test;
   Kokkos::finalize();
   return 0;
 }

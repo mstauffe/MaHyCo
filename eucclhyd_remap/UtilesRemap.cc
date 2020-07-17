@@ -185,7 +185,7 @@ double EucclhydRemap::INT2Y(double X, double x0, double y0, double x1,
   return flux;
 }
 
-RealArray1D<EucclhydRemap::dim> EucclhydRemap::xThenYToDirection(
+RealArray1D<dim> EucclhydRemap::xThenYToDirection(
     bool x_then_y_) {
   if (x_then_y_)
     return {{1.0, 0.0}};

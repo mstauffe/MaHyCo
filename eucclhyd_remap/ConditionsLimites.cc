@@ -97,10 +97,10 @@ void EucclhydRemap::computeBoundaryNodeVelocities() noexcept {
       });
 }
 KOKKOS_INLINE_FUNCTION
-RealArray1D<EucclhydRemap::dim> EucclhydRemap::nodeVelocityBoundaryCondition(
-    int BC, RealArray1D<EucclhydRemap::dim> BCValue,
-    RealArray2D<EucclhydRemap::dim, EucclhydRemap::dim> Mp,
-    RealArray1D<EucclhydRemap::dim> Gp) {
+RealArray1D<dim> EucclhydRemap::nodeVelocityBoundaryCondition(
+    int BC, RealArray1D<dim> BCValue,
+    RealArray2D<dim, dim> Mp,
+    RealArray1D<dim> Gp) {
   if (BC == 200)
     return ArrayOperations::multiply(
         MathFunctions::dot(Gp, BCValue) /
@@ -112,17 +112,16 @@ RealArray1D<EucclhydRemap::dim> EucclhydRemap::nodeVelocityBoundaryCondition(
   else if (BC == 202)
     return MathFunctions::matVectProduct(inverse(Mp), Gp);
 
-  return options
-      ->zeroVect;  // inutile juste pour eviter le warning de compilation
+  return zeroVect;  // inutile juste pour eviter le warning de compilation
 }
 
 KOKKOS_INLINE_FUNCTION
-RealArray1D<EucclhydRemap::dim>
+RealArray1D<dim>
 EucclhydRemap::nodeVelocityBoundaryConditionCorner(
-    int BC1, RealArray1D<EucclhydRemap::dim> BCValue1, int BC2,
-    RealArray1D<EucclhydRemap::dim> BCValue2,
-    RealArray2D<EucclhydRemap::dim, EucclhydRemap::dim> Mp,
-    RealArray1D<EucclhydRemap::dim> Gp) {
+    int BC1, RealArray1D<dim> BCValue1, int BC2,
+    RealArray1D<dim> BCValue2,
+    RealArray2D<dim, dim> Mp,
+    RealArray1D<dim> Gp) {
   if (BC1 == 200 && BC2 == 200) {
     if (MathFunctions::fabs(
             MathFunctions::fabs(MathFunctions::dot(BCValue1, BCValue2)) -
@@ -134,7 +133,7 @@ EucclhydRemap::nodeVelocityBoundaryConditionCorner(
                                   BCValue1)),
           BCValue1);
     else {
-      return options->zeroVect;
+      return zeroVect;
     }
   } else if (BC1 == 201 && BC2 == 201) {
     return ArrayOperations::multiply(
@@ -142,13 +141,13 @@ EucclhydRemap::nodeVelocityBoundaryConditionCorner(
   } else if (BC1 == 202 && BC2 == 202) {
     return MathFunctions::matVectProduct(inverse(Mp), Gp);
   } else {
-    { return options->zeroVect; }
+    { return zeroVect; }
   }
 }
 
-RealArray1D<EucclhydRemap::nbequamax> EucclhydRemap::computeBoundaryFluxes(
-    int proj, int cCells, RealArray1D<EucclhydRemap::dim> exy) {
-  RealArray1D<nbequamax> phiFace_fFaces = options->Uzero;
+RealArray1D<nbequamax> EucclhydRemap::computeBoundaryFluxes(
+    int proj, int cCells, RealArray1D<dim> exy) {
+  RealArray1D<nbequamax> phiFace_fFaces = Uzero;
   int nbCellX = options->X_EDGE_ELEMS;
   int nbCellY = options->Y_EDGE_ELEMS;
   if (cdl->bottomFluxBC == 1 && cCells < nbCellX && exy[1] == 1) {
@@ -275,5 +274,5 @@ RealArray1D<EucclhydRemap::nbequamax> EucclhydRemap::computeBoundaryFluxes(
       }
     }
   }
-  return phiFace_fFaces;  // options->Uzero;
+  return phiFace_fFaces;  // Uzero;
 }

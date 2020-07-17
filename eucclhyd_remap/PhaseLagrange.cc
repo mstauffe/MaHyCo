@@ -68,26 +68,26 @@ void EucclhydRemap::computeCornerNormal() noexcept {
  */
 void EucclhydRemap::computeEOS()  {
     for (int imat = 0; imat < options->nbmat; ++imat)  {
-      if (options->eos[imat] == options->PerfectGas) computeEOSGP(imat);  
-      if (options->eos[imat] == options->Void) computeEOSVoid(imat);   
-      if (options->eos[imat] == options->StiffenedGas) computeEOSSTIFG(imat);
-      if (options->eos[imat] == options->Murnhagan) computeEOSMur(imat);
-      if (options->eos[imat] == options->SolidLinear) computeEOSSL(imat);
+      if (eos->Nom[imat] == eos->PerfectGas) computeEOSGP(imat);  
+      if (eos->Nom[imat] == eos->Void) computeEOSVoid(imat);   
+      if (eos->Nom[imat] == eos->StiffenedGas) computeEOSSTIFG(imat);
+      if (eos->Nom[imat] == eos->Murnhagan) computeEOSMur(imat);
+      if (eos->Nom[imat] == eos->SolidLinear) computeEOSSL(imat);
     }
 }
 /**
  * Job computeEOSGP called @1.0 in executeTimeLoopN method.
- * In variables: eos, eosPerfectGas, eps_n, gamma, rho_n
+ * In variables: eos, eosPerfectGas, eps_n, gammap, rho_n
  * Out variables: c, p
  */
 void EucclhydRemap::computeEOSGP(int imat)  {
   Kokkos::parallel_for(
     "computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {	
-      pp(cCells)[imat] = (options->gammap[imat] - 1.0) *
+      pp(cCells)[imat] = (eos->gammap[imat] - 1.0) *
 	rhop_n(cCells)[imat] * epsp_n(cCells)[imat];
       if (rhop_n(cCells)[imat] > 0.) {
 	vitsonp(cCells)[imat] =
-	  MathFunctions::sqrt(options->gammap[imat] * pp(cCells)[imat] /
+	  MathFunctions::sqrt(eos->gammap[imat] * pp(cCells)[imat] /
 			      rhop_n(cCells)[imat]);
       } else
 	vitsonp(cCells)[imat] = 1.e-20;
@@ -95,7 +95,7 @@ void EucclhydRemap::computeEOSGP(int imat)  {
 }
 /**
  * Job computeEOSVoid called in executeTimeLoopN method.
- * In variables: eos, eosPerfectGas, eps_n, gamma, rho_n
+ * In variables: eos, eosPerfectGas, eps_n, gammap, rho_n
  * Out variables: c, p
  */
 void EucclhydRemap::computeEOSVoid(int imat)  {
@@ -152,7 +152,7 @@ void EucclhydRemap::computePressionMoyenne() noexcept {
     // NONREG GP A SUPPRIMER
     if (rho_n(cCells) > 0.) {
       vitson(cCells) =
-	MathFunctions::sqrt(options->gamma * p(cCells) / rho_n(cCells));
+	MathFunctions::sqrt(eos->gammap[0] * p(cCells) / rho_n(cCells));
     } 
   }
 }
@@ -182,9 +182,9 @@ void EucclhydRemap::computeGradients() noexcept {
   Kokkos::parallel_for(
       "computeGradients", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         int cId(cCells);
-        RealArray1D<dim> reductionF1 = options->zeroVect;
-        RealArray1D<dim> reductionF2 = options->zeroVect;
-        RealArray1D<dim> reductionF3 = options->zeroVect;
+        RealArray1D<dim> reductionF1 = zeroVect;
+        RealArray1D<dim> reductionF2 = zeroVect;
+        RealArray1D<dim> reductionF3 = zeroVect;
         {
           auto nodesOfCellC(mesh->getNodesOfCell(cId));
           for (int pNodesOfCellC = 0; pNodesOfCellC < nodesOfCellC.size();
@@ -214,7 +214,7 @@ void EucclhydRemap::computeGradients() noexcept {
     Kokkos::parallel_for(
         "computeGradients", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           int cId(cCells);
-          RealArray2D<dim, dim> reduction14 = options->zeroMat;
+          RealArray2D<dim, dim> reduction14 = zeroMat;
           {
             auto nodesOfCellC(mesh->getNodesOfCell(cId));
             for (int pNodesOfCellC = 0; pNodesOfCellC < nodesOfCellC.size();
@@ -228,10 +228,10 @@ void EucclhydRemap::computeGradients() noexcept {
             }
           }
           gradV(cCells) = ArrayOperations::divide(reduction14, v(cCells));
-          RealArray1D<dim> reduction15 = options->zeroVect;
-          RealArray1D<dim> reduction15a = options->zeroVect;
-          RealArray1D<dim> reduction15b = options->zeroVect;
-          RealArray1D<dim> reduction15c = options->zeroVect;
+          RealArray1D<dim> reduction15 = zeroVect;
+          RealArray1D<dim> reduction15a = zeroVect;
+          RealArray1D<dim> reduction15b = zeroVect;
+          RealArray1D<dim> reduction15c = zeroVect;
           {
             auto nodesOfCellC(mesh->getNodesOfCell(cId));
             for (int pNodesOfCellC = 0; pNodesOfCellC < nodesOfCellC.size();
@@ -503,7 +503,7 @@ void EucclhydRemap::computeG() noexcept {
   Kokkos::parallel_for(
       "computeG", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
         int pId(pNodes);
-        RealArray1D<dim> reduction1 = options->zeroVect;
+        RealArray1D<dim> reduction1 = zeroVect;
         {
           auto cellsOfNodeP(mesh->getCellsOfNode(pId));
           for (int cCellsOfNodeP = 0; cCellsOfNodeP < cellsOfNodeP.size();
@@ -535,7 +535,7 @@ void EucclhydRemap::computeNodeDissipationMatrixAndG() noexcept {
       "computeNodeDissipationMatrixAndG", nbNodes,
       KOKKOS_LAMBDA(const int& pNodes) {
         int pId(pNodes);
-        RealArray2D<dim, dim> reduction0 = options->zeroMat;
+        RealArray2D<dim, dim> reduction0 = zeroMat;
         {
           auto cellsOfNodeP(mesh->getCellsOfNode(pId));
           for (int cCellsOfNodeP = 0; cCellsOfNodeP < cellsOfNodeP.size();
@@ -573,7 +573,7 @@ void EucclhydRemap::computeFaceVelocity() noexcept {
   Kokkos::parallel_for(
       "computeFaceVelocity", nbFaces, KOKKOS_LAMBDA(const int& fFaces) {
         int fId(faces[fFaces]);
-        RealArray1D<dim> reduction5 = options->zeroVect;
+        RealArray1D<dim> reduction5 = zeroVect;
         {
           auto nodesOfFaceF(mesh->getNodesOfFace(fId));
           for (int pNodesOfFaceF = 0; pNodesOfFaceF < nodesOfFaceF.size();
@@ -722,7 +722,7 @@ void EucclhydRemap::computeLagrangeVolumeAndCenterOfGravity() noexcept {
 	int nbmat = options->nbmat;
         for (int imat = 0; imat < nbmat; imat++)
           vpLagrange(cCells)[imat] = fracvol(cCells)[imat] * vol;
-        RealArray1D<dim> reduction7 = options->zeroVect;
+        RealArray1D<dim> reduction7 = zeroVect;
         {
           auto nodesOfCellC(mesh->getNodesOfCell(cId));
           for (int pNodesOfCellC = 0; pNodesOfCellC < nodesOfCellC.size();
@@ -792,7 +792,7 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
 	double rhoLagrange =
             1 / (1 / rho_n(cCells) + deltat_n / m(cCells) * reduction2);
 	  
-        RealArray1D<dim> reduction3 = options->zeroVect;
+        RealArray1D<dim> reduction3 = zeroVect;
         {
           auto nodesOfCellC(mesh->getNodesOfCell(cId));
           for (int pNodesOfCellC = 0; pNodesOfCellC < nodesOfCellC.size();
@@ -809,7 +809,7 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
 		      ArrayOperations::multiply(deltat_n / m(cCells), reduction3));
 
 	double reduction4 = 0.0;
-        RealArray1D<nbmatmax> preduction4 = options->zeroVectmat;
+        RealArray1D<nbmatmax> preduction4 = zeroVectmat;
         {
           auto nodesOfCellC(mesh->getNodesOfCell(cId));
           for (int pNodesOfCellC = 0; pNodesOfCellC < nodesOfCellC.size();

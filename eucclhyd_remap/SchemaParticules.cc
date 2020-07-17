@@ -36,7 +36,7 @@ void EucclhydRemap::updateParticlePosition() noexcept {
 
         // conditions limites
         if (fracvol(ICellp(ipart))[IMatp(ipart)] < 0.25) {
-          RealArray1D<dim> gradf = options->zeroVect;
+          RealArray1D<dim> gradf = zeroVect;
           if (IMatp(ipart) == 0) gradf = gradf1(ICellp(ipart));
           if (IMatp(ipart) == 1) gradf = gradf2(ICellp(ipart));
           if (IMatp(ipart) == 2) gradf = gradf3(ICellp(ipart));

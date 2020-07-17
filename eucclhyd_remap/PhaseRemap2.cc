@@ -412,7 +412,7 @@ void EucclhydRemap::computeUremap2() noexcept {
   Kokkos::parallel_for(
       "computeUremap2", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         int cId(cCells);
-        RealArray1D<nbequamax> reduction9 = options->Uzero;
+        RealArray1D<nbequamax> reduction9 = Uzero;
         {
           auto neighbourCellsC(mesh->getNeighbourCells(cId));
           for (int dNeighbourCellsC = 0;

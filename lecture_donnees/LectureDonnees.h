@@ -5,6 +5,9 @@
 
 #include "EucclhydRemap.h"  // for EucclhydRemap::Options
 
-void LectureDonnees(string Fichier, EucclhydRemap::Options* o, EucclhydRemap::Limiteurs* l);
+void LectureDonnees(string Fichier, EucclhydRemap::Options* o,
+		    limiteurslib::LimiteursClass::Limiteurs* l,
+		    eoslib::EquationDetat::Eos* eos,
+		    castestlib::CasTest::Test* test);
 
 #endif  // LECTURE_DONNEES_H

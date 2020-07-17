@@ -421,7 +421,7 @@ void EucclhydRemap::computeUremap1() noexcept {
 
         // std::cout << " cCells " << cCells << std::endl;
         // std::cout << "ULagrange " << ULagrange(cCells) << std::endl;
-        RealArray1D<nbequamax> reduction8 = options->Uzero;
+        RealArray1D<nbequamax> reduction8 = Uzero;
         {
           auto neighbourCellsC(mesh->getNeighbourCells(cId));
           for (int dNeighbourCellsC = 0;
