@@ -23,6 +23,8 @@
 #include "Limiteurs.h"
 #include "Eos.h"
 #include "CasTest.h"
+#include "CstMesh.h"
+#include "GestionTemps.h"
 
 #include "types/Types.h"           // for RealArray1D, RealArray2D
 #include "utils/Timer.h"           // for Timer
@@ -30,28 +32,13 @@
 /*---------------------------------------*/
 /*---------------------------------------*/
 using namespace nablalib;
-using namespace particulelib;
 
 class EucclhydRemap {
  public:  
 
   struct Options {
- 
-    int nbmat = -1;
-       
-    double final_time = 1.0;
-    double output_time = final_time;
-    double cfl = 0.45;
-    double X_LENGTH = 1.2;
-    double Y_LENGTH = X_LENGTH;
-    int X_EDGE_ELEMS = 30;
-    int Y_EDGE_ELEMS = 30;
-    double X_EDGE_LENGTH = X_LENGTH / X_EDGE_ELEMS;
-    double Y_EDGE_LENGTH = Y_LENGTH / Y_EDGE_ELEMS;
-    int max_time_iterations = 500000000;
+    int nbmat = -1;      
     double threshold = 1.0E-16;
-    double deltat_init = 0.;
-    double deltat_min = 1.0E-10;
     int spaceOrder = 2;
     int projectionOrder = 2;
     int projectionConservative = 0;
@@ -62,11 +49,11 @@ class EucclhydRemap {
     int AvecEquilibrage = -1;
   };
   Options* options;
-
+  
   struct interval {
     double inf, sup;
   };
-
+  
  private:
   CartesianMesh2D* mesh;
   castestlib::CasTest::Test* test;
@@ -74,6 +61,8 @@ class EucclhydRemap {
   conditionslimiteslib::ConditionsLimites::Cdl* cdl;
   limiteurslib::LimiteursClass::Limiteurs* limiteurs;
   eoslib::EquationDetat::Eos* eos;
+  cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh;
+  gesttempslib::GestionTempsClass::GestTemps* gt;
   PvdFileWriter2D writer;
   PvdFileWriter2D writerpart;
   int nbPartMax;
@@ -243,6 +232,8 @@ class EucclhydRemap {
 
  public:
  EucclhydRemap(Options* aOptions,
+	       cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* acstmesh,
+	       gesttempslib::GestionTempsClass::GestTemps* agt,
 	       castestlib::CasTest::Test* aTest,
 	       conditionslimiteslib::ConditionsLimites::Cdl* aCdl,
 	       limiteurslib::LimiteursClass::Limiteurs* aLimiteurs,
@@ -250,6 +241,8 @@ class EucclhydRemap {
 	       eoslib::EquationDetat::Eos* aEos,
 	       CartesianMesh2D* aCartesianMesh2D, string output)
       : options(aOptions),
+        cstmesh(acstmesh),
+        gt(agt),
         test(aTest),
     	cdl(aCdl),
 	limiteurs(aLimiteurs),
@@ -283,8 +276,8 @@ class EucclhydRemap {
         x_then_y_nplus1(true),
         t_n(0.0),
         t_nplus1(0.0),
-        deltat_n(options->deltat_init),
-        deltat_nplus1(options->deltat_init),
+        deltat_n(gt->deltat_init),
+        deltat_nplus1(gt->deltat_init),
         nbCalls(0),
         lastDump(0.0),
         vpart("VolumePart", nbPartMax),

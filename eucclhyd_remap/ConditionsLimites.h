@@ -43,4 +43,4 @@ class ConditionsLimites {
 
 };
 } // namespace
-#endif  // SCHEMAPARTICULES_H
+#endif  // CONDITIONSLIMITES_H

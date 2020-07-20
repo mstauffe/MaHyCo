@@ -29,10 +29,10 @@ void EucclhydRemap::updateParticlePosition() noexcept {
           Vpart_n(ipart)[1] = -Vpart_n(ipart)[1];
         }
         int icell = MathFunctions::max(
-            floor(Xpart_nplus1(ipart)[0] / options->X_EDGE_LENGTH), 0);
+            floor(Xpart_nplus1(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
         int jcell = MathFunctions::max(
-            floor(Xpart_nplus1(ipart)[1] / options->Y_EDGE_LENGTH), 0);
-        ICellp(ipart) = jcell * options->X_EDGE_ELEMS + icell;
+            floor(Xpart_nplus1(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
+        ICellp(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
 
         // conditions limites
         if (fracvol(ICellp(ipart))[IMatp(ipart)] < 0.25) {
@@ -60,10 +60,10 @@ void EucclhydRemap::updateParticlePosition() noexcept {
             Vpart_n(ipart)[1] = -Vpart_n(ipart)[1];
           }
           int icell = MathFunctions::max(
-              floor(Xpart_nplus1(ipart)[0] / options->X_EDGE_LENGTH), 0);
+              floor(Xpart_nplus1(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
           int jcell = MathFunctions::max(
-              floor(Xpart_nplus1(ipart)[1] / options->Y_EDGE_LENGTH), 0);
-          ICellp(ipart) = jcell * options->X_EDGE_ELEMS + icell;
+              floor(Xpart_nplus1(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
+          ICellp(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
 
           // std::cout << " AP : Part  " << ipart << " vit " << Vpart_n(ipart)
           //	    << "  xp= " << Xpart_nplus1(ipart)[0] << "  yp= " <<

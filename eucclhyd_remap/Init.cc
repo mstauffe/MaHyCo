@@ -317,8 +317,8 @@ void EucclhydRemap::initCellInternalEnergy() noexcept {
           }
           if (isCenterCell) {
 	    double total_energy_deposit = 0.244816 ;
-            double dx = options->X_EDGE_LENGTH;
-            double dy = options->Y_EDGE_LENGTH;
+            double dx = cstmesh->X_EDGE_LENGTH;
+            double dy = cstmesh->Y_EDGE_LENGTH;
             eps_n0(cCells) = eps1 + total_energy_deposit / (dx * dy);
           } else {
             eps_n0(cCells) = eps1;
@@ -731,10 +731,10 @@ void EucclhydRemap::initPart() noexcept {
             Xpart_n0(ipart)[0] = 0.795;
 
           int icell = MathFunctions::max(
-              floor(Xpart_n0(ipart)[0] / options->X_EDGE_LENGTH), 0);
+              floor(Xpart_n0(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
           int jcell = MathFunctions::max(
-              floor(Xpart_n0(ipart)[1] / options->Y_EDGE_LENGTH), 0);
-          ICellp(ipart) = jcell * options->X_EDGE_ELEMS + icell;
+              floor(Xpart_n0(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
+          ICellp(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
           listpart(ICellp(ipart)).push_back(ipart);
           IMatp(ipart) = 1;
           //std::cout << " Part  " << ipart << "  xp= " << Xpart_n0(ipart)[0]
@@ -752,10 +752,10 @@ void EucclhydRemap::initPart() noexcept {
               Xpart_n0(ipart)[0] = 0.01 + 0.0005 * (i + 1);
 
           int icell = MathFunctions::max(
-              floor(Xpart_n0(ipart)[0] / options->X_EDGE_LENGTH), 0);
+              floor(Xpart_n0(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
           int jcell = MathFunctions::max(
-              floor(Xpart_n0(ipart)[1] / options->Y_EDGE_LENGTH), 0);
-          ICellp(ipart) = jcell * options->X_EDGE_ELEMS + icell;
+              floor(Xpart_n0(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
+          ICellp(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
           listpart(ICellp(ipart)).push_back(ipart);
           IMatp(ipart) = 1;
           //std::cout << " Part  " << ipart << "  xp= " << Xpart_n0(ipart)[0]
@@ -783,25 +783,25 @@ void EucclhydRemap::setUpTimeLoopN() noexcept {
       test->Nom == test->BiSodCaseX ||
       test->Nom == test->BiSodCaseY) {
     // const ℝ δt_init = 1.0e-4;
-    options->deltat_init = 1.0e-4;
-    deltat_n = options->deltat_init;
+    gt->deltat_init = 1.0e-4;
+    deltat_n = gt->deltat_init;
   } else if (test->Nom == test->BiShockBubble) {
-    options->deltat_init = 1.e-7;
+    gt->deltat_init = 1.e-7;
     deltat_n = 1.0e-7;
   } else if (test->Nom == test->SedovTestCase ||
              test->Nom == test->BiSedovTestCase) {
     // const ℝ δt_init = 1.0e-4;
-    options->deltat_init = 1.0e-4;
+    gt->deltat_init = 1.0e-4;
     deltat_n = 1.0e-4;
   } else if (test->Nom == test->NohTestCase ||
              test->Nom == test->BiNohTestCase) {
     // const ℝ δt_init = 1.0e-4;
-    options->deltat_init = 1.0e-4;
+    gt->deltat_init = 1.0e-4;
     deltat_n = 1.0e-4;
   } else if (test->Nom == test->TriplePoint ||
              test->Nom == test->BiTriplePoint) {
     // const ℝ δt_init = 1.0e-5; avec donnees adimensionnées
-    options->deltat_init = 1.0e-5;  // avec pression de 1.e5 / 1.e-8
+    gt->deltat_init = 1.0e-5;  // avec pression de 1.e5 / 1.e-8
     deltat_n = 1.0e-5;
   }
   ETOTALE_0 = 0.;

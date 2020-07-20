@@ -2,63 +2,21 @@
 
 #include <fstream>        // for ifstream
 #include <iostream>       // for operator<<, endl, basic_o...
-#include <string>         // for string
-#include <unordered_map>  // for unordered_map
+#include "LectureDonnees.h"
 
-#include "../eucclhyd_remap/EucclhydRemap.h"  // for EucclhydRemap::Options
 /**
  * Job LectureDonnees called by main.
  * In variables: fichier
  * Out variables: Options
  */
-void LectureDonnees(string Fichier, EucclhydRemap::Options* o,
+void LectureDonneesClass::LectureDonnees(string Fichier,
+		    EucclhydRemap::Options* o,
+		    cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh,
+		    gesttempslib::GestionTempsClass::GestTemps* gt,		 
 		    limiteurslib::LimiteursClass::Limiteurs* l,
 		    eoslib::EquationDetat::Eos* eos,
 		    castestlib::CasTest::Test* test) {
-  std::unordered_map<string, int> castestToOptions;
-  castestToOptions["UnitTestCase"] = 0;
-  castestToOptions["SedovTestCase"] = 1;
-  castestToOptions["TriplePoint"] = 2;
-  castestToOptions["SodCaseX"] = 4;
-  castestToOptions["SodCaseY"] = 5;
-  castestToOptions["NohTestCase"] = 6;
-  castestToOptions["BiUnitTestCase"] = 10;
-  castestToOptions["BiSedovTestCase"] = 11;
-  castestToOptions["BiTriplePoint"] = 12;
-  castestToOptions["BiShockBubble"] = 13;
-  castestToOptions["BiSodCaseX"] = 14;
-  castestToOptions["BiSodCaseY"] = 15;
-  castestToOptions["BiNohTestCase"] = 16;
-
-  std::unordered_map<string, int> schema_lagrange;
-  schema_lagrange["Eucclhyd"] = 2000;
-  schema_lagrange["CSTS"] = 2001;
-  schema_lagrange["MYR"] = 2002;
-
-  std::unordered_map<string, int> limiteur;
-  limiteur["minmod"] = 300;
-  limiteur["superBee"] = 301;
-  limiteur["vanLeer"] = 302;
-  limiteur["minmodG"] = 1300;
-  limiteur["superBeeG"] = 1301;
-  limiteur["vanLeerG"] = 1302;
-  limiteur["arithmeticG"] = 1303;
-
-  std::unordered_map<string, int> ouiOUnon;
-  ouiOUnon["non"] = 0;
-  ouiOUnon["oui"] = 1;
-
-  std::unordered_map<string, int> liste_eos;
-  liste_eos["Void"] = 100;
-  liste_eos["PerfectGas"] = 101;
-  liste_eos["StiffenedGas"] = 102;
-  liste_eos["Murnhagan"] = 103;
-  liste_eos["SolidLinear"] = 104;
-
-  std::unordered_map<string, int> equilibrage;
-  equilibrage["sans"] = 0;
-  equilibrage["Isotherme"] = 1;
-  equilibrage["Adiabatique"] = 2;
+ 
   // string Fichier=argv[1];
   ifstream mesdonnees(Fichier);  // Ouverture d'un fichier en lecture
   if (mesdonnees) {
@@ -82,44 +40,44 @@ void LectureDonnees(string Fichier, EucclhydRemap::Options* o,
 
     getline(mesdonnees, ligne);  // ligne de commentaire Nombre de Mailles en X
     mesdonnees >> entier;
-    o->X_EDGE_ELEMS = entier;
-    std::cout << " Nombre de Mailles en X " << o->X_EDGE_ELEMS << std::endl;
+    cstmesh->X_EDGE_ELEMS = entier;
+    std::cout << " Nombre de Mailles en X " << cstmesh->X_EDGE_ELEMS << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // ligne de commentaire Nombre de Mailles en Y
-    mesdonnees >> o->Y_EDGE_ELEMS;
-    std::cout << " Nombre de Mailles en Y " << o->Y_EDGE_ELEMS << std::endl;
+    mesdonnees >> cstmesh->Y_EDGE_ELEMS;
+    std::cout << " Nombre de Mailles en Y " << cstmesh->Y_EDGE_ELEMS << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // ligne de commentaire DELTA_X
-    mesdonnees >> o->X_EDGE_LENGTH;
-    std::cout << " DELTA X " << o->X_EDGE_LENGTH << std::endl;
+    mesdonnees >> cstmesh->X_EDGE_LENGTH;
+    std::cout << " DELTA X " << cstmesh->X_EDGE_LENGTH << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // ligne de commentaire DELTA_Y
-    mesdonnees >> o->Y_EDGE_LENGTH;
-    std::cout << " DELTA Y " << o->Y_EDGE_LENGTH << std::endl;
+    mesdonnees >> cstmesh->Y_EDGE_LENGTH;
+    std::cout << " DELTA Y " << cstmesh->Y_EDGE_LENGTH << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // ligne de commentaire Temps-final
-    mesdonnees >> o->final_time;
-    std::cout << " Temps-final " << o->final_time << std::endl;
+    mesdonnees >> gt->final_time;
+    std::cout << " Temps-final " << gt->final_time << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees,
             ligne);  // ligne de commentaire Temps entre deux sorties
-    mesdonnees >> o->output_time;
-    std::cout << " Temps entre deux sorties " << o->output_time << std::endl;
+    mesdonnees >> gt->output_time;
+    std::cout << " Temps entre deux sorties " << gt->output_time << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // Pas de temps initial
-    mesdonnees >> o->deltat_init;
-    std::cout << " Pas de temps initial " << o->deltat_init << std::endl;
+    mesdonnees >> gt->deltat_init;
+    std::cout << " Pas de temps initial " << gt->deltat_init << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // Pas de temps minimal
-    mesdonnees >> o->deltat_min;
-    std::cout << " Pas de temps minimal " << o->deltat_min << std::endl;
+    mesdonnees >> gt->deltat_min;
+    std::cout << " Pas de temps minimal " << gt->deltat_min << std::endl;
     mesdonnees.ignore();
 
     for (int imat = 0; imat < o->nbmat; ++imat) {

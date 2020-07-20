@@ -148,8 +148,8 @@ EucclhydRemap::nodeVelocityBoundaryConditionCorner(
 RealArray1D<nbequamax> EucclhydRemap::computeBoundaryFluxes(
     int proj, int cCells, RealArray1D<dim> exy) {
   RealArray1D<nbequamax> phiFace_fFaces = Uzero;
-  int nbCellX = options->X_EDGE_ELEMS;
-  int nbCellY = options->Y_EDGE_ELEMS;
+  int nbCellX = cstmesh->X_EDGE_ELEMS;
+  int nbCellY = cstmesh->Y_EDGE_ELEMS;
   if (cdl->bottomFluxBC == 1 && cCells < nbCellX && exy[1] == 1) {
     // cellules Bottom
     int cId(cCells);

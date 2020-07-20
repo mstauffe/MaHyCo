@@ -32,7 +32,7 @@ void EucclhydRemap::dumpVariables() noexcept {
   //           << " Masse totale(time) = " << MASSET_T << std::endl;
   nbCalls++;
   if (!writer.isDisabled() &&
-      (t_n >= lastDump + options->output_time || t_n == 0.)) {
+      (t_n >= lastDump + gt->output_time || t_n == 0.)) {
     cpu_timer.stop();
     io_timer.start();
     std::map<string, double*> cellVariables;
@@ -134,8 +134,8 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
     }
 
     // Evaluate loop condition with variables at time n
-    continueLoop = (n + 1 < options->max_time_iterations &&
-                    t_nplus1 < options->final_time);
+    continueLoop = (n + 1 < gt->max_time_iterations &&
+                    t_nplus1 < gt->final_time);
 
     if (continueLoop) {
       // Switch variables to prepare next iteration
@@ -178,12 +178,12 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
                 << __RESET__ ", IO: " << __RED__ << "none" << __RESET__ << "} ";
 
     // Progress
-    std::cout << utils::progress_bar(n, options->max_time_iterations, t_n,
-                                     options->final_time, 30);
+    std::cout << utils::progress_bar(n, gt->max_time_iterations, t_n,
+                                     gt->final_time, 30);
     std::cout << __BOLD__ << __CYAN__
               << utils::Timer::print(
-                     utils::eta(n, options->max_time_iterations, t_n,
-                                options->final_time, deltat_n, global_timer),
+                     utils::eta(n, gt->max_time_iterations, t_n,
+                                gt->final_time, deltat_n, global_timer),
                      true)
               << __RESET__ << "\r";
     std::cout.flush();
@@ -211,10 +211,10 @@ void EucclhydRemap::computedeltat() noexcept {
         reducer);
   }
   deltat_nplus1 =
-      MathFunctions::min(options->cfl * reduction10, deltat_n * 1.05);
-  if (deltat_nplus1 < options->deltat_min) {
+      MathFunctions::min(gt->cfl * reduction10, deltat_n * 1.05);
+  if (deltat_nplus1 < gt->deltat_min) {
     std::cerr << "Fin de la simulation par pas de temps minimum "
-              << deltat_nplus1 << " < " << options->deltat_min << std::endl;
+              << deltat_nplus1 << " < " << gt->deltat_min << std::endl;
     Kokkos::finalize();
     exit(1);
   }
@@ -234,10 +234,10 @@ void EucclhydRemap::simulate() {
             << "\tStarting EucclhydRemap ..." << __RESET__ << "\n\n";
 
   std::cout << "[" << __GREEN__ << "MESH" << __RESET__
-            << "]      X=" << __BOLD__ << options->X_EDGE_ELEMS << __RESET__
-            << ", Y=" << __BOLD__ << options->Y_EDGE_ELEMS << __RESET__
-            << ", X length=" << __BOLD__ << options->X_EDGE_LENGTH << __RESET__
-            << ", Y length=" << __BOLD__ << options->Y_EDGE_LENGTH << __RESET__
+            << "]      X=" << __BOLD__ << cstmesh->X_EDGE_ELEMS << __RESET__
+            << ", Y=" << __BOLD__ << cstmesh->Y_EDGE_ELEMS << __RESET__
+            << ", X length=" << __BOLD__ << cstmesh->X_EDGE_LENGTH << __RESET__
+            << ", Y length=" << __BOLD__ << cstmesh->Y_EDGE_LENGTH << __RESET__
             << std::endl;
 
   if (Kokkos::hwloc::available()) {
