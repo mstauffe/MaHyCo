@@ -14,30 +14,29 @@
 #include <vector>                         // for vector
 
 //#include "EucclhydRemap.h"
+#include "../Constantes.h"
+#include "CasTest.h"
+#include "ConditionsLimites.h"
+#include "CstMesh.h"
+#include "Eos.h"
+#include "GestionTemps.h"
+#include "Limiteurs.h"
+#include "SchemaParticules.h"
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D, CartesianM...
 #include "mesh/MeshGeometry.h"     // for MeshGeometry
 #include "mesh/PvdFileWriter2D.h"  // for PvdFileWriter2D
-#include "../Constantes.h"
-#include "SchemaParticules.h"
-#include "ConditionsLimites.h"
-#include "Limiteurs.h"
-#include "Eos.h"
-#include "CasTest.h"
-#include "CstMesh.h"
-#include "GestionTemps.h"
 
-#include "types/Types.h"           // for RealArray1D, RealArray2D
-#include "utils/Timer.h"           // for Timer
+#include "types/Types.h"  // for RealArray1D, RealArray2D
+#include "utils/Timer.h"  // for Timer
 
 /*---------------------------------------*/
 /*---------------------------------------*/
 using namespace nablalib;
 
 class EucclhydRemap {
- public:  
-
+ public:
   struct Options {
-    int nbmat = -1;      
+    int nbmat = -1;
     double threshold = 1.0E-16;
     int spaceOrder = 2;
     int projectionOrder = 2;
@@ -49,11 +48,11 @@ class EucclhydRemap {
     int AvecEquilibrage = -1;
   };
   Options* options;
-  
+
   struct interval {
     double inf, sup;
   };
-  
+
  private:
   CartesianMesh2D* mesh;
   castestlib::CasTest::Test* test;
@@ -68,20 +67,12 @@ class EucclhydRemap {
   int nbPartMax;
   int nbPart = 0;
   int nbNodes, nbCells, nbFaces, nbCellsOfNode, nbFacesOfCell, nbNodesOfCell,
-      nbInnerNodes, nbNodesOfFace, nbInnerVerticalFaces, nbInnerHorizontalFaces,
-      nbNeighbourCells, nbCellsOfFace, nbLeftNodes, nbRightNodes, nbTopNodes,
-      nbBottomNodes, nbTopLeftNode, nbTopRightNode, nbBottomLeftNode,
-      nbBottomRightNode;
+      nbNodesOfFace, nbCellsOfFace;
 
-  // constantes
-  double Pi = 3.14159265359;
-  double viscosity = 1.715e-5;
-  double Cp = 2.84;
-  double Pr = 0.7;
   // Global Variables
   int n, nbCalls;
   bool x_then_y_n, x_then_y_nplus1;
-  double t_n, t_nplus1, deltat_n, deltat_nplus1, lastDump;
+  double lastDump;
   double ETOTALE_L, ETOTALE_T, ETOTALE_0;
   double MASSET_L, MASSET_T, MASSET_0;
 
@@ -227,26 +218,27 @@ class EucclhydRemap {
   utils::Timer global_timer;
   utils::Timer cpu_timer;
   utils::Timer io_timer;
-  const size_t maxHardThread = 
-    Kokkos::DefaultExecutionSpace::impl_max_hardware_threads();
+  const size_t maxHardThread =
+      Kokkos::DefaultExecutionSpace::impl_max_hardware_threads();
 
  public:
- EucclhydRemap(Options* aOptions,
-	       cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* acstmesh,
-	       gesttempslib::GestionTempsClass::GestTemps* agt,
-	       castestlib::CasTest::Test* aTest,
-	       conditionslimiteslib::ConditionsLimites::Cdl* aCdl,
-	       limiteurslib::LimiteursClass::Limiteurs* aLimiteurs,
-	       particulelib::SchemaParticules::Particules* aParticules,
-	       eoslib::EquationDetat::Eos* aEos,
-	       CartesianMesh2D* aCartesianMesh2D, string output)
+  EucclhydRemap(
+      Options* aOptions,
+      cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* acstmesh,
+      gesttempslib::GestionTempsClass::GestTemps* agt,
+      castestlib::CasTest::Test* aTest,
+      conditionslimiteslib::ConditionsLimites::Cdl* aCdl,
+      limiteurslib::LimiteursClass::Limiteurs* aLimiteurs,
+      particulelib::SchemaParticules::Particules* aParticules,
+      eoslib::EquationDetat::Eos* aEos, CartesianMesh2D* aCartesianMesh2D,
+      string output)
       : options(aOptions),
         cstmesh(acstmesh),
         gt(agt),
         test(aTest),
-    	cdl(aCdl),
-	limiteurs(aLimiteurs),
-	particules(aParticules),
+        cdl(aCdl),
+        limiteurs(aLimiteurs),
+        particules(aParticules),
         eos(aEos),
         mesh(aCartesianMesh2D),
         writer("EucclhydRemap", output),
@@ -258,26 +250,9 @@ class EucclhydRemap {
         nbCellsOfNode(CartesianMesh2D::MaxNbCellsOfNode),
         nbFacesOfCell(CartesianMesh2D::MaxNbFacesOfCell),
         nbNodesOfCell(CartesianMesh2D::MaxNbNodesOfCell),
-        nbInnerNodes(mesh->getNbInnerNodes()),
         nbNodesOfFace(CartesianMesh2D::MaxNbNodesOfFace),
-        nbInnerVerticalFaces(mesh->getNbInnerVerticalFaces()),
-        nbInnerHorizontalFaces(mesh->getNbInnerHorizontalFaces()),
-        nbNeighbourCells(CartesianMesh2D::MaxNbNeighbourCells),
-        nbCellsOfFace(CartesianMesh2D::MaxNbCellsOfFace),
-        nbLeftNodes(mesh->getNbLeftNodes()),
-        nbRightNodes(mesh->getNbRightNodes()),
-        nbTopNodes(mesh->getNbTopNodes()),
-        nbBottomNodes(mesh->getNbBottomNodes()),
-        nbTopLeftNode(mesh->getNbTopLeftNode()),
-        nbTopRightNode(mesh->getNbTopRightNode()),
-        nbBottomLeftNode(mesh->getNbBottomLeftNode()),
-        nbBottomRightNode(mesh->getNbBottomRightNode()),
         x_then_y_n(true),
         x_then_y_nplus1(true),
-        t_n(0.0),
-        t_nplus1(0.0),
-        deltat_n(gt->deltat_init),
-        deltat_nplus1(gt->deltat_init),
         nbCalls(0),
         lastDump(0.0),
         vpart("VolumePart", nbPartMax),
@@ -409,9 +384,9 @@ class EucclhydRemap {
         Mnode("Mnode", nbNodes) {
     // Copy node coordinates
     const auto& gNodes = mesh->getGeometry()->getNodes();
-    Kokkos::parallel_for(
-        nbNodes,
-        KOKKOS_LAMBDA(const int& rNodes) { X(rNodes) = gNodes[rNodes]; });
+    Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const int& rNodes) {
+      X(rNodes) = gNodes[rNodes];
+    });
   }
 
  private:
@@ -438,8 +413,8 @@ class EucclhydRemap {
 
   void computeCornerNormal() noexcept;
   void computeEOS();
-  void computeEOSGP(int imat);  
-  void computeEOSVoid(int imat);   
+  void computeEOSGP(int imat);
+  void computeEOSVoid(int imat);
   void computeEOSSTIFG(int imat);
   void computeEOSMur(int imat);
   void computeEOSSL(int imat);
@@ -470,7 +445,7 @@ class EucclhydRemap {
   void computeUremap2() noexcept;
 
   void remapCellcenteredVariable() noexcept;
-  
+
   void updateParticlePosition() noexcept;
   void updateParticleCoefficients() noexcept;
   void updateParticleVelocity() noexcept;
@@ -485,12 +460,10 @@ class EucclhydRemap {
   RealArray2D<N, M> tensProduct(RealArray1D<N> a, RealArray1D<M> b);
   double crossProduct2d(RealArray1D<2> a, RealArray1D<2> b);
 
-
   int getLeftCells(const int cells);
   int getRightCells(const int cells);
   int getBottomCells(const int cells);
   int getTopCells(const int cells);
-
 
   double fluxLimiter(int projectionLimiterId, double r);
   double fluxLimiterPP(int projectionLimiterId, double gradplus,
@@ -511,17 +484,18 @@ class EucclhydRemap {
       RealArray1D<d> gradphimoins, RealArray1D<d> phi, RealArray1D<d> phiplus,
       RealArray1D<d> phimoins, double h0, double hplus, double hmoins);
   template <size_t d>
-  RealArray1D<d> computeFluxPP(
-      RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
-      RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
-      double face_normal_velocity, double deltat_n, int type, int cell,
-      double flux_threhold);
+  RealArray1D<d> computeFluxPP(RealArray1D<d> gradphi, RealArray1D<d> phi,
+                               RealArray1D<d> phiplus, RealArray1D<d> phimoins,
+                               double h0, double hplus, double hmoins,
+                               double face_normal_velocity, double deltat_n,
+                               int type, int cell, double flux_threhold);
   template <size_t d>
-  RealArray1D<d> computeFluxPPPure(
-      RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
-      RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
-      double face_normal_velocity, double deltat_n, int type, int cell,
-      double flux_threhold);
+  RealArray1D<d> computeFluxPPPure(RealArray1D<d> gradphi, RealArray1D<d> phi,
+                                   RealArray1D<d> phiplus,
+                                   RealArray1D<d> phimoins, double h0,
+                                   double hplus, double hmoins,
+                                   double face_normal_velocity, double deltat_n,
+                                   int type, int cell, double flux_threhold);
   template <size_t d>
   RealArray1D<d> computeUpwindFaceQuantities(
       RealArray1D<dim> face_normal, double face_normal_velocity, double delta_x,
@@ -531,33 +505,31 @@ class EucclhydRemap {
   RealArray1D<dim> xThenYToDirection(bool x_then_y_);
   template <size_t d>
   RealArray1D<d> computeRemapFlux(int projectionOrder,
-				  int projectionAvecPlateauPente,
+                                  int projectionAvecPlateauPente,
                                   double face_normal_velocity,
                                   RealArray1D<dim> face_normal,
                                   double face_length, RealArray1D<d> phi_face,
                                   RealArray1D<dim> outer_face_normal,
                                   RealArray1D<dim> exy, double deltat_n);
   template <size_t d>
-  RealArray1D<d> computeVecFluxOrdre3(RealArray1D<d> phimmm, RealArray1D<d> phimm,
-				      RealArray1D<d> phim,
-				      RealArray1D<d> phip, RealArray1D<d> phipp,
-				      RealArray1D<d> phippp,
-				      double hmmm, double hmm, double hm,
-				      double hp, double hpp, double hppp,
-				      double face_normal_velocity, double deltat_n);
+  RealArray1D<d> computeVecFluxOrdre3(
+      RealArray1D<d> phimmm, RealArray1D<d> phimm, RealArray1D<d> phim,
+      RealArray1D<d> phip, RealArray1D<d> phipp, RealArray1D<d> phippp,
+      double hmmm, double hmm, double hm, double hp, double hpp, double hppp,
+      double face_normal_velocity, double deltat_n);
   interval define_interval(double a, double b);
   interval intersection(interval I1, interval I2);
-  double evaluate_grad(double hm, double h0, double hp,
-		       double ym, double y0, double yp);
+  double evaluate_grad(double hm, double h0, double hp, double ym, double y0,
+                       double yp);
   double evaluate_ystar(double hmm, double hm, double hp, double hpp,
-			double ymm, double ym, double yp, double ypp,
-			double gradm, double gradp);
+                        double ymm, double ym, double yp, double ypp,
+                        double gradm, double gradp);
   double evaluate_fm(double x, double dx, double up, double du, double u6);
   double evaluate_fp(double x, double dx, double um, double du, double u6);
-  double ComputeFluxOrdre3(double ymmm, double ymm, double ym,
-			   double yp, double ypp, double yppp,
-			   double hmmm, double hmm, double hm,
-			   double hp, double hpp, double hppp, double v_dt);
+  double ComputeFluxOrdre3(double ymmm, double ymm, double ym, double yp,
+                           double ypp, double yppp, double hmmm, double hmm,
+                           double hm, double hp, double hpp, double hppp,
+                           double v_dt);
   /**
    * Job dumpVariables called @2.0 in executeTimeLoopN method.
    * In variables: Xc_x, Xc_y, eps_n, m, p, rho_n, t_n, v

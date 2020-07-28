@@ -1,9 +1,7 @@
 #ifndef CSTMESH_H
 #define CSTMESH_H
 
-
-namespace cstmeshlib
-{
+namespace cstmeshlib {
 
 class ConstantesMaillagesClass {
  public:
@@ -16,8 +14,8 @@ class ConstantesMaillagesClass {
     double Y_EDGE_LENGTH = Y_LENGTH / Y_EDGE_ELEMS;
   };
   ConstantesMaillages* cstmesh;
- private:
 
+ private:
 };
-} // namespace
+}  // namespace cstmeshlib
 #endif  // LIMITEURS_H

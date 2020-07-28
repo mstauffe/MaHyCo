@@ -1,9 +1,7 @@
 #ifndef GESTIONTEMPS_H
 #define GESTIONTEMPS_H
 
-
-namespace gesttempslib
-{
+namespace gesttempslib {
 
 class GestionTempsClass {
  public:
@@ -14,10 +12,14 @@ class GestionTempsClass {
     int max_time_iterations = 500000000;
     double deltat_init = 0.;
     double deltat_min = 1.0E-10;
+    double deltat_n;
+    double deltat_nplus1;
+    double t_n;
+    double t_nplus1;
   };
   GestTemps* gt;
- private:
 
+ private:
 };
-} // namespace
+}  // namespace gesttempslib
 #endif  // LIMITEURS_H
