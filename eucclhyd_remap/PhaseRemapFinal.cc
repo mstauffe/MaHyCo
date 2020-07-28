@@ -62,8 +62,8 @@ void EucclhydRemap::remapCellcenteredVariable() noexcept {
           pure(cCells) = imatpure;
         }
         // -----
-	for (int imat = 0; imat < nbmat; imat++)
-	  fracmass(cCells)[imat] = Uremap2(cCells)[nbmat + imat] / masset;
+        for (int imat = 0; imat < nbmat; imat++)
+          fracmass(cCells)[imat] = Uremap2(cCells)[nbmat + imat] / masset;
 
         // on enleve les petits fractions de volume aussi sur la fraction
         // massique et on normalise
@@ -208,19 +208,17 @@ void EucclhydRemap::remapCellcenteredVariable() noexcept {
   double reductionE(0.), reductionM(0.);
   {
     Kokkos::Sum<double> reducerE(reductionE);
-    Kokkos::parallel_reduce(
-        "reductionE", nbCells,
-        KOKKOS_LAMBDA(const int& cCells, double& x) {
-          reducerE.join(x, ETOT_T(cCells));
-        },
-        reducerE);
+    Kokkos::parallel_reduce("reductionE", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerE.join(x, ETOT_T(cCells));
+                            },
+                            reducerE);
     Kokkos::Sum<double> reducerM(reductionM);
-    Kokkos::parallel_reduce(
-        "reductionM", nbCells,
-        KOKKOS_LAMBDA(const int& cCells, double& x) {
-          reducerM.join(x, MTOT_0(cCells));
-        },
-        reducerM);
+    Kokkos::parallel_reduce("reductionM", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerM.join(x, MTOT_0(cCells));
+                            },
+                            reducerM);
   }
   ETOTALE_T = reductionE;
   MASSET_T = reductionM;

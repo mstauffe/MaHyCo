@@ -1,15 +1,14 @@
 #ifndef SCHEMAPARTICULES_H
 #define SCHEMAPARTICULES_H
 
-
+#include "mesh/CartesianMesh2D.h"            // for CartesianMesh2D
 using namespace nablalib;
 
-namespace particulelib
-{
+namespace particulelib {
 
 class SchemaParticules {
  public:
-    struct Particules {
+  struct Particules {
     int DragModel;
     int Kliatchko = 20;
     int Classique = 21;
@@ -23,7 +22,6 @@ class SchemaParticules {
 
  private:
   CartesianMesh2D* mesh;
-
 };
-} // namespace
+}  // namespace particulelib
 #endif  // SCHEMAPARTICULES_H

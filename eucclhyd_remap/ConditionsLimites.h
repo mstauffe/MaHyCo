@@ -1,9 +1,7 @@
 #ifndef CONDITIONSLIMITES_H
 #define CONDITIONSLIMITES_H
 
-
-namespace conditionslimiteslib
-{
+namespace conditionslimiteslib {
 
 class ConditionsLimites {
  public:
@@ -12,7 +10,7 @@ class ConditionsLimites {
     RealArray1D<dim> ex = {{1.0, 0.0}};
     RealArray1D<dim> ey = {{0.0, 1.0}};
     RealArray1D<nbequamax> Uzero = {
-        {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};   
+        {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
     int symmetry = 200;
     int imposedVelocity = 201;
     int freeSurface = 202;
@@ -40,7 +38,6 @@ class ConditionsLimites {
   Cdl* cdl;
 
  private:
-
 };
-} // namespace
-#endif  // SCHEMAPARTICULES_H
+}  // namespace conditionslimiteslib
+#endif  // CONDITIONSLIMITES_H

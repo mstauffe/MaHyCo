@@ -66,66 +66,61 @@ void EucclhydRemap::computeCornerNormal() noexcept {
 /**
  * Job computeEOS called in executeTimeLoopN method.
  */
-void EucclhydRemap::computeEOS()  {
-    for (int imat = 0; imat < options->nbmat; ++imat)  {
-      if (eos->Nom[imat] == eos->PerfectGas) computeEOSGP(imat);  
-      if (eos->Nom[imat] == eos->Void) computeEOSVoid(imat);   
-      if (eos->Nom[imat] == eos->StiffenedGas) computeEOSSTIFG(imat);
-      if (eos->Nom[imat] == eos->Murnhagan) computeEOSMur(imat);
-      if (eos->Nom[imat] == eos->SolidLinear) computeEOSSL(imat);
-    }
+void EucclhydRemap::computeEOS() {
+  for (int imat = 0; imat < options->nbmat; ++imat) {
+    if (eos->Nom[imat] == eos->PerfectGas) computeEOSGP(imat);
+    if (eos->Nom[imat] == eos->Void) computeEOSVoid(imat);
+    if (eos->Nom[imat] == eos->StiffenedGas) computeEOSSTIFG(imat);
+    if (eos->Nom[imat] == eos->Murnhagan) computeEOSMur(imat);
+    if (eos->Nom[imat] == eos->SolidLinear) computeEOSSL(imat);
+  }
 }
 /**
  * Job computeEOSGP called @1.0 in executeTimeLoopN method.
  * In variables: eos, eosPerfectGas, eps_n, gammap, rho_n
  * Out variables: c, p
  */
-void EucclhydRemap::computeEOSGP(int imat)  {
-  Kokkos::parallel_for(
-    "computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {	
-      pp(cCells)[imat] = (eos->gammap[imat] - 1.0) *
-	rhop_n(cCells)[imat] * epsp_n(cCells)[imat];
-      if (rhop_n(cCells)[imat] > 0.) {
-	vitsonp(cCells)[imat] =
-	  MathFunctions::sqrt(eos->gammap[imat] * pp(cCells)[imat] /
-			      rhop_n(cCells)[imat]);
-      } else
-	vitsonp(cCells)[imat] = 1.e-20;
-    });
+void EucclhydRemap::computeEOSGP(int imat) {
+  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+    pp(cCells)[imat] =
+        (eos->gammap[imat] - 1.0) * rhop_n(cCells)[imat] * epsp_n(cCells)[imat];
+    if (rhop_n(cCells)[imat] > 0.) {
+      vitsonp(cCells)[imat] = MathFunctions::sqrt(
+          eos->gammap[imat] * pp(cCells)[imat] / rhop_n(cCells)[imat]);
+    } else
+      vitsonp(cCells)[imat] = 1.e-20;
+  });
 }
 /**
  * Job computeEOSVoid called in executeTimeLoopN method.
  * In variables: eos, eosPerfectGas, eps_n, gammap, rho_n
  * Out variables: c, p
  */
-void EucclhydRemap::computeEOSVoid(int imat)  {
-  Kokkos::parallel_for(
-    "computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {	
-      pp(cCells)[imat] = 0.;
-      vitsonp(cCells)[imat] = 1.e-20;
-    });
+void EucclhydRemap::computeEOSVoid(int imat) {
+  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+    pp(cCells)[imat] = 0.;
+    vitsonp(cCells)[imat] = 1.e-20;
+  });
 }
 /**
  * Job computeEOSSTIFG
  * In variables: eps_n, rho_n
  * Out variables: c, p
  */
-void EucclhydRemap::computeEOSSTIFG(int imat)  {
-  Kokkos::parallel_for(
-    "computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {	
-      std::cout << " Pas encore programmée" << std::endl;
-    });
+void EucclhydRemap::computeEOSSTIFG(int imat) {
+  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+    std::cout << " Pas encore programmée" << std::endl;
+  });
 }
 /**
  * Job computeEOSMur called @1.0 in executeTimeLoopN method.
  * In variables: eps_n, rho_n
  * Out variables: c, p
  */
-void EucclhydRemap::computeEOSMur(int imat)  {
-  Kokkos::parallel_for(
-    "computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {	
-      std::cout << " Pas encore programmée" << std::endl;
-    });
+void EucclhydRemap::computeEOSMur(int imat) {
+  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+    std::cout << " Pas encore programmée" << std::endl;
+  });
 }
 /**
  * Job computeEOSSL called @1.0 in executeTimeLoopN method.
@@ -133,27 +128,27 @@ void EucclhydRemap::computeEOSMur(int imat)  {
  * Out variables: c, p
  */
 void EucclhydRemap::computeEOSSL(int imat) {
-  Kokkos::parallel_for(
-    "computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {	
-      std::cout << " Pas encore programmée" << std::endl;
-    });
+  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+    std::cout << " Pas encore programmée" << std::endl;
+  });
 }
 /**
  * Job computeEOS called in executeTimeLoopN method.
  */
 void EucclhydRemap::computePressionMoyenne() noexcept {
-  for(int cCells= 0 ; cCells < nbCells ; cCells++) {	
+  for (int cCells = 0; cCells < nbCells; cCells++) {
     int nbmat = options->nbmat;
-    p(cCells) = 0.; 
+    p(cCells) = 0.;
     for (int imat = 0; imat < nbmat; ++imat) {
       p(cCells) += fracvol(cCells)[imat] * pp(cCells)[imat];
-      vitson(cCells) = MathFunctions::max(vitson(cCells), vitsonp(cCells)[imat]);
+      vitson(cCells) =
+          MathFunctions::max(vitson(cCells), vitsonp(cCells)[imat]);
     }
     // NONREG GP A SUPPRIMER
     if (rho_n(cCells) > 0.) {
       vitson(cCells) =
-	MathFunctions::sqrt(eos->gammap[0] * p(cCells) / rho_n(cCells));
-    } 
+          MathFunctions::sqrt(eos->gammap[0] * p(cCells) / rho_n(cCells));
+    }
   }
 }
 /**
@@ -166,7 +161,7 @@ void EucclhydRemap::computeGradients() noexcept {
       "computeDissipationMatrix", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
         int pId(pNodes);
         {
-	  int nbmat = options->nbmat;
+          int nbmat = options->nbmat;
           for (int imat = 0; imat < nbmat; imat++)
             fracvolnode(pNodes)[imat] = 0.;
           auto cellsOfNodeP(mesh->getCellsOfNode(pId));
@@ -268,7 +263,7 @@ void EucclhydRemap::computeMass() noexcept {
   int nbmat = options->nbmat;
   Kokkos::parallel_for(
       "computeMass", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-	int nbmat = options->nbmat;
+        int nbmat = options->nbmat;
         m(cCells) = rho_n(cCells) * v(cCells);
         for (int imat = 0; imat < nbmat; imat++)
           mp(cCells)[imat] = fracmass(cCells)[imat] * m(cCells);
@@ -346,7 +341,7 @@ void EucclhydRemap::extrapolateValue() noexcept {
                  pNodesOfCellC++) {
               V_extrap(cCells, pNodesOfCellC) = V_n(cCells);
               p_extrap(cCells, pNodesOfCellC) = p(cCells);
-	      int nbmat = options->nbmat;
+              int nbmat = options->nbmat;
               for (int imat = 0; imat < nbmat; imat++)
                 pp_extrap(cCells, pNodesOfCellC)[imat] = pp(cCells)[imat];
             }
@@ -474,7 +469,7 @@ void EucclhydRemap::extrapolateValue() noexcept {
                   MathFunctions::max(MathFunctions::min(maxP3, ptmp3), minP3);
 
               p_extrap(cCells, pNodesOfCellC) = 0.;
-	      int nbmat = options->nbmat;
+              int nbmat = options->nbmat;
               // et on recalcule la moyenne
               for (int imat = 0; imat < nbmat; imat++)
                 p_extrap(cCells, pNodesOfCellC) +=
@@ -500,29 +495,27 @@ void EucclhydRemap::extrapolateValue() noexcept {
  * Out variables: G
  */
 void EucclhydRemap::computeG() noexcept {
-  Kokkos::parallel_for(
-      "computeG", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
-        int pId(pNodes);
-        RealArray1D<dim> reduction1 = zeroVect;
-        {
-          auto cellsOfNodeP(mesh->getCellsOfNode(pId));
-          for (int cCellsOfNodeP = 0; cCellsOfNodeP < cellsOfNodeP.size();
-               cCellsOfNodeP++) {
-            int cId(cellsOfNodeP[cCellsOfNodeP]);
-            int cCells(cId);
-            int pNodesOfCellC(utils::indexOf(mesh->getNodesOfCell(cId), pId));
-            reduction1 = ArrayOperations::plus(
-                reduction1,
-                (ArrayOperations::plus(
-                    MathFunctions::matVectProduct(
-                        M(pNodes, cCellsOfNodeP),
-                        V_extrap(cCells, pNodesOfCellC)),
-                    ArrayOperations::multiply(p_extrap(cCells, pNodesOfCellC),
-                                              lpc_n(pNodes, cCellsOfNodeP)))));
-          }
-        }
-        G(pNodes) = reduction1;
-      });
+  Kokkos::parallel_for("computeG", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
+    int pId(pNodes);
+    RealArray1D<dim> reduction1 = zeroVect;
+    {
+      auto cellsOfNodeP(mesh->getCellsOfNode(pId));
+      for (int cCellsOfNodeP = 0; cCellsOfNodeP < cellsOfNodeP.size();
+           cCellsOfNodeP++) {
+        int cId(cellsOfNodeP[cCellsOfNodeP]);
+        int cCells(cId);
+        int pNodesOfCellC(utils::indexOf(mesh->getNodesOfCell(cId), pId));
+        reduction1 = ArrayOperations::plus(
+            reduction1,
+            (ArrayOperations::plus(
+                MathFunctions::matVectProduct(M(pNodes, cCellsOfNodeP),
+                                              V_extrap(cCells, pNodesOfCellC)),
+                ArrayOperations::multiply(p_extrap(cCells, pNodesOfCellC),
+                                          lpc_n(pNodes, cCellsOfNodeP)))));
+      }
+    }
+    G(pNodes) = reduction1;
+  });
 }
 
 /**
@@ -554,14 +547,14 @@ void EucclhydRemap::computeNodeDissipationMatrixAndG() noexcept {
  */
 void EucclhydRemap::computeNodeVelocity() noexcept {
   auto innerNodes(mesh->getInnerNodes());
-  Kokkos::parallel_for(
-      "computeNodeVelocity", nbInnerNodes,
-      KOKKOS_LAMBDA(const int& pInnerNodes) {
-        int pId(innerNodes[pInnerNodes]);
-        int pNodes(pId);
-	Vnode_nplus1(pNodes) =
-            MathFunctions::matVectProduct(inverse(Mnode(pNodes)), G(pNodes));
-      });
+  int nbInnerNodes(mesh->getNbInnerNodes());
+  Kokkos::parallel_for("computeNodeVelocity", nbInnerNodes,
+                       KOKKOS_LAMBDA(const int& pInnerNodes) {
+                         int pId(innerNodes[pInnerNodes]);
+                         int pNodes(pId);
+                         Vnode_nplus1(pNodes) = MathFunctions::matVectProduct(
+                             inverse(Mnode(pNodes)), G(pNodes));
+                       });
 }
 /**
  * Job computeFaceVelocity called @5.0 in executeTimeLoopN method.
@@ -599,7 +592,7 @@ void EucclhydRemap::computeLagrangePosition() noexcept {
       "computeLagrangePosition", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
         XLagrange(pNodes) = ArrayOperations::plus(
             X(pNodes),
-            ArrayOperations::multiply(Vnode_nplus1(pNodes), deltat_n));
+            ArrayOperations::multiply(Vnode_nplus1(pNodes), gt->deltat_n));
       });
   auto faces(mesh->getFaces());
   Kokkos::parallel_for(
@@ -718,8 +711,8 @@ void EucclhydRemap::computeLagrangeVolumeAndCenterOfGravity() noexcept {
           }
         }
         double vol = 0.5 * reduction6;
-        vLagrange(cCells) = vol;	
-	int nbmat = options->nbmat;
+        vLagrange(cCells) = vol;
+        int nbmat = options->nbmat;
         for (int imat = 0; imat < nbmat; imat++)
           vpLagrange(cCells)[imat] = fracvol(cCells)[imat] * vol;
         RealArray1D<dim> reduction7 = zeroVect;
@@ -771,7 +764,7 @@ void EucclhydRemap::computeFacedeltaxLagrange() noexcept {
  * method. In variables: F_nplus1, V_n, Vnode_nplus1, deltat_n, eps_n, lpc_n, m,
  * rho_n, vLagrange Out variables: ULagrange
  */
-void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {  
+void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
   Kokkos::parallel_for(
       "updateCellCenteredLagrangeVariables", nbCells,
       KOKKOS_LAMBDA(const int& cCells) {
@@ -789,9 +782,9 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
                                                  Vnode_nplus1(pNodes)));
           }
         }
-	double rhoLagrange =
-            1 / (1 / rho_n(cCells) + deltat_n / m(cCells) * reduction2);
-	  
+        double rhoLagrange =
+            1 / (1 / rho_n(cCells) + gt->deltat_n / m(cCells) * reduction2);
+
         RealArray1D<dim> reduction3 = zeroVect;
         {
           auto nodesOfCellC(mesh->getNodesOfCell(cId));
@@ -805,10 +798,11 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
           }
         }
         ForceGradp(cCells) = ArrayOperations::divide(reduction3, v(cCells));
-        RealArray1D<dim> VLagrange = ArrayOperations::plus(V_n(cCells),
-		      ArrayOperations::multiply(deltat_n / m(cCells), reduction3));
+        RealArray1D<dim> VLagrange = ArrayOperations::plus(
+            V_n(cCells),
+            ArrayOperations::multiply(gt->deltat_n / m(cCells), reduction3));
 
-	double reduction4 = 0.0;
+        double reduction4 = 0.0;
         RealArray1D<nbmatmax> preduction4 = zeroVectmat;
         {
           auto nodesOfCellC(mesh->getNodesOfCell(cId));
@@ -872,16 +866,17 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
                         << V_n(cCells) << std::endl;
             if (Vnode_nplus1(pNodes) != Vnode_nplus1(pNodes))
               std::cout << " pNodes  " << pNodes << " Vnode_nplus1(pNodes) "
-			<< Vnode_nplus1(pNodes) << std::endl;
+                        << Vnode_nplus1(pNodes) << std::endl;
             if (VLagrange != VLagrange)
               std::cout << " cell   " << cCells << " VLagrange " << VLagrange
                         << std::endl;
           }
         }
 
-	int nbmat = options->nbmat;
-        double epsLagrange = eps_n(cCells) + deltat_n / m(cCells) * reduction4;
-	
+        int nbmat = options->nbmat;
+        double epsLagrange =
+            eps_n(cCells) + gt->deltat_n / m(cCells) * reduction4;
+
         RealArray1D<nbmatmax> pepsLagrange;
         RealArray1D<nbmatmax> pepsLagrangec;
         for (int imat = 0; imat < nbmat; imat++) {
@@ -890,7 +885,7 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
           if (fracvol(cCells)[imat] > options->threshold &&
               mp(cCells)[imat] != 0.)
             pepsLagrange[imat] =
-                epsp_n(cCells)[imat] + fracvol(cCells)[imat] * deltat_n /
+                epsp_n(cCells)[imat] + fracvol(cCells)[imat] * gt->deltat_n /
                                            mp(cCells)[imat] * preduction4[imat];
         }
         for (int imat = 0; imat < nbmat; imat++) {
@@ -988,8 +983,7 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
             somme_masse += ULagrange(cCells)[nbmat + imat];
           }
           // Phi Vitesse
-          Phi(cCells)[3 * nbmat] =
-              ULagrange(cCells)[3 * nbmat] / somme_masse;
+          Phi(cCells)[3 * nbmat] = ULagrange(cCells)[3 * nbmat] / somme_masse;
           Phi(cCells)[3 * nbmat + 1] =
               ULagrange(cCells)[3 * nbmat + 1] / somme_masse;
           // Phi energie
@@ -1061,19 +1055,17 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
   double reductionE(0.), reductionM(0.);
   {
     Kokkos::Sum<double> reducerE(reductionE);
-    Kokkos::parallel_reduce(
-        "reductionE", nbCells,
-        KOKKOS_LAMBDA(const int& cCells, double& x) {
-          reducerE.join(x, ETOT_L(cCells));
-        },
-        reducerE);
+    Kokkos::parallel_reduce("reductionE", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerE.join(x, ETOT_L(cCells));
+                            },
+                            reducerE);
     Kokkos::Sum<double> reducerM(reductionM);
-    Kokkos::parallel_reduce(
-        "reductionM", nbCells,
-        KOKKOS_LAMBDA(const int& cCells, double& x) {
-          reducerM.join(x, MTOT_L(cCells));
-        },
-        reducerM);
+    Kokkos::parallel_reduce("reductionM", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerM.join(x, MTOT_L(cCells));
+                            },
+                            reducerM);
   }
   ETOTALE_L = reductionE;
   MASSET_L = reductionM;

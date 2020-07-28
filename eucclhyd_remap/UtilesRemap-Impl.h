@@ -33,20 +33,19 @@ RealArray1D<d> EucclhydRemap::computeAndLimitGradPhi(
   }
 }
 template <size_t d>
-RealArray1D<d> EucclhydRemap::computeVecFluxOrdre3(RealArray1D<d> phimmm, RealArray1D<d> phimm, RealArray1D<d> phim,
-						RealArray1D<d> phip, RealArray1D<d> phipp, RealArray1D<d> phippp,
-						double hmmm, double hmm, double hm,
-						double hp, double hpp, double hppp,
-						double face_normal_velocity, double deltat_n) {
+RealArray1D<d> EucclhydRemap::computeVecFluxOrdre3(
+    RealArray1D<d> phimmm, RealArray1D<d> phimm, RealArray1D<d> phim,
+    RealArray1D<d> phip, RealArray1D<d> phipp, RealArray1D<d> phippp,
+    double hmmm, double hmm, double hm, double hp, double hpp, double hppp,
+    double face_normal_velocity, double deltat_n) {
   RealArray1D<d> res;
-  double v_dt =  face_normal_velocity * deltat_n;
+  double v_dt = face_normal_velocity * deltat_n;
   for (size_t i = 0; i < d; i++) {
-    res[i] =  ComputeFluxOrdre3(phimmm[i], phimm[i], phim[i], phip[i], phipp[i], phippp[i],
-				hmmm, hmm, hm, hp,  hpp, hppp, v_dt);
+    res[i] = ComputeFluxOrdre3(phimmm[i], phimm[i], phim[i], phip[i], phipp[i],
+                               phippp[i], hmmm, hmm, hm, hp, hpp, hppp, v_dt);
   }
   return res;
 }
-
 
 template <size_t d>
 RealArray1D<d> EucclhydRemap::computeFluxPP(
@@ -212,8 +211,8 @@ RealArray1D<d> EucclhydRemap::computeFluxPP(
   }
   Flux[3 * nbmat] =
       phi[3 * nbmat] * somme_flux_masse;  // flux de quantité de mouvement x
-  Flux[3 * nbmat + 1] = phi[3 * nbmat + 1] *
-                           somme_flux_masse;  // flux de quantité de mouvement y
+  Flux[3 * nbmat + 1] =
+      phi[3 * nbmat + 1] * somme_flux_masse;  // flux de quantité de mouvement y
   Flux[3 * nbmat + 2] =
       phi[3 * nbmat + 2] * somme_flux_masse;  // flux d'energie cinetique
 
@@ -383,8 +382,8 @@ RealArray1D<d> EucclhydRemap::computeFluxPPPure(
   }
   Flux[3 * nbmat] =
       phi[3 * nbmat] * somme_flux_masse;  // flux de quantité de mouvement x
-  Flux[3 * nbmat + 1] = phi[3 * nbmat + 1] *
-                           somme_flux_masse;  // flux de quantité de mouvement y
+  Flux[3 * nbmat + 1] =
+      phi[3 * nbmat + 1] * somme_flux_masse;  // flux de quantité de mouvement y
   Flux[3 * nbmat + 2] =
       phi[3 * nbmat + 2] * somme_flux_masse;  // flux d'energie cinetique
 
@@ -412,26 +411,28 @@ RealArray1D<d> EucclhydRemap::computeUpwindFaceQuantities(
 }
 
 template <size_t d>
-RealArray1D<d> EucclhydRemap::computeRemapFlux( int projectionOrder,
-    int projectionAvecPlateauPente, double face_normal_velocity,
-    RealArray1D<dim> face_normal, double face_length, RealArray1D<d> phi_face,
+RealArray1D<d> EucclhydRemap::computeRemapFlux(
+    int projectionOrder, int projectionAvecPlateauPente,
+    double face_normal_velocity, RealArray1D<dim> face_normal,
+    double face_length, RealArray1D<d> phi_face,
     RealArray1D<dim> outer_face_normal, RealArray1D<dim> exy, double deltat_n) {
-  
   RealArray1D<d> Flux;
   if (projectionAvecPlateauPente == 0) {
-    // cas projection ordre 3 ou 1 ou 2 sans plateau pente (flux calculé ici avec phi_face)
+    // cas projection ordre 3 ou 1 ou 2 sans plateau pente (flux calculé ici
+    // avec phi_face)
     if (MathFunctions::fabs(MathFunctions::dot(face_normal, exy)) < 1.0E-10)
       return ArrayOperations::multiply(0.0, phi_face);
     return ArrayOperations::multiply(
-	   MathFunctions::dot(outer_face_normal, exy) * face_normal_velocity *
-	   face_length * deltat_n,
-	   phi_face);
+        MathFunctions::dot(outer_face_normal, exy) * face_normal_velocity *
+            face_length * deltat_n,
+        phi_face);
   } else {
-    // cas projection ordre 2 avec plateau pente (flux dans la variable phi_face)
+    // cas projection ordre 2 avec plateau pente (flux dans la variable
+    // phi_face)
     if (MathFunctions::fabs(MathFunctions::dot(face_normal, exy)) < 1.0E-10)
       return ArrayOperations::multiply(0.0, phi_face);
     return ArrayOperations::multiply(
-	   MathFunctions::dot(outer_face_normal, exy) * face_length, phi_face);
+        MathFunctions::dot(outer_face_normal, exy) * face_length, phi_face);
   }
 }
 

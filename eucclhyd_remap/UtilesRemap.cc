@@ -185,8 +185,7 @@ double EucclhydRemap::INT2Y(double X, double x0, double y0, double x1,
   return flux;
 }
 
-RealArray1D<dim> EucclhydRemap::xThenYToDirection(
-    bool x_then_y_) {
+RealArray1D<dim> EucclhydRemap::xThenYToDirection(bool x_then_y_) {
   if (x_then_y_)
     return {{1.0, 0.0}};
 
@@ -196,74 +195,74 @@ RealArray1D<dim> EucclhydRemap::xThenYToDirection(
 // fonctions pour l'ordre 3
 // ----------------------------------
 // fonction pour evaluer le gradient
-double EucclhydRemap::evaluate_grad(double hm, double h0, double hp,
-				    double ym, double y0, double yp)  {
+double EucclhydRemap::evaluate_grad(double hm, double h0, double hp, double ym,
+                                    double y0, double yp) {
   double grad;
-  grad = h0 / ( hm + h0 + hp) *
-    ( (2. * hm + h0) / (h0 + hp) * (yp - y0)
-      + (h0 + 2. * hp) / (hm + h0) * (y0 - ym));
+  grad = h0 / (hm + h0 + hp) *
+         ((2. * hm + h0) / (h0 + hp) * (yp - y0) +
+          (h0 + 2. * hp) / (hm + h0) * (y0 - ym));
   return grad;
 }
 // ----------------------------------
 // fonction pour évaluer ystar
-double EucclhydRemap::evaluate_ystar(double hmm, double hm, double hp, double hpp,
-				     double ymm, double ym, double yp, double ypp,
-				     double gradm, double gradp)  {
+double EucclhydRemap::evaluate_ystar(double hmm, double hm, double hp,
+                                     double hpp, double ymm, double ym,
+                                     double yp, double ypp, double gradm,
+                                     double gradp) {
   double ystar, tmp1, tmp2;
-  tmp1 = (2. * hp * hm) / ( hm + hp)
-    * ( (hmm + hm) / (2. * hm + hp)
-      - (hpp + hp) / (2. * hp + hm) )
-    * (yp - ym);
-  tmp2 = - hm * (hmm + hm) / (2. * hm + hp) * gradp
-    + hp * (hp + hpp) / (hm + 2. * hp) * gradm;
-  ystar = ym + hm / (hm + hp) * (yp - ym)
-    + 1. / (hmm + hm + hp + hpp) * (tmp1 + tmp2);
+  tmp1 = (2. * hp * hm) / (hm + hp) *
+         ((hmm + hm) / (2. * hm + hp) - (hpp + hp) / (2. * hp + hm)) *
+         (yp - ym);
+  tmp2 = -hm * (hmm + hm) / (2. * hm + hp) * gradp +
+         hp * (hp + hpp) / (hm + 2. * hp) * gradm;
+  ystar = ym + hm / (hm + hp) * (yp - ym) +
+          1. / (hmm + hm + hp + hpp) * (tmp1 + tmp2);
   return ystar;
 }
 // ----------------------------------
 // fonction pour évaluer fm
-double EucclhydRemap::evaluate_fm(double x, double dx, double up, double du, double u6) {
+double EucclhydRemap::evaluate_fm(double x, double dx, double up, double du,
+                                  double u6) {
   double fm;
-  fm = up - 0.5 * x/dx * (du - ( 1. - 2./3. * x/dx) * u6);
+  fm = up - 0.5 * x / dx * (du - (1. - 2. / 3. * x / dx) * u6);
   return fm;
-  
 }
 // ----------------------------------
 // fonction pour évaluer fr
-double EucclhydRemap::evaluate_fp(double x, double dx, double um, double du, double u6) {
+double EucclhydRemap::evaluate_fp(double x, double dx, double um, double du,
+                                  double u6) {
   double fp;
-  fp = um + 0.5 * x/dx * (du - ( 1. - 2./3. * x/dx) * u6);
+  fp = um + 0.5 * x / dx * (du - (1. - 2. / 3. * x / dx) * u6);
   return fp;
 }
 // ----------------------------------
 // fonction pour initialiser la structure interval
-EucclhydRemap::interval EucclhydRemap::define_interval (double a, double b) {
-
+EucclhydRemap::interval EucclhydRemap::define_interval(double a, double b) {
   interval I;
-  I.inf = MathFunctions::min(a,b);
-  I.sup = MathFunctions::max(a,b);
+  I.inf = MathFunctions::min(a, b);
+  I.sup = MathFunctions::max(a, b);
   return I;
 }
 // ----------------------------------
 // fonction pour calculer l'intersection entre deux intervals
-EucclhydRemap::interval EucclhydRemap::intersection (interval I1, interval I2) {
-
+EucclhydRemap::interval EucclhydRemap::intersection(interval I1, interval I2) {
   interval I;
-  if ( ( I1.sup < I2.inf) || ( I2.sup < I1.inf) ) {
+  if ((I1.sup < I2.inf) || (I2.sup < I1.inf)) {
     I.inf = 0.;
     I.sup = 0.;
   } else {
-    I.inf = MathFunctions::max( I1.inf, I2.inf);
-    I.sup = MathFunctions::min( I1.sup, I2.sup);
-  }  
+    I.inf = MathFunctions::max(I1.inf, I2.inf);
+    I.sup = MathFunctions::min(I1.sup, I2.sup);
+  }
   return I;
-}  
+}
 // ----------------------------------
 // fonction pour calculer le flux
-double EucclhydRemap::ComputeFluxOrdre3(double ymmm, double  ymm, double ym,
-					double  yp, double  ypp, double yppp,
-					double hmmm, double hmm, double hm,
-					double hp, double hpp, double hppp, double vdt) {
+double EucclhydRemap::ComputeFluxOrdre3(double ymmm, double ymm, double ym,
+                                        double yp, double ypp, double yppp,
+                                        double hmmm, double hmm, double hm,
+                                        double hp, double hpp, double hppp,
+                                        double vdt) {
   double flux;
   double gradmm, gradm, gradp, gradpp;
   double ystarm, ystar, ystarp;
@@ -271,19 +270,13 @@ double EucclhydRemap::ComputeFluxOrdre3(double ymmm, double  ymm, double ym,
   double grad_m, grad_p, ym6, yp6;
   //
   gradmm = evaluate_grad(hmmm, hmm, hm, ymmm, ymm, ym);
-  gradm  = evaluate_grad(hmm, hm, hp, ymm, ym, yp);
-  gradp  = evaluate_grad(hm, hp, hpp, ym, yp, ypp);
+  gradm = evaluate_grad(hmm, hm, hp, ymm, ym, yp);
+  gradp = evaluate_grad(hm, hp, hpp, ym, yp, ypp);
   gradpp = evaluate_grad(hp, hpp, hppp, yp, ypp, yppp);
   //
-  ystarm = evaluate_ystar(hmmm, hmm, hm, hp,
-			  ymmm, ymm, ym, yp,
-			  gradmm, gradm);
-  ystar  = evaluate_ystar(hmm, hm, hp, hpp,
-			  ymm, ym, yp, ypp,
-			  gradm, gradp);
-  ystarp = evaluate_ystar(hm, hp, hpp, hppp,
-			  ym, yp, ypp, yppp,
-			  gradp, gradpp);
+  ystarm = evaluate_ystar(hmmm, hmm, hm, hp, ymmm, ymm, ym, yp, gradmm, gradm);
+  ystar = evaluate_ystar(hmm, hm, hp, hpp, ymm, ym, yp, ypp, gradm, gradp);
+  ystarp = evaluate_ystar(hm, hp, hpp, hppp, ym, yp, ypp, yppp, gradp, gradpp);
   //
   ym_m = ystarm;
   ym_p = ystar;
@@ -297,7 +290,7 @@ double EucclhydRemap::ComputeFluxOrdre3(double ymmm, double  ymm, double ym,
   yp6 = 6. * (yp - 0.5 * (yp_m + yp_p));
   //
   if (vdt >= 0.) {
-    flux = evaluate_fm( vdt, hm, ym_p, grad_m, ym6);
+    flux = evaluate_fm(vdt, hm, ym_p, grad_m, ym6);
   } else {
     flux = evaluate_fp(-vdt, hp, yp_m, grad_p, yp6);
   }
@@ -306,8 +299,8 @@ double EucclhydRemap::ComputeFluxOrdre3(double ymmm, double  ymm, double ym,
   interval I1, I2, limiteur;
   num = vdt / hm;
   nup = vdt / hp;
-  ym_ym = ym + (1. - num)/num * (ym - ymm);
-  yp_ym = yp - (1. + nup)/nup * (yp - ypp);
+  ym_ym = ym + (1. - num) / num * (ym - ymm);
+  yp_ym = yp - (1. + nup) / nup * (yp - ypp);
   if (vdt >= 0.) {
     I1 = define_interval(ym, yp);
     I2 = define_interval(ym, ym_ym);
@@ -316,8 +309,12 @@ double EucclhydRemap::ComputeFluxOrdre3(double ymmm, double  ymm, double ym,
     I2 = define_interval(yp, yp_ym);
   }
   limiteur = intersection(I1, I2);
-  if (flux < limiteur.inf) { flux = limiteur.inf;}
-  if (flux > limiteur.sup) { flux = limiteur.sup;}
-  //  
+  if (flux < limiteur.inf) {
+    flux = limiteur.inf;
+  }
+  if (flux > limiteur.sup) {
+    flux = limiteur.sup;
+  }
+  //
   return flux;
 }

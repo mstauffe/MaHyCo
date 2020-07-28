@@ -14,10 +14,8 @@
 #include "utils/Utils.h"            // for indexOf
 
 void EucclhydRemap::initBoundaryConditions() noexcept {
-  if (test->Nom == test->SodCaseX ||
-      test->Nom == test->SodCaseY ||
-      test->Nom == test->BiSodCaseX ||
-      test->Nom == test->BiSodCaseY ) {
+  if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY ||
+      test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
     // maillage 200 5 0.005 0.02
     cdl->leftBC = cdl->symmetry;
     cdl->leftBCValue = ey;
@@ -64,7 +62,7 @@ void EucclhydRemap::initBoundaryConditions() noexcept {
 
     cdl->bottomBC = cdl->symmetry;
     cdl->bottomBCValue = ex;
-    
+
   } else if (test->Nom == test->TriplePoint ||
              test->Nom == test->BiTriplePoint) {
     // maillage 140 60 0.0005 0.0005
@@ -98,8 +96,8 @@ void EucclhydRemap::initBoundaryConditions() noexcept {
     cdl->bottomBC = cdl->symmetry;
     cdl->bottomBCValue = ex;
   }
-  cdl->FluxBC = cdl->leftFluxBC + cdl->rightFluxBC +
-                    cdl->bottomFluxBC + cdl->topFluxBC;
+  cdl->FluxBC =
+      cdl->leftFluxBC + cdl->rightFluxBC + cdl->bottomFluxBC + cdl->topFluxBC;
 }
 /**
  * Job initMeshGeometryForCells called @1.0 in simulate method.
@@ -194,58 +192,56 @@ void EucclhydRemap::initVpAndFpc() noexcept {
  * variables: eps_n0
  */
 void EucclhydRemap::initCellInternalEnergy() noexcept {
-  Kokkos::parallel_for(
-      "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-        for (int imat = 0; imat < nbmatmax; imat++) {
-          epsp_n0(cCells)[imat] = 0.0;
-        }
-      });
+  Kokkos::parallel_for("initCellInternalEnergy", nbCells,
+                       KOKKOS_LAMBDA(const int& cCells) {
+                         for (int imat = 0; imat < nbmatmax; imat++) {
+                           epsp_n0(cCells)[imat] = 0.0;
+                         }
+                       });
 
-  if (test->Nom == test->NohTestCase ||
-      test->Nom == test->BiNohTestCase ||
-      test->Nom == test->UnitTestCase ||
-      test->Nom == test->BiUnitTestCase) {
+  if (test->Nom == test->NohTestCase || test->Nom == test->BiNohTestCase ||
+      test->Nom == test->UnitTestCase || test->Nom == test->BiUnitTestCase) {
     double p0(1.);
     double rho0(1.);
     double gamma(1.4);
     double eps0 = p0 / ((gamma - 1.0) * rho0);
-    Kokkos::parallel_for(
-        "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-          eps_n0(cCells) = eps0;
-          for (int imat = 0; imat < nbmatmax; imat++) epsp_n0(cCells)[imat] = eps0;
-        });
-  } else if (test->Nom == test->SodCaseX ||
-	     test->Nom == test->SodCaseY) {
-    Kokkos::parallel_for(
-        "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-          double pInit;
-          double rhoInit;
-          double epsInit;
-	  double r(0.);
-	  if (test->Nom == test->SodCaseX) r = Xc(cCells)[0];
-	  if (test->Nom == test->SodCaseY) r = Xc(cCells)[1];
-          if (r <= 0.5) {
-            pInit = 1.0;
-            rhoInit = 1.0;
-          } else {
-            pInit = 0.1;
-            rhoInit = 0.125;
-          }
-          epsInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-          eps_n0(cCells) = epsInit;
-          epsp_n0(cCells)[0] = epsInit;
-        });
-  } else if (test->Nom == test->BiSodCaseX ||
-	     test->Nom == test->BiSodCaseY) {
+    Kokkos::parallel_for("initCellInternalEnergy", nbCells,
+                         KOKKOS_LAMBDA(const int& cCells) {
+                           eps_n0(cCells) = eps0;
+                           for (int imat = 0; imat < nbmatmax; imat++)
+                             epsp_n0(cCells)[imat] = eps0;
+                         });
+  } else if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY) {
+    Kokkos::parallel_for("initCellInternalEnergy", nbCells,
+                         KOKKOS_LAMBDA(const int& cCells) {
+                           double pInit;
+                           double rhoInit;
+                           double epsInit;
+                           double r(0.);
+                           if (test->Nom == test->SodCaseX) r = Xc(cCells)[0];
+                           if (test->Nom == test->SodCaseY) r = Xc(cCells)[1];
+                           if (r <= 0.5) {
+                             pInit = 1.0;
+                             rhoInit = 1.0;
+                           } else {
+                             pInit = 0.1;
+                             rhoInit = 0.125;
+                           }
+                           epsInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+                           eps_n0(cCells) = epsInit;
+                           epsp_n0(cCells)[0] = epsInit;
+                         });
+  } else if (test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
     Kokkos::parallel_for(
         "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           double pInit;
           double rhoInit;
           double epsInit;
           double r = 0.;
-          // r= sqrt(Xc(cCells)[0]*Xc(cCells)[0]+Xc(cCells)[1]*Xc(cCells)[1]); en rayon
-	  if (test->Nom == test->BiSodCaseX) r = Xc(cCells)[0];
-	  if (test->Nom == test->BiSodCaseY) r = Xc(cCells)[1];
+          // r= sqrt(Xc(cCells)[0]*Xc(cCells)[0]+Xc(cCells)[1]*Xc(cCells)[1]);
+          // en rayon
+          if (test->Nom == test->BiSodCaseX) r = Xc(cCells)[0];
+          if (test->Nom == test->BiSodCaseY) r = Xc(cCells)[1];
           if (r <= 0.5) {
             pInit = 1.0;
             rhoInit = 1.0;
@@ -266,7 +262,7 @@ void EucclhydRemap::initCellInternalEnergy() noexcept {
             // << "  e2= " << epsp_n0(cCells)[0] << std::endl;
           }
         });
-  }  else if (test->Nom == test->BiShockBubble) {
+  } else if (test->Nom == test->BiShockBubble) {
     Kokkos::parallel_for(
         "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           double pInit;
@@ -301,52 +297,51 @@ void EucclhydRemap::initCellInternalEnergy() noexcept {
         "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           int cId(cCells);
           bool isCenterCell = false;
-	  double pInit = 1.e-6;
-	  double rhoInit = 1.;
-	  double rmin = options->threshold; // depot sur 1 maille
-	  double eps1 = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+          double pInit = 1.e-6;
+          double rhoInit = 1.;
+          double rmin = options->threshold;  // depot sur 1 maille
+          double eps1 = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
           {
             auto nodesOfCellC(mesh->getNodesOfCell(cId));
             for (int pNodesOfCellC = 0; pNodesOfCellC < nodesOfCellC.size();
                  pNodesOfCellC++) {
               int pId(nodesOfCellC[pNodesOfCellC]);
               int pNodes(pId);
-              if (MathFunctions::norm(X(pNodes)) < rmin)
-                isCenterCell = true;
+              if (MathFunctions::norm(X(pNodes)) < rmin) isCenterCell = true;
             }
           }
           if (isCenterCell) {
-	    double total_energy_deposit = 0.244816 ;
-            double dx = options->X_EDGE_LENGTH;
-            double dy = options->Y_EDGE_LENGTH;
+            double total_energy_deposit = 0.244816;
+            double dx = cstmesh->X_EDGE_LENGTH;
+            double dy = cstmesh->Y_EDGE_LENGTH;
             eps_n0(cCells) = eps1 + total_energy_deposit / (dx * dy);
           } else {
             eps_n0(cCells) = eps1;
           }
-	  epsp_n0(cCells)[0] = eps_n0(cCells) ;
+          epsp_n0(cCells)[0] = eps_n0(cCells);
         });
   } else if (test->Nom == test->TriplePoint) {
-    Kokkos::parallel_for(
-        "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-          double pInit;
-          double rhoInit;
-          double epsInit;
-          if (Xc(cCells)[0] <= 0.01) {
-            pInit = 1.0;
-            rhoInit = 1.0;
-          } else {
-            if (Xc(cCells)[1] <= 0.015) {
-              pInit = 0.1;
-              rhoInit = 1.;
-            } else {
-              pInit = 0.1;
-              rhoInit = 0.1;
-            }
-          }
-          epsInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-          eps_n0(cCells) = epsInit;
-          epsp_n0(cCells)[0] = epsInit;
-        });
+    Kokkos::parallel_for("initCellInternalEnergy", nbCells,
+                         KOKKOS_LAMBDA(const int& cCells) {
+                           double pInit;
+                           double rhoInit;
+                           double epsInit;
+                           if (Xc(cCells)[0] <= 0.01) {
+                             pInit = 1.0;
+                             rhoInit = 1.0;
+                           } else {
+                             if (Xc(cCells)[1] <= 0.015) {
+                               pInit = 0.1;
+                               rhoInit = 1.;
+                             } else {
+                               pInit = 0.1;
+                               rhoInit = 0.1;
+                             }
+                           }
+                           epsInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+                           eps_n0(cCells) = epsInit;
+                           epsp_n0(cCells)[0] = epsInit;
+                         });
   } else if (test->Nom == test->BiTriplePoint) {
     Kokkos::parallel_for(
         "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
@@ -388,15 +383,14 @@ void EucclhydRemap::initCellVelocity() noexcept {
       "initCellVelocity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         if (test->Nom == test->NohTestCase ||
             test->Nom == test->BiNohTestCase) {
-	  double u0(0.);
-	  double n1 = Xc(cCells)[0];
+          double u0(0.);
+          double n1 = Xc(cCells)[0];
           double n2 = Xc(cCells)[1];
           double normVect = MathFunctions::sqrt(n1 * n1 + n2 * n2);
           V_n0(cCells)[0] = -u0 * n1 / normVect;
           V_n0(cCells)[1] = -u0 * n2 / normVect;
         } else if (test->Nom == test->SedovTestCase ||
-                   test->Nom == test->SodCaseX ||
-                   test->Nom == test->SodCaseY ||
+                   test->Nom == test->SodCaseX || test->Nom == test->SodCaseY ||
                    test->Nom == test->TriplePoint ||
                    test->Nom == test->BiSedovTestCase ||
                    test->Nom == test->BiSodCaseX ||
@@ -423,101 +417,101 @@ void EucclhydRemap::initCellVelocity() noexcept {
  * Out variables: rho_n0, fracvol, fracmass
  */
 void EucclhydRemap::initDensity() noexcept {
-  Kokkos::parallel_for(
-      "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-        for (int imat = 0; imat < nbmatmax; imat++) {
-          fracvol(cCells)[imat] = 0.0;
-          fracmass(cCells)[imat] = 0.0;
-          rhop_n0(cCells)[imat] = 0.0;
-        }
-      });
+  Kokkos::parallel_for("initDensity", nbCells,
+                       KOKKOS_LAMBDA(const int& cCells) {
+                         for (int imat = 0; imat < nbmatmax; imat++) {
+                           fracvol(cCells)[imat] = 0.0;
+                           fracmass(cCells)[imat] = 0.0;
+                           rhop_n0(cCells)[imat] = 0.0;
+                         }
+                       });
   if (test->Nom == test->UnitTestCase) {
-    Kokkos::parallel_for(
-        "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-          if (Xc(cCells)[0] <= 0.5) {
-            fracvol(cCells)[0] = 1.;
-            fracvol(cCells)[1] = 0.;
-            fracmass(cCells)[0] = 1.;
-            fracmass(cCells)[1] = 0.;
-            rho_n0(cCells) = 1.0;
-            rhop_n0(cCells)[0] = 1.0;
-            rhop_n0(cCells)[1] = 0.;
-          } else {
-            fracvol(cCells)[0] = 1.;
-            fracvol(cCells)[1] = 0.;
-            fracmass(cCells)[0] = 1.;
-            fracmass(cCells)[1] = 0.;
-            rho_n0(cCells) = 1.;
-            rhop_n0(cCells)[0] = 1.;
-            rhop_n0(cCells)[1] = 0.;
-          }
-        });
+    Kokkos::parallel_for("initDensity", nbCells,
+                         KOKKOS_LAMBDA(const int& cCells) {
+                           if (Xc(cCells)[0] <= 0.5) {
+                             fracvol(cCells)[0] = 1.;
+                             fracvol(cCells)[1] = 0.;
+                             fracmass(cCells)[0] = 1.;
+                             fracmass(cCells)[1] = 0.;
+                             rho_n0(cCells) = 1.0;
+                             rhop_n0(cCells)[0] = 1.0;
+                             rhop_n0(cCells)[1] = 0.;
+                           } else {
+                             fracvol(cCells)[0] = 1.;
+                             fracvol(cCells)[1] = 0.;
+                             fracmass(cCells)[0] = 1.;
+                             fracmass(cCells)[1] = 0.;
+                             rho_n0(cCells) = 1.;
+                             rhop_n0(cCells)[0] = 1.;
+                             rhop_n0(cCells)[1] = 0.;
+                           }
+                         });
   } else if (test->Nom == test->BiUnitTestCase) {
-    Kokkos::parallel_for(
-        "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-          if (Xc(cCells)[0] <= 0.5) {
-            fracvol(cCells)[0] = 1.;
-            fracvol(cCells)[1] = 0.;
-            fracmass(cCells)[0] = 1.;
-            fracmass(cCells)[1] = 0.;
-            rho_n0(cCells) = 1.0;
-            rhop_n0(cCells)[0] = 1.0;
-            rhop_n0(cCells)[1] = 0.;
-          } else {
-            fracvol(cCells)[0] = 0.;
-            fracvol(cCells)[1] = 1.;
-            fracmass(cCells)[0] = 0.;
-            fracmass(cCells)[1] = 1.;
-            rho_n0(cCells) = 1.;
-            rhop_n0(cCells)[0] = 0.;
-            rhop_n0(cCells)[1] = 1.0;
-          }
-        });
+    Kokkos::parallel_for("initDensity", nbCells,
+                         KOKKOS_LAMBDA(const int& cCells) {
+                           if (Xc(cCells)[0] <= 0.5) {
+                             fracvol(cCells)[0] = 1.;
+                             fracvol(cCells)[1] = 0.;
+                             fracmass(cCells)[0] = 1.;
+                             fracmass(cCells)[1] = 0.;
+                             rho_n0(cCells) = 1.0;
+                             rhop_n0(cCells)[0] = 1.0;
+                             rhop_n0(cCells)[1] = 0.;
+                           } else {
+                             fracvol(cCells)[0] = 0.;
+                             fracvol(cCells)[1] = 1.;
+                             fracmass(cCells)[0] = 0.;
+                             fracmass(cCells)[1] = 1.;
+                             rho_n0(cCells) = 1.;
+                             rhop_n0(cCells)[0] = 0.;
+                             rhop_n0(cCells)[1] = 1.0;
+                           }
+                         });
   } else if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY) {
-    Kokkos::parallel_for(
-        "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-          fracvol(cCells)[0] = 1.;
-          fracvol(cCells)[1] = 0.;
-          fracmass(cCells)[0] = 1.;
-          fracmass(cCells)[1] = 0.;	 
-          double r(0.); 
-	  if (test->Nom == test->SodCaseX) r = Xc(cCells)[0];
-	  if (test->Nom == test->SodCaseY) r = Xc(cCells)[1];
-          if (r <= 0.5) {
-            rho_n0(cCells) = 1.0;
-            rhop_n0(cCells)[0] = 1.0;
-            rhop_n0(cCells)[1] = 1.0;
-          } else {
-            rho_n0(cCells) = 0.125;
-            rhop_n0(cCells)[0] = 0.125;
-            rhop_n0(cCells)[1] = 0.125;
-          }
-        });
+    Kokkos::parallel_for("initDensity", nbCells,
+                         KOKKOS_LAMBDA(const int& cCells) {
+                           fracvol(cCells)[0] = 1.;
+                           fracvol(cCells)[1] = 0.;
+                           fracmass(cCells)[0] = 1.;
+                           fracmass(cCells)[1] = 0.;
+                           double r(0.);
+                           if (test->Nom == test->SodCaseX) r = Xc(cCells)[0];
+                           if (test->Nom == test->SodCaseY) r = Xc(cCells)[1];
+                           if (r <= 0.5) {
+                             rho_n0(cCells) = 1.0;
+                             rhop_n0(cCells)[0] = 1.0;
+                             rhop_n0(cCells)[1] = 1.0;
+                           } else {
+                             rho_n0(cCells) = 0.125;
+                             rhop_n0(cCells)[0] = 0.125;
+                             rhop_n0(cCells)[1] = 0.125;
+                           }
+                         });
   } else if (test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
-    Kokkos::parallel_for(
-        "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-          double r(0.);
-	  if (test->Nom == test->BiSodCaseX) r = Xc(cCells)[0];
-	  if (test->Nom == test->BiSodCaseY) r = Xc(cCells)[1];
-          if (r <= 0.5) {
-            fracvol(cCells)[0] = 1.;
-            fracvol(cCells)[1] = 0.;
-            fracmass(cCells)[0] = 1.;
-            fracmass(cCells)[1] = 0.;
-            rho_n0(cCells) = 1.0;
-            rhop_n0(cCells)[0] = 1.0;
-            rhop_n0(cCells)[1] = 0.;
-          } else {
-            fracvol(cCells)[0] = 0.;
-            fracvol(cCells)[1] = 1.;
-            fracmass(cCells)[0] = 0.;
-            fracmass(cCells)[1] = 1.;
-            rho_n0(cCells) = 0.125;
-            rhop_n0(cCells)[0] = 0.;
-            rhop_n0(cCells)[1] = 0.125;
-          }
-        });
-  }  else if (test->Nom == test->BiShockBubble) {
+    Kokkos::parallel_for("initDensity", nbCells,
+                         KOKKOS_LAMBDA(const int& cCells) {
+                           double r(0.);
+                           if (test->Nom == test->BiSodCaseX) r = Xc(cCells)[0];
+                           if (test->Nom == test->BiSodCaseY) r = Xc(cCells)[1];
+                           if (r <= 0.5) {
+                             fracvol(cCells)[0] = 1.;
+                             fracvol(cCells)[1] = 0.;
+                             fracmass(cCells)[0] = 1.;
+                             fracmass(cCells)[1] = 0.;
+                             rho_n0(cCells) = 1.0;
+                             rhop_n0(cCells)[0] = 1.0;
+                             rhop_n0(cCells)[1] = 0.;
+                           } else {
+                             fracvol(cCells)[0] = 0.;
+                             fracvol(cCells)[1] = 1.;
+                             fracmass(cCells)[0] = 0.;
+                             fracmass(cCells)[1] = 1.;
+                             rho_n0(cCells) = 0.125;
+                             rhop_n0(cCells)[0] = 0.;
+                             rhop_n0(cCells)[1] = 0.125;
+                           }
+                         });
+  } else if (test->Nom == test->BiShockBubble) {
     Kokkos::parallel_for(
         "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           double pInit;
@@ -550,105 +544,111 @@ void EucclhydRemap::initDensity() noexcept {
           }
         });
   } else if (test->Nom == test->TriplePoint) {
-    Kokkos::parallel_for(
-        "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-          fracvol(cCells)[0] = 1.;
-          fracvol(cCells)[1] = 0.;
+    Kokkos::parallel_for("initDensity", nbCells,
+                         KOKKOS_LAMBDA(const int& cCells) {
+                           fracvol(cCells)[0] = 1.;
+                           fracvol(cCells)[1] = 0.;
 
-          fracmass(cCells)[0] = 1.;
-          fracmass(cCells)[1] = 0.;
-          if (Xc(cCells)[0] <= 0.01) {
-            // std::cout << " cell " << cCells << "  x= " <<
-            // Xc(cCells)[0] << " y= " << Xc(cCells)[1] <<
-            // std::endl;
-            rho_n0(cCells) = 1.0;
-          } else {
-            if (Xc(cCells)[1] <= 0.015) {
-              // std::cout << " cell cas 2  " << cCells << " x=
-              // " << Xc(cCells)[0] << "  y= " << Xc(cCells)[1]
-              // << std::endl;
-              rho_n0(cCells) = 1.0;
-            } else {
-              // std::cout << " cell cas 3  " << cCells << " x=
-              // " << Xc(cCells)[0] << "  y= " << Xc(cCells)[1]
-              // << std::endl;
-              rho_n0(cCells) = 0.1;
-            }
-          }
-        });
+                           fracmass(cCells)[0] = 1.;
+                           fracmass(cCells)[1] = 0.;
+                           if (Xc(cCells)[0] <= 0.01) {
+                             // std::cout << " cell " << cCells << "  x= " <<
+                             // Xc(cCells)[0] << " y= " << Xc(cCells)[1] <<
+                             // std::endl;
+                             rho_n0(cCells) = 1.0;
+                           } else {
+                             if (Xc(cCells)[1] <= 0.015) {
+                               // std::cout << " cell cas 2  " << cCells << " x=
+                               // " << Xc(cCells)[0] << "  y= " << Xc(cCells)[1]
+                               // << std::endl;
+                               rho_n0(cCells) = 1.0;
+                             } else {
+                               // std::cout << " cell cas 3  " << cCells << " x=
+                               // " << Xc(cCells)[0] << "  y= " << Xc(cCells)[1]
+                               // << std::endl;
+                               rho_n0(cCells) = 0.1;
+                             }
+                           }
+                         });
   } else if (test->Nom == test->BiTriplePoint) {
-    Kokkos::parallel_for(
-        "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-          if (Xc(cCells)[0] <= 0.01) {
-            // std::cout << " cell cas 1 " << cCells << "  x= " << Xc(cCells)[0]
-            //          << "  y= " << Xc(cCells)[1] << std::endl;
-            rho_n0(cCells) = 1.0;
-            fracvol(cCells)[0] = 1.;
-            fracmass(cCells)[0] = 1.;
-            rhop_n0(cCells)[0] = 1.0;
+    Kokkos::parallel_for("initDensity", nbCells,
+                         KOKKOS_LAMBDA(const int& cCells) {
+                           if (Xc(cCells)[0] <= 0.01) {
+                             // std::cout << " cell cas 1 " << cCells << "  x= "
+                             // << Xc(cCells)[0]
+                             //          << "  y= " << Xc(cCells)[1] <<
+                             //          std::endl;
+                             rho_n0(cCells) = 1.0;
+                             fracvol(cCells)[0] = 1.;
+                             fracmass(cCells)[0] = 1.;
+                             rhop_n0(cCells)[0] = 1.0;
 
-          } else {
-            if (Xc(cCells)[1] <= 0.015) {
-	      //std::cout << "cell cas 2  " <<cCells << "  x= " <<Xc(cCells)[0]
-	      //          << "  y= " << Xc(cCells)[1] << std::endl;
-              rho_n0(cCells) = 1.0;
-              fracvol(cCells)[1] = 1.;
-              fracmass(cCells)[1] = 1.;
-              rhop_n0(cCells)[1] = 1.0;
-            } else {
-              //std::cout << "cell cas 3  " << cCells << "  x= " <<Xc(cCells)[0]
-	      //          << "  y= " << Xc(cCells)[1] << std::endl;
-              rho_n0(cCells) = 0.1;
-              fracvol(cCells)[2] = 1.;
-              fracmass(cCells)[2] = 1.;
-              rhop_n0(cCells)[2] = 0.1;
-            }
-          }
-        });
-  } else if (test->Nom == test->SedovTestCase)  {
-    Kokkos::parallel_for(
-        "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-	  rho_n0(cCells) = 1.0;
-	  rhop_n0(cCells)[0] = 1.0;
-        });
+                           } else {
+                             if (Xc(cCells)[1] <= 0.015) {
+                               // std::cout << "cell cas 2  " <<cCells << "  x=
+                               // " <<Xc(cCells)[0]
+                               //          << "  y= " << Xc(cCells)[1] <<
+                               //          std::endl;
+                               rho_n0(cCells) = 1.0;
+                               fracvol(cCells)[1] = 1.;
+                               fracmass(cCells)[1] = 1.;
+                               rhop_n0(cCells)[1] = 1.0;
+                             } else {
+                               // std::cout << "cell cas 3  " << cCells << "  x=
+                               // " <<Xc(cCells)[0]
+                               //          << "  y= " << Xc(cCells)[1] <<
+                               //          std::endl;
+                               rho_n0(cCells) = 0.1;
+                               fracvol(cCells)[2] = 1.;
+                               fracmass(cCells)[2] = 1.;
+                               rhop_n0(cCells)[2] = 0.1;
+                             }
+                           }
+                         });
+  } else if (test->Nom == test->SedovTestCase) {
+    Kokkos::parallel_for("initDensity", nbCells,
+                         KOKKOS_LAMBDA(const int& cCells) {
+                           rho_n0(cCells) = 1.0;
+                           rhop_n0(cCells)[0] = 1.0;
+                         });
   }
   if (options->nbmat == 1) {
-    Kokkos::parallel_for(
-        "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-          fracvol(cCells)[0] = 1.;
-          fracvol(cCells)[1] = 0.;
-          fracvol(cCells)[2] = 0.;
+    Kokkos::parallel_for("initDensity", nbCells,
+                         KOKKOS_LAMBDA(const int& cCells) {
+                           fracvol(cCells)[0] = 1.;
+                           fracvol(cCells)[1] = 0.;
+                           fracvol(cCells)[2] = 0.;
 
-          fracmass(cCells)[0] = 1.;
-          fracmass(cCells)[1] = 0.;
-          fracmass(cCells)[2] = 0.;
-        });
+                           fracmass(cCells)[0] = 1.;
+                           fracmass(cCells)[1] = 0.;
+                           fracmass(cCells)[2] = 0.;
+                         });
   }
-  Kokkos::parallel_for(
-      "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-        // pour les sorties au temps 0:
-        fracvol1(cCells) = fracvol(cCells)[0];
-        fracvol2(cCells) = fracvol(cCells)[1];
-        fracvol3(cCells) = fracvol(cCells)[2];
-        Vxc(cCells) = V_n0(cCells)[0];
-        Vyc(cCells) = V_n0(cCells)[1];
-        // indicateur mailles mixtes
-        int matcell(0);
-        int imatpure(-1);
-        for (int imat = 0; imat < nbmatmax; imat++)
-          if (fracvol(cCells)[imat] > options->threshold) {
-            matcell++;
-            imatpure = imat;
-          }
+  Kokkos::parallel_for("initDensity", nbCells,
+                       KOKKOS_LAMBDA(const int& cCells) {
+                         // pour les sorties au temps 0:
+                         fracvol1(cCells) = fracvol(cCells)[0];
+                         fracvol2(cCells) = fracvol(cCells)[1];
+                         fracvol3(cCells) = fracvol(cCells)[2];
+                         Vxc(cCells) = V_n0(cCells)[0];
+                         Vyc(cCells) = V_n0(cCells)[1];
+                         // indicateur mailles mixtes
+                         int matcell(0);
+                         int imatpure(-1);
+                         for (int imat = 0; imat < nbmatmax; imat++)
+                           if (fracvol(cCells)[imat] > options->threshold) {
+                             matcell++;
+                             imatpure = imat;
+                           }
 
-        if (matcell > 1) {
-          mixte(cCells) = 1;
-          pure(cCells) = -1;
-        } else {
-          mixte(cCells) = 0;
-          pure(cCells) = imatpure;
-        }
-      });
+                         if (matcell > 1) {
+                           mixte(cCells) = 1;
+                           pure(cCells) = -1;
+                         } else {
+                           mixte(cCells) = 0;
+                           pure(cCells) = imatpure;
+                         }
+                       });
 }
 
 /**
@@ -697,71 +697,64 @@ void EucclhydRemap::initMeshGeometryForFaces() noexcept {
 }
 
 void EucclhydRemap::initPart() noexcept {
-  Kokkos::parallel_for(
-      "initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
-        Vpart_n0(ipart) = zeroVect;
+  Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
+    Vpart_n0(ipart) = zeroVect;
 
-        rpart(ipart) = 5.e-6;
-        rhopart(ipart) = 1110.;
-        wpart(ipart) = 1.e7;
-        vpart(ipart) =
-            4. * Pi * rpart(ipart) * rpart(ipart) * rpart(ipart) / 3.;
-        mpart(ipart) = rhopart(ipart) * vpart(ipart);
-      });
+    rpart(ipart) = 5.e-6;
+    rhopart(ipart) = 1110.;
+    wpart(ipart) = 1.e7;
+    vpart(ipart) = 4. * Pi * rpart(ipart) * rpart(ipart) * rpart(ipart) / 3.;
+    mpart(ipart) = rhopart(ipart) * vpart(ipart);
+  });
 
-  if (test->Nom == test->BiSodCaseX ||
-      test->Nom == test->BiSodCaseY ||
-      test->Nom == test->SodCaseX ||
-      test->Nom == test->SodCaseY )
-    Kokkos::parallel_for(
-        "initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
-          Xpart_n0(ipart)[1] = (ipart % 10) * 0.01 + ipart * 0.0001;
+  if (test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY ||
+      test->Nom == test->SodCaseX || test->Nom == test->SodCaseY)
+    Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
+      Xpart_n0(ipart)[1] = (ipart % 10) * 0.01 + ipart * 0.0001;
 
-          if (ipart < nbPart / 6)
-            Xpart_n0(ipart)[0] = 0.545;
-          else if (ipart >= nbPart / 6 && ipart < 2 * nbPart / 6)
-            Xpart_n0(ipart)[0] = 0.595;
-          else if (ipart >= 2 * nbPart / 6 && ipart < 3 * nbPart / 6)
-            Xpart_n0(ipart)[0] = 0.645;
-          else if (ipart >= 3 * nbPart / 6 && ipart < 4 * nbPart / 6)
-            Xpart_n0(ipart)[0] = 0.695;
-          else if (ipart >= 4 * nbPart / 6 && ipart < 5 * nbPart / 6)
-            Xpart_n0(ipart)[0] = 0.745;
-          else if (ipart >= 5 * nbPart / 6)
-            Xpart_n0(ipart)[0] = 0.795;
+      if (ipart < nbPart / 6)
+        Xpart_n0(ipart)[0] = 0.545;
+      else if (ipart >= nbPart / 6 && ipart < 2 * nbPart / 6)
+        Xpart_n0(ipart)[0] = 0.595;
+      else if (ipart >= 2 * nbPart / 6 && ipart < 3 * nbPart / 6)
+        Xpart_n0(ipart)[0] = 0.645;
+      else if (ipart >= 3 * nbPart / 6 && ipart < 4 * nbPart / 6)
+        Xpart_n0(ipart)[0] = 0.695;
+      else if (ipart >= 4 * nbPart / 6 && ipart < 5 * nbPart / 6)
+        Xpart_n0(ipart)[0] = 0.745;
+      else if (ipart >= 5 * nbPart / 6)
+        Xpart_n0(ipart)[0] = 0.795;
 
-          int icell = MathFunctions::max(
-              floor(Xpart_n0(ipart)[0] / options->X_EDGE_LENGTH), 0);
-          int jcell = MathFunctions::max(
-              floor(Xpart_n0(ipart)[1] / options->Y_EDGE_LENGTH), 0);
-          ICellp(ipart) = jcell * options->X_EDGE_ELEMS + icell;
-          listpart(ICellp(ipart)).push_back(ipart);
-          IMatp(ipart) = 1;
-          //std::cout << " Part  " << ipart << "  xp= " << Xpart_n0(ipart)[0]
-          //          << "  yp= " << Xpart_n0(ipart)[1] << "  " << ICellp(ipart)
-          //          << std::endl;
-        });
+      int icell = MathFunctions::max(
+          floor(Xpart_n0(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
+      int jcell = MathFunctions::max(
+          floor(Xpart_n0(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
+      ICellp(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
+      listpart(ICellp(ipart)).push_back(ipart);
+      IMatp(ipart) = 1;
+      // std::cout << " Part  " << ipart << "  xp= " << Xpart_n0(ipart)[0]
+      //          << "  yp= " << Xpart_n0(ipart)[1] << "  " << ICellp(ipart)
+      //          << std::endl;
+    });
   else if (test->Nom == test->BiTriplePoint)
-    Kokkos::parallel_for(
-        "initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
-          Xpart_n0(ipart)[1] = (ipart % 20) * 0.00075 + 0.00060;
-          int section = nbPart / 20;
-          for (int i = 0; i < section; i++)
-            if (ipart >= i * nbPart / section &&
-                ipart < (i + 1) * nbPart / section)
-              Xpart_n0(ipart)[0] = 0.01 + 0.0005 * (i + 1);
+    Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
+      Xpart_n0(ipart)[1] = (ipart % 20) * 0.00075 + 0.00060;
+      int section = nbPart / 20;
+      for (int i = 0; i < section; i++)
+        if (ipart >= i * nbPart / section && ipart < (i + 1) * nbPart / section)
+          Xpart_n0(ipart)[0] = 0.01 + 0.0005 * (i + 1);
 
-          int icell = MathFunctions::max(
-              floor(Xpart_n0(ipart)[0] / options->X_EDGE_LENGTH), 0);
-          int jcell = MathFunctions::max(
-              floor(Xpart_n0(ipart)[1] / options->Y_EDGE_LENGTH), 0);
-          ICellp(ipart) = jcell * options->X_EDGE_ELEMS + icell;
-          listpart(ICellp(ipart)).push_back(ipart);
-          IMatp(ipart) = 1;
-          //std::cout << " Part  " << ipart << "  xp= " << Xpart_n0(ipart)[0]
-          //          << "  yp= " << Xpart_n0(ipart)[1] << "  " << ICellp(ipart)
-          //          << std::endl;
-        });
+      int icell = MathFunctions::max(
+          floor(Xpart_n0(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
+      int jcell = MathFunctions::max(
+          floor(Xpart_n0(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
+      ICellp(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
+      listpart(ICellp(ipart)).push_back(ipart);
+      IMatp(ipart) = 1;
+      // std::cout << " Part  " << ipart << "  xp= " << Xpart_n0(ipart)[0]
+      //          << "  yp= " << Xpart_n0(ipart)[1] << "  " << ICellp(ipart)
+      //          << std::endl;
+    });
 }
 /**
  * Job setUpTimeLoopN called @3.0 in simulate method.
@@ -778,31 +771,29 @@ void EucclhydRemap::setUpTimeLoopN() noexcept {
   deep_copy(F_n, F_n0);
   deep_copy(Xpart_n, Xpart_n0);
 
-  if (test->Nom == test->SodCaseX ||
-      test->Nom == test->SodCaseY ||
-      test->Nom == test->BiSodCaseX ||
-      test->Nom == test->BiSodCaseY) {
+  if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY ||
+      test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
     // const ℝ δt_init = 1.0e-4;
-    options->deltat_init = 1.0e-4;
-    deltat_n = options->deltat_init;
+    gt->deltat_init = 1.0e-4;
+    gt->deltat_n = gt->deltat_init;
   } else if (test->Nom == test->BiShockBubble) {
-    options->deltat_init = 1.e-7;
-    deltat_n = 1.0e-7;
+    gt->deltat_init = 1.e-7;
+    gt->deltat_n = 1.0e-7;
   } else if (test->Nom == test->SedovTestCase ||
              test->Nom == test->BiSedovTestCase) {
     // const ℝ δt_init = 1.0e-4;
-    options->deltat_init = 1.0e-4;
-    deltat_n = 1.0e-4;
+    gt->deltat_init = 1.0e-4;
+    gt->deltat_n = 1.0e-4;
   } else if (test->Nom == test->NohTestCase ||
              test->Nom == test->BiNohTestCase) {
     // const ℝ δt_init = 1.0e-4;
-    options->deltat_init = 1.0e-4;
-    deltat_n = 1.0e-4;
+    gt->deltat_init = 1.0e-4;
+    gt->deltat_n = 1.0e-4;
   } else if (test->Nom == test->TriplePoint ||
              test->Nom == test->BiTriplePoint) {
     // const ℝ δt_init = 1.0e-5; avec donnees adimensionnées
-    options->deltat_init = 1.0e-5;  // avec pression de 1.e5 / 1.e-8
-    deltat_n = 1.0e-5;
+    gt->deltat_init = 1.0e-5;  // avec pression de 1.e5 / 1.e-8
+    gt->deltat_n = 1.0e-5;
   }
   ETOTALE_0 = 0.;
   Kokkos::parallel_for(
@@ -816,19 +807,17 @@ void EucclhydRemap::setUpTimeLoopN() noexcept {
   double reductionE(0.), reductionM(0.);
   {
     Kokkos::Sum<double> reducerE(reductionE);
-    Kokkos::parallel_reduce(
-        "reductionE", nbCells,
-        KOKKOS_LAMBDA(const int& cCells, double& x) {
-          reducerE.join(x, ETOT_0(cCells));
-        },
-        reducerE);
+    Kokkos::parallel_reduce("reductionE", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerE.join(x, ETOT_0(cCells));
+                            },
+                            reducerE);
     Kokkos::Sum<double> reducerM(reductionM);
-    Kokkos::parallel_reduce(
-        "reductionM", nbCells,
-        KOKKOS_LAMBDA(const int& cCells, double& x) {
-          reducerM.join(x, MTOT_0(cCells));
-        },
-        reducerM);
+    Kokkos::parallel_reduce("reductionM", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerM.join(x, MTOT_0(cCells));
+                            },
+                            reducerM);
   }
   ETOTALE_0 = reductionE;
   MASSET_0 = reductionM;

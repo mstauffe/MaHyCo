@@ -32,7 +32,7 @@ void EucclhydRemap::dumpVariables() noexcept {
   //           << " Masse totale(time) = " << MASSET_T << std::endl;
   nbCalls++;
   if (!writer.isDisabled() &&
-      (t_n >= lastDump + options->output_time || t_n == 0.)) {
+      (gt->t_n >= lastDump + gt->output_time || gt->t_n == 0.)) {
     cpu_timer.stop();
     io_timer.start();
     std::map<string, double*> cellVariables;
@@ -50,12 +50,12 @@ void EucclhydRemap::dumpVariables() noexcept {
     partVariables.insert(pair<string, double*>("VxPart", Vpart_n[0].data()));
     partVariables.insert(pair<string, double*>("VyPart", Vpart_n[1].data()));
     auto quads = mesh->getGeometry()->getQuads();
-    writer.writeFile(nbCalls, t_n, nbNodes, X.data(), nbCells, quads.data(),
+    writer.writeFile(nbCalls, gt->t_n, nbNodes, X.data(), nbCells, quads.data(),
                      cellVariables, nodeVariables);
-    writerpart.writeFile(nbCalls, t_n, nbPart, Xpart_n.data(), 0, quads.data(),
-                         cellVariables, partVariables);
-    lastDump = t_n;
-    std::cout << " time = " << t_n << " sortie demandée " << std::endl;
+    writerpart.writeFile(nbCalls, gt->t_n, nbPart, Xpart_n.data(), 0,
+                         quads.data(), cellVariables, partVariables);
+    lastDump = gt->t_n;
+    std::cout << " time = " << gt->t_n << " sortie demandée " << std::endl;
     io_timer.stop();
     cpu_timer.start();
   }
@@ -90,7 +90,7 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
       std::cout << "[" << __CYAN__ << __BOLD__ << setw(3) << n
                 << __RESET__ "] time = " << __BOLD__
                 << setiosflags(std::ios::scientific) << setprecision(8)
-                << setw(16) << t_n << __RESET__;
+                << setw(16) << gt->t_n << __RESET__;
 
     if (options->AvecParticules == 1) switchalpharho_rho();
     computeEOS();
@@ -134,14 +134,14 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
     }
 
     // Evaluate loop condition with variables at time n
-    continueLoop = (n + 1 < options->max_time_iterations &&
-                    t_nplus1 < options->final_time);
+    continueLoop =
+        (n + 1 < gt->max_time_iterations && gt->t_nplus1 < gt->final_time);
 
     if (continueLoop) {
       // Switch variables to prepare next iteration
       std::swap(x_then_y_nplus1, x_then_y_n);
-      std::swap(t_nplus1, t_n);
-      std::swap(deltat_nplus1, deltat_n);
+      std::swap(gt->t_nplus1, gt->t_n);
+      std::swap(gt->deltat_nplus1, gt->deltat_n);
       std::swap(Vnode_nplus1, Vnode_n);
       std::swap(rho_nplus1, rho_n);
       std::swap(rhop_nplus1, rhop_n);
@@ -178,12 +178,12 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
                 << __RESET__ ", IO: " << __RED__ << "none" << __RESET__ << "} ";
 
     // Progress
-    std::cout << utils::progress_bar(n, options->max_time_iterations, t_n,
-                                     options->final_time, 30);
+    std::cout << utils::progress_bar(n, gt->max_time_iterations, gt->t_n,
+                                     gt->final_time, 30);
     std::cout << __BOLD__ << __CYAN__
               << utils::Timer::print(
-                     utils::eta(n, options->max_time_iterations, t_n,
-                                options->final_time, deltat_n, global_timer),
+                     utils::eta(n, gt->max_time_iterations, gt->t_n,
+                                gt->final_time, gt->deltat_n, global_timer),
                      true)
               << __RESET__ << "\r";
     std::cout.flush();
@@ -203,18 +203,17 @@ void EucclhydRemap::computedeltat() noexcept {
   double reduction10(numeric_limits<double>::max());
   {
     Kokkos::Min<double> reducer(reduction10);
-    Kokkos::parallel_reduce(
-        "reduction10", nbCells,
-        KOKKOS_LAMBDA(const int& cCells, double& x) {
-          reducer.join(x, deltatc(cCells));
-        },
-        reducer);
+    Kokkos::parallel_reduce("reduction10", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducer.join(x, deltatc(cCells));
+                            },
+                            reducer);
   }
-  deltat_nplus1 =
-      MathFunctions::min(options->cfl * reduction10, deltat_n * 1.05);
-  if (deltat_nplus1 < options->deltat_min) {
+  gt->deltat_nplus1 =
+      MathFunctions::min(gt->cfl * reduction10, gt->deltat_n * 1.05);
+  if (gt->deltat_nplus1 < gt->deltat_min) {
     std::cerr << "Fin de la simulation par pas de temps minimum "
-              << deltat_nplus1 << " < " << options->deltat_min << std::endl;
+              << gt->deltat_nplus1 << " < " << gt->deltat_min << std::endl;
     Kokkos::finalize();
     exit(1);
   }
@@ -226,7 +225,9 @@ void EucclhydRemap::computedeltat() noexcept {
  * Out variables: t_nplus1
  */
 KOKKOS_INLINE_FUNCTION
-void EucclhydRemap::updateTime() noexcept { t_nplus1 = t_n + deltat_nplus1; }
+void EucclhydRemap::updateTime() noexcept {
+  gt->t_nplus1 = gt->t_n + gt->deltat_nplus1;
+}
 
 void EucclhydRemap::simulate() {
   std::cout << "\n"
@@ -234,10 +235,10 @@ void EucclhydRemap::simulate() {
             << "\tStarting EucclhydRemap ..." << __RESET__ << "\n\n";
 
   std::cout << "[" << __GREEN__ << "MESH" << __RESET__
-            << "]      X=" << __BOLD__ << options->X_EDGE_ELEMS << __RESET__
-            << ", Y=" << __BOLD__ << options->Y_EDGE_ELEMS << __RESET__
-            << ", X length=" << __BOLD__ << options->X_EDGE_LENGTH << __RESET__
-            << ", Y length=" << __BOLD__ << options->Y_EDGE_LENGTH << __RESET__
+            << "]      X=" << __BOLD__ << cstmesh->X_EDGE_ELEMS << __RESET__
+            << ", Y=" << __BOLD__ << cstmesh->Y_EDGE_ELEMS << __RESET__
+            << ", X length=" << __BOLD__ << cstmesh->X_EDGE_LENGTH << __RESET__
+            << ", Y length=" << __BOLD__ << cstmesh->Y_EDGE_LENGTH << __RESET__
             << std::endl;
 
   if (Kokkos::hwloc::available()) {

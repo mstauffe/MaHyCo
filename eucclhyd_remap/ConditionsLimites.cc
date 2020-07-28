@@ -19,87 +19,93 @@
  */
 void EucclhydRemap::computeBoundaryNodeVelocities() noexcept {
   auto leftNodes(mesh->getLeftNodes());
-  Kokkos::parallel_for(
-      "computeBoundaryNodeVelocities", nbLeftNodes,
-      KOKKOS_LAMBDA(const int& pLeftNodes) {
-        int pId(leftNodes[pLeftNodes]);
-        int pNodes(pId);
-        Vnode_nplus1(pNodes) = nodeVelocityBoundaryCondition(
-            cdl->leftBC, cdl->leftBCValue, Mnode(pNodes), G(pNodes));
-      });
+  int nbLeftNodes(mesh->getNbLeftNodes());
+  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbLeftNodes,
+                       KOKKOS_LAMBDA(const int& pLeftNodes) {
+                         int pId(leftNodes[pLeftNodes]);
+                         int pNodes(pId);
+                         Vnode_nplus1(pNodes) = nodeVelocityBoundaryCondition(
+                             cdl->leftBC, cdl->leftBCValue, Mnode(pNodes),
+                             G(pNodes));
+                       });
   auto rightNodes(mesh->getRightNodes());
-  Kokkos::parallel_for(
-      "computeBoundaryNodeVelocities", nbRightNodes,
-      KOKKOS_LAMBDA(const int& pRightNodes) {
-        int pId(rightNodes[pRightNodes]);
-        int pNodes(pId);
-        Vnode_nplus1(pNodes) = nodeVelocityBoundaryCondition(
-            cdl->rightBC, cdl->rightBCValue, Mnode(pNodes), G(pNodes));
-      });
+  int nbRightNodes(mesh->getNbRightNodes());
+  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbRightNodes,
+                       KOKKOS_LAMBDA(const int& pRightNodes) {
+                         int pId(rightNodes[pRightNodes]);
+                         int pNodes(pId);
+                         Vnode_nplus1(pNodes) = nodeVelocityBoundaryCondition(
+                             cdl->rightBC, cdl->rightBCValue, Mnode(pNodes),
+                             G(pNodes));
+                       });
   auto topNodes(mesh->getTopNodes());
-  Kokkos::parallel_for(
-      "computeBoundaryNodeVelocities", nbTopNodes,
-      KOKKOS_LAMBDA(const int& pTopNodes) {
-        int pId(topNodes[pTopNodes]);
-        int pNodes(pId);
-        Vnode_nplus1(pNodes) = nodeVelocityBoundaryCondition(
-            cdl->topBC, cdl->topBCValue, Mnode(pNodes), G(pNodes));
-      });
+  int nbTopNodes(mesh->getNbTopNodes());
+  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbTopNodes,
+                       KOKKOS_LAMBDA(const int& pTopNodes) {
+                         int pId(topNodes[pTopNodes]);
+                         int pNodes(pId);
+                         Vnode_nplus1(pNodes) = nodeVelocityBoundaryCondition(
+                             cdl->topBC, cdl->topBCValue, Mnode(pNodes),
+                             G(pNodes));
+                       });
   auto bottomNodes(mesh->getBottomNodes());
-  Kokkos::parallel_for(
-      "computeBoundaryNodeVelocities", nbBottomNodes,
-      KOKKOS_LAMBDA(const int& pBottomNodes) {
-        int pId(bottomNodes[pBottomNodes]);
-        int pNodes(pId);
-        Vnode_nplus1(pNodes) = nodeVelocityBoundaryCondition(
-            cdl->bottomBC, cdl->bottomBCValue, Mnode(pNodes),
-            G(pNodes));
-      });
+  int nbBottomNodes(mesh->getNbBottomNodes());
+  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbBottomNodes,
+                       KOKKOS_LAMBDA(const int& pBottomNodes) {
+                         int pId(bottomNodes[pBottomNodes]);
+                         int pNodes(pId);
+                         Vnode_nplus1(pNodes) = nodeVelocityBoundaryCondition(
+                             cdl->bottomBC, cdl->bottomBCValue, Mnode(pNodes),
+                             G(pNodes));
+                       });
   auto topLeftNode(mesh->getTopLeftNode());
-  Kokkos::parallel_for(
-      "computeBoundaryNodeVelocities", nbTopLeftNode,
-      KOKKOS_LAMBDA(const int& pTopLeftNode) {
-        int pId(topLeftNode[pTopLeftNode]);
-        int pNodes(pId);
-        Vnode_nplus1(pNodes) = nodeVelocityBoundaryConditionCorner(
-            cdl->topBC, cdl->topBCValue, cdl->leftBC,
-            cdl->leftBCValue, Mnode(pNodes), G(pNodes));
-      });
+  int nbTopLeftNode(mesh->getNbTopLeftNode());
+  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbTopLeftNode,
+                       KOKKOS_LAMBDA(const int& pTopLeftNode) {
+                         int pId(topLeftNode[pTopLeftNode]);
+                         int pNodes(pId);
+                         Vnode_nplus1(pNodes) =
+                             nodeVelocityBoundaryConditionCorner(
+                                 cdl->topBC, cdl->topBCValue, cdl->leftBC,
+                                 cdl->leftBCValue, Mnode(pNodes), G(pNodes));
+                       });
   auto topRightNode(mesh->getTopRightNode());
-  Kokkos::parallel_for(
-      "computeBoundaryNodeVelocities", nbTopRightNode,
-      KOKKOS_LAMBDA(const int& pTopRightNode) {
-        int pId(topRightNode[pTopRightNode]);
-        int pNodes(pId);
-        Vnode_nplus1(pNodes) = nodeVelocityBoundaryConditionCorner(
-            cdl->topBC, cdl->topBCValue, cdl->rightBC,
-            cdl->rightBCValue, Mnode(pNodes), G(pNodes));
-      });
+  int nbTopRightNode(mesh->getNbTopRightNode());
+  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbTopRightNode,
+                       KOKKOS_LAMBDA(const int& pTopRightNode) {
+                         int pId(topRightNode[pTopRightNode]);
+                         int pNodes(pId);
+                         Vnode_nplus1(pNodes) =
+                             nodeVelocityBoundaryConditionCorner(
+                                 cdl->topBC, cdl->topBCValue, cdl->rightBC,
+                                 cdl->rightBCValue, Mnode(pNodes), G(pNodes));
+                       });
   auto bottomLeftNode(mesh->getBottomLeftNode());
-  Kokkos::parallel_for(
-      "computeBoundaryNodeVelocities", nbBottomLeftNode,
-      KOKKOS_LAMBDA(const int& pBottomLeftNode) {
-        int pId(bottomLeftNode[pBottomLeftNode]);
-        int pNodes(pId);
-        Vnode_nplus1(pNodes) = nodeVelocityBoundaryConditionCorner(
-            cdl->bottomBC, cdl->bottomBCValue, cdl->leftBC,
-            cdl->leftBCValue, Mnode(pNodes), G(pNodes));
-      });
+  int nbBottomLeftNode(mesh->getNbBottomLeftNode());
+  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbBottomLeftNode,
+                       KOKKOS_LAMBDA(const int& pBottomLeftNode) {
+                         int pId(bottomLeftNode[pBottomLeftNode]);
+                         int pNodes(pId);
+                         Vnode_nplus1(pNodes) =
+                             nodeVelocityBoundaryConditionCorner(
+                                 cdl->bottomBC, cdl->bottomBCValue, cdl->leftBC,
+                                 cdl->leftBCValue, Mnode(pNodes), G(pNodes));
+                       });
   auto bottomRightNode(mesh->getBottomRightNode());
+  int nbBottomRightNode(mesh->getNbBottomRightNode());
   Kokkos::parallel_for(
       "computeBoundaryNodeVelocities", nbBottomRightNode,
       KOKKOS_LAMBDA(const int& pBottomRightNode) {
         int pId(bottomRightNode[pBottomRightNode]);
         int pNodes(pId);
         Vnode_nplus1(pNodes) = nodeVelocityBoundaryConditionCorner(
-            cdl->bottomBC, cdl->bottomBCValue, cdl->rightBC,
-            cdl->rightBCValue, Mnode(pNodes), G(pNodes));
+            cdl->bottomBC, cdl->bottomBCValue, cdl->rightBC, cdl->rightBCValue,
+            Mnode(pNodes), G(pNodes));
       });
 }
 KOKKOS_INLINE_FUNCTION
 RealArray1D<dim> EucclhydRemap::nodeVelocityBoundaryCondition(
-    int BC, RealArray1D<dim> BCValue,
-    RealArray2D<dim, dim> Mp,
+    int BC, RealArray1D<dim> BCValue, RealArray2D<dim, dim> Mp,
     RealArray1D<dim> Gp) {
   if (BC == 200)
     return ArrayOperations::multiply(
@@ -116,12 +122,9 @@ RealArray1D<dim> EucclhydRemap::nodeVelocityBoundaryCondition(
 }
 
 KOKKOS_INLINE_FUNCTION
-RealArray1D<dim>
-EucclhydRemap::nodeVelocityBoundaryConditionCorner(
-    int BC1, RealArray1D<dim> BCValue1, int BC2,
-    RealArray1D<dim> BCValue2,
-    RealArray2D<dim, dim> Mp,
-    RealArray1D<dim> Gp) {
+RealArray1D<dim> EucclhydRemap::nodeVelocityBoundaryConditionCorner(
+    int BC1, RealArray1D<dim> BCValue1, int BC2, RealArray1D<dim> BCValue2,
+    RealArray2D<dim, dim> Mp, RealArray1D<dim> Gp) {
   if (BC1 == 200 && BC2 == 200) {
     if (MathFunctions::fabs(
             MathFunctions::fabs(MathFunctions::dot(BCValue1, BCValue2)) -
@@ -148,8 +151,8 @@ EucclhydRemap::nodeVelocityBoundaryConditionCorner(
 RealArray1D<nbequamax> EucclhydRemap::computeBoundaryFluxes(
     int proj, int cCells, RealArray1D<dim> exy) {
   RealArray1D<nbequamax> phiFace_fFaces = Uzero;
-  int nbCellX = options->X_EDGE_ELEMS;
-  int nbCellY = options->Y_EDGE_ELEMS;
+  int nbCellX = cstmesh->X_EDGE_ELEMS;
+  int nbCellY = cstmesh->Y_EDGE_ELEMS;
   if (cdl->bottomFluxBC == 1 && cCells < nbCellX && exy[1] == 1) {
     // cellules Bottom
     int cId(cCells);
@@ -166,10 +169,11 @@ RealArray1D<nbequamax> EucclhydRemap::computeBoundaryFluxes(
     std::cout << " Bottom cell   " << cCells << std::endl;
     if (proj == 1) phiFace_fFaces = phiFace1(ftFaces);
     if (proj == 2) phiFace_fFaces = phiFace2(ftFaces);
-    return computeRemapFlux(options->projectionOrder,
-        limiteurs->projectionAvecPlateauPente, faceNormalVelocity(fbFaces),
-        faceNormal(fbFaces), faceLength(fbFaces), phiFace_fFaces,
-        outerFaceNormal(cCells, fbFacesOfCellC), exy, deltat_n);
+    return computeRemapFlux(
+        options->projectionOrder, limiteurs->projectionAvecPlateauPente,
+        faceNormalVelocity(fbFaces), faceNormal(fbFaces), faceLength(fbFaces),
+        phiFace_fFaces, outerFaceNormal(cCells, fbFacesOfCellC), exy,
+        gt->deltat_n);
   }
   if (cdl->topFluxBC == 1 && cCells <= nbCellX * (nbCellY - 1) &&
       cCells < nbCellX * nbCellY && exy[1] == 1) {
@@ -188,10 +192,11 @@ RealArray1D<nbequamax> EucclhydRemap::computeBoundaryFluxes(
 
     if (proj == 1) phiFace_fFaces = phiFace1(fbFaces);
     if (proj == 2) phiFace_fFaces = phiFace2(fbFaces);
-    return computeRemapFlux(options->projectionOrder,
-        limiteurs->projectionAvecPlateauPente, faceNormalVelocity(ftFaces),
-        faceNormal(ftFaces), faceLength(ftFaces), phiFace_fFaces,
-        outerFaceNormal(cCells, ftFacesOfCellC), exy, deltat_n);
+    return computeRemapFlux(
+        options->projectionOrder, limiteurs->projectionAvecPlateauPente,
+        faceNormalVelocity(ftFaces), faceNormal(ftFaces), faceLength(ftFaces),
+        phiFace_fFaces, outerFaceNormal(cCells, ftFacesOfCellC), exy,
+        gt->deltat_n);
   }
   if (cdl->leftFluxBC == 1 && exy[0] == 1) {
     // cellules de gauche - a optimiser
@@ -213,10 +218,11 @@ RealArray1D<nbequamax> EucclhydRemap::computeBoundaryFluxes(
 
         if (proj == 1) phiFace_fFaces = phiFace1(frFaces);
         if (proj == 2) phiFace_fFaces = phiFace2(frFaces);
-        return computeRemapFlux(options->projectionOrder,
-            limiteurs->projectionAvecPlateauPente, faceNormalVelocity(flFaces),
-            faceNormal(flFaces), faceLength(flFaces), phiFace_fFaces,
-            outerFaceNormal(cCells, flFacesOfCellC), exy, deltat_n);
+        return computeRemapFlux(
+            options->projectionOrder, limiteurs->projectionAvecPlateauPente,
+            faceNormalVelocity(flFaces), faceNormal(flFaces),
+            faceLength(flFaces), phiFace_fFaces,
+            outerFaceNormal(cCells, flFacesOfCellC), exy, gt->deltat_n);
       }
     }
   }
@@ -267,10 +273,11 @@ RealArray1D<nbequamax> EucclhydRemap::computeBoundaryFluxes(
                     << " frFacesOfCellC " << frFacesOfCellC << std::endl;
         }
         //
-        return computeRemapFlux(options->projectionOrder,
-            limiteurs->projectionAvecPlateauPente, faceNormalVelocity(frFaces),
-            faceNormal(frFaces), faceLength(frFaces), phiFace_fFaces,
-            outerFaceNormal(cCells, frFacesOfCellC), exy, deltat_n);
+        return computeRemapFlux(
+            options->projectionOrder, limiteurs->projectionAvecPlateauPente,
+            faceNormalVelocity(frFaces), faceNormal(frFaces),
+            faceLength(frFaces), phiFace_fFaces,
+            outerFaceNormal(cCells, frFacesOfCellC), exy, gt->deltat_n);
       }
     }
   }
