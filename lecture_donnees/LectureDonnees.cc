@@ -127,15 +127,20 @@ void LectureDonneesClass::LectureDonnees(string Fichier,
 
     getline(mesdonnees, ligne);  // ordre de la projection
     mesdonnees >> o->projectionOrder;
-    std::cout << " Ordre en de la phase de projection  " << o->projectionOrder
+    std::cout << " Ordre de la phase de projection  " << o->projectionOrder
               << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // Limiteur
     mesdonnees >> mot;
     l->projectionLimiterId = limiteur[mot];
-    std::cout << " Limiteur " << mot << " ( " << l->projectionLimiterId << " ) "
+    if ((l->projectionLimiterId != -1) && (l->projectionLimiterId != 0)) {
+      std::cout << " Limiteur  " << mot << " ( " << l->projectionLimiterId << " ) "
               << std::endl;
+    } else {
+       cout << "ERREUR: Limiteur " << mot << " non prévu " << endl;
+       exit(1);
+    }
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // Projection Avec Plateau Pente
@@ -157,6 +162,11 @@ void LectureDonneesClass::LectureDonnees(string Fichier,
     l->projectionLimiterIdPure = limiteur[mot];
     std::cout << " Limiteur pour Mailles Pures " << mot << " ( "
               << l->projectionLimiterIdPure << " ) " << std::endl;
+    if ((l->projectionLimiterId == -1) && (l->projectionLimiteurMixte == 1)) {
+      cout << "ERREUR: Limiteur pour mailles pures non défini " <<
+	" alors que l option projectionLimiteurMixte est demandée" << endl;
+       exit(1);
+    }
     mesdonnees.ignore();
 
     // getline(mesdonnees, ligne); // Presence de Particules
