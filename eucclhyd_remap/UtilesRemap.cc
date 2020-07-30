@@ -44,16 +44,18 @@ double EucclhydRemap::fluxLimiterPP(int projectionLimiterId, double gradplus,
       grady = -MathFunctions::max(fabs(gradplus), fabs(gradmoins));
   } else if (projectionLimiterId == limiteurs->vanLeerG)  // formule 9e
   {
-    double lambdaplus = (h0 / 2 + hplus) / (h0 + hplus + hmoins);
-    double lambdamoins = (h0 / 2 + hmoins) / (h0 + hplus + hmoins);
+    double lambdaplus = (h0 / 2. + hplus) / (h0 + hplus + hmoins);
+    double lambdamoins = (h0 / 2. + hmoins) / (h0 + hplus + hmoins);
     if ((lambdaplus * gradplus + lambdamoins * gradmoins) != 0.) {
       grady = gradplus * gradmoins /
               (lambdaplus * gradplus + lambdamoins * gradmoins);
     } else
       grady = 0.;
+  } else if (projectionLimiterId == limiteurs->ultrabeeG) {
+    grady = (yplus - ymoins) / h0;
   } else if (projectionLimiterId == limiteurs->arithmeticG) {
-    double lambdaplus = (h0 / 2 + hplus) / (h0 + hplus + hmoins);
-    double lambdamoins = (h0 / 2 + hmoins) / (h0 + hplus + hmoins);
+    double lambdaplus = (h0 / 2. + hplus) / (h0 + hplus + hmoins);
+    double lambdamoins = (h0 / 2. + hmoins) / (h0 + hplus + hmoins);
     grady = lambdamoins * gradplus + lambdaplus * gradmoins;
   }
 
@@ -102,6 +104,9 @@ double EucclhydRemap::computeY0(int projectionLimiterId, double y0,
 
     y0plus = MathFunctions::min(MathFunctions::max(xplus, a), b);
     y0moins = MathFunctions::min(MathFunctions::max(xmoins, a), b);
+  } else if (projectionLimiterId == limiteurs->ultrabeeG) {
+    y0plus = (yplus + ymoins) / 2.;
+    y0moins = (yplus + ymoins) / 2.;
   } else if (projectionLimiterId == limiteurs->arithmeticG) {
     y0plus = ((h0 + hmoins + hplus) * yplus + h0 * ymoins) /
              (2 * h0 + hmoins + hplus);

@@ -14,11 +14,12 @@ class LimiteursClass {
     int superBeeG = 1301;
     int vanLeerG = 1302;
     int arithmeticG = 1303;
+    int ultrabeeG = 1304;
 
     int projectionAvecPlateauPente = 0;
 
-    int projectionLimiterId = superBee;
-    int projectionLimiterIdPure = arithmeticG;
+    int projectionLimiterId = -1;
+    int projectionLimiterIdPure = -1;
 
     int projectionLimiteurMixte = 0;
   };

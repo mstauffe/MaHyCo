@@ -47,7 +47,8 @@ class LectureDonneesClass {
 	  {"minmodG", 1300},
 	    {"superBeeG", 1301},
 	      {"vanLeerG", 1302},
-		{"arithmeticG", 1303}
+		{"arithmeticG", 1303},
+		  {"ultrabeeG", 1304}
   };
 
   std::unordered_map<string, int> ouiOUnon
