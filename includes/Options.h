@@ -15,7 +15,8 @@ class OptionsSchema {
     int AvecParticules = 0;
     int Adiabatique = 1;
     int Isotherme = 2;
-    int AvecEquilibrage = -1;
+    int AvecEquilibrage = -1;   
+    int pseudo_centree = 1;
   };
   Options* options;
  private:

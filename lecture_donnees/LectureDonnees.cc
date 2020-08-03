@@ -170,6 +170,15 @@ void LectureDonneesClass::LectureDonnees(string Fichier,
     }
     mesdonnees.ignore();
 
+    if (s->schema == s->VNR) {
+      // motclé spécifique VNR
+      getline(mesdonnees, ligne);  // pseudo-centree
+      mesdonnees >> mot;
+      o->pseudo_centree = ouiOUnon[mot];
+      std::cout << " Projection pseudo_centree : " << mot << " ( "
+		<< o->pseudo_centree << " ) " << std::endl;
+      mesdonnees.ignore();
+    }
     // getline(mesdonnees, ligne); // Presence de Particules
     // mesdonnees >> mot;
     // o->AvecParticules = ouiOUnon[mot];

@@ -3,7 +3,10 @@ set( LIBRARY_NAME "vnrremap" )
 add_library( ${LIBRARY_NAME} )
 target_sources( ${LIBRARY_NAME} 
     PRIVATE
-        VnrRemap.cc
+       VnrRemap.cc
+       Init.cc
+       ConditionsLimites.cc
+       PhaseLagrange.cc
 )
 target_include_directories( ${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} )
 if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )

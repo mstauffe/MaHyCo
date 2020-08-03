@@ -70,8 +70,6 @@ class VnrRemap
 public:
 
 private:
-	// Global definitions
-	double lastDump;
 	
 	// Mesh (can depend on previous definitions)
 	CartesianMesh2D* mesh;
@@ -88,16 +86,16 @@ private:
         int nbPart = 0;
 	size_t nbNodes, nbCells, nbFaces, nbInnerNodes, nbNodesOfCell, nbCellsOfNode;
 	
-	// Global declarations
-	
+	// Global declarations	
 	int n, nbCalls;
 	//bool x_then_y_n, x_then_y_nplus1;
-	//double lastDump;
+	double lastDump;
 	//double ETOTALE_L, ETOTALE_T, ETOTALE_0;
 	//double MASSET_L, MASSET_T, MASSET_0;
-	Kokkos::View<RealArray1D<2>*> X_n;
-	Kokkos::View<RealArray1D<2>*> X_nplus1;
-	Kokkos::View<RealArray1D<2>*> X_n0;
+	
+	Kokkos::View<RealArray1D<dim>*> X_n;
+	Kokkos::View<RealArray1D<dim>*> X_nplus1;
+	Kokkos::View<RealArray1D<dim>*> X_n0;
 	Kokkos::View<double**> SubVol_n;
 	Kokkos::View<double**> SubVol_nplus1;
 	Kokkos::View<double**> SubVol_n0;
@@ -108,6 +106,7 @@ private:
 	Kokkos::View<double*> p_n;
 	Kokkos::View<double*> p_nplus1;
 	Kokkos::View<double*> p_n0;
+	Kokkos::View<double*> Q_n0;
 	Kokkos::View<double*> Q_n;
 	Kokkos::View<double*> Q_nplus1;
 	Kokkos::View<double*> tau_n;
@@ -122,15 +121,15 @@ private:
 	Kokkos::View<double*> e_n;
 	Kokkos::View<double*> e_nplus1;
 	Kokkos::View<double*> e_n0;
-	Kokkos::View<RealArray1D<2>*> u_n;
-	Kokkos::View<RealArray1D<2>*> u_nplus1;
-	Kokkos::View<RealArray1D<2>*> u_n0;
+	Kokkos::View<RealArray1D<dim>*> u_n;
+	Kokkos::View<RealArray1D<dim>*> u_nplus1;
+	Kokkos::View<RealArray1D<dim>*> u_n0;
 	Kokkos::View<double*> m;
 	Kokkos::View<double*> cellMass;
-	Kokkos::View<RealArray1D<2>*> cellPos_n;
-	Kokkos::View<RealArray1D<2>*> cellPos_nplus1;
-	Kokkos::View<RealArray1D<2>*> cellPos_n0;
-	Kokkos::View<RealArray1D<2>**> C;
+	Kokkos::View<RealArray1D<dim>*> cellPos_n;
+	Kokkos::View<RealArray1D<dim>*> cellPos_nplus1;
+	Kokkos::View<RealArray1D<dim>*> cellPos_n0;
+	Kokkos::View<RealArray1D<dim>**> C;
 	
 	utils::Timer global_timer;
 	utils::Timer cpu_timer;
@@ -159,7 +158,8 @@ private:
     particules(aParticules),
     eos(aEos),
     mesh(aCartesianMesh2D),
-    lastDump(-numeric_limits<double>::max()),   
+    nbCalls(0),
+    lastDump(0.0),
     writer("VnrRemap", output),
     nbNodes(mesh->getNbNodes()),
     nbCells(mesh->getNbCells()),
@@ -178,6 +178,7 @@ private:
     p_n("p_n", nbCells),
     p_nplus1("p_nplus1", nbCells),
     p_n0("p_n0", nbCells),
+    Q_n0("Q_n", nbCells),
     Q_n("Q_n", nbCells),
     Q_nplus1("Q_nplus1", nbCells),
     tau_n("tau_n", nbCells),
@@ -209,76 +210,65 @@ private:
   }	
  }
  private:
-	KOKKOS_INLINE_FUNCTION
-	void computeArtificialViscosity() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void computeCornerNormal() noexcept;
 	
 	KOKKOS_INLINE_FUNCTION
 	void computeDeltaT() noexcept;
 	
 	KOKKOS_INLINE_FUNCTION
-	void computeNodeVolume() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void initCellPos() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
 	void computeTime() noexcept;
 	
 	KOKKOS_INLINE_FUNCTION
-	void init() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void initSubVol() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void updateVelocity() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void computeCellMass() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void initDeltaT() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void initInternalEnergy() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void initPseudo() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void updatePosition() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
 	void setUpTimeLoopN() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void computeNodeMass() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void computeSubVol() noexcept;
-	
+
 	KOKKOS_INLINE_FUNCTION
 	void executeTimeLoopN() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void updateRho() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void computeTau() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void updateEnergy() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void computeDivU() noexcept;
-	
-	KOKKOS_INLINE_FUNCTION
-	void computeEos() noexcept;
 
 	void dumpVariables() noexcept;
+	
+	// dans Init.cc
+	void initBoundaryConditions() noexcept;
+	
+	void init() noexcept;
+	
+	void initSubVol() noexcept;
+	
+	void initCellPos() noexcept;
+	
+	void initDeltaT() noexcept;
+	
+	void initInternalEnergy() noexcept;
+	
+	void initPseudo() noexcept;
+
+	// dans PhaseLagrange.cc
+	
+	void computeArtificialViscosity() noexcept;
+	
+	void computeCornerNormal() noexcept;
+	
+	void updateVelocity() noexcept;
+	
+	void computeCellMass() noexcept;
+		
+	void updatePosition() noexcept;
+		
+	void computeNodeMass() noexcept;
+	
+	void computeNodeVolume() noexcept;
+	
+	void computeSubVol() noexcept;	
+	
+	void updateRho() noexcept;
+	
+	void computeTau() noexcept;
+	
+	void updateEnergy() noexcept;
+	
+	void computeDivU() noexcept;
+	
+	void computeEos() noexcept;
+
+	void updateVelocityBoundaryConditions() noexcept;
 
 public:
 	void simulate();
