@@ -7,10 +7,10 @@
  * SPDX-License-Identifier: EPL-2.0
  * Contributors: see AUTHORS file
  *******************************************************************************/
-#ifndef TYPES_LINEARALGEBRAFUNCTIONS_H_
-#define TYPES_LINEARALGEBRAFUNCTIONS_H_
+#ifndef LINEARALGEBRA_STL_LINEARALGEBRAFUNCTIONS_H_
+#define LINEARALGEBRA_STL_LINEARALGEBRAFUNCTIONS_H_
 
-#include "types/Matrix.h"
+#include "linearalgebra/stl/Matrix.h"
 
 namespace nablalib
 {
@@ -24,12 +24,15 @@ namespace LinearAlgebraFunctions
   };
 
   std::string print(const NablaSparseMatrix& M);
-  std::string print(const SparseMatrixType& M);
+  std::string printMatlabStyle(const NablaSparseMatrix& M, std::string A);
+  
   std::string print(const VectorType& v);
-  VectorType CGSolve(const SparseMatrixType& A, const VectorType& b, const VectorType& x, CGInfo& info,
-		             const size_t max_it = 200, const double tolerance = std::numeric_limits<double>::epsilon());
-  VectorType solveLinearSystem(NablaSparseMatrix& A, const VectorType& b, CGInfo& info);
+  std::string printMatlabStyle(const VectorType& v, std::string A);
+
+  VectorType CGSolve(const SparseMatrixType& A, const VectorType& b, const VectorType& x0, CGInfo& info,
+                     const size_t max_it = 200, const double tolerance = std::numeric_limits<double>::epsilon());
+  VectorType solveLinearSystem(NablaSparseMatrix& A, const VectorType& b, CGInfo& info, VectorType* x0 = nullptr);
 }
 }
 
-#endif /* TYPES_LINEARALGEBRAFUNCTIONS_H_ */
+#endif /* LINEARALGEBRA_STL_LINEARALGEBRAFUNCTIONS_H_ */

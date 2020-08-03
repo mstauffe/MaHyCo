@@ -17,8 +17,6 @@ endif()
 add_library( ${LIBRARY_NAME} )
 
 target_sources( ${LIBRARY_NAME} PRIVATE
-    "types/LinearAlgebraFunctions.cc"
-    "types/Matrix.cc"
     "types/MultiArray.cc"
     "mesh/CartesianMesh2D.cc"
     "mesh/CartesianMesh2DGenerator.cc"
