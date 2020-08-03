@@ -20,6 +20,8 @@ BiSodCaseX
 PerfectGas
 # equation d'etat
 PerfectGas
+# schéma Lagrange
+Eucclhyd
 # ordre en espace du schéma Lagrange
 2
 # avec projection (mode euler)
