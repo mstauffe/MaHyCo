@@ -10,7 +10,8 @@
  * Out variables: Options
  */
 void LectureDonneesClass::LectureDonnees(string Fichier,
-		    EucclhydRemap::Options* o,
+		    schemalagrangelib::SchemaLagrangeClass::SchemaLagrange* s,
+		    optionschemalib::OptionsSchema::Options* o,
 		    cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh,
 		    gesttempslib::GestionTempsClass::GestTemps* gt,		 
 		    limiteurslib::LimiteursClass::Limiteurs* l,
@@ -94,11 +95,11 @@ void LectureDonneesClass::LectureDonnees(string Fichier,
     // std::cout << " Equilibrage des pressions " << mot << " ( " <<
     // o->AvecEquilibrage << " ) " << std::endl; mesdonnees.ignore();
 
-    // getline(mesdonnees, ligne); // Schéma Lagrange
-    // mesdonnees >> mot;
-    // o->schemaLagrange = schema_lagrange[mot];
-    // std::cout << " schema Lagrange " << mot << " ( " << o->schemaLagrange <<
-    // " ) " << std::endl; mesdonnees.ignore();
+    getline(mesdonnees, ligne); // Schéma Lagrange
+    mesdonnees >> mot;
+    s->schema = schema_lagrange[mot];
+    std::cout << " schema Lagrange " << mot << " ( " << s->schema <<
+      " ) " << std::endl; mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // ordre en espace du schema Lagrange
     mesdonnees >> o->spaceOrder;

@@ -5,10 +5,13 @@
 #include <unordered_map>  // for unordered_map
 
 #include "../eucclhyd_remap/EucclhydRemap.h"  // for EucclhydRemap::Options
+#include "../includes/SchemaLagrange.h"
 
 class LectureDonneesClass {
  public:
-  void LectureDonnees(string Fichier, EucclhydRemap::Options* o,
+  void LectureDonnees(string Fichier,
+		    schemalagrangelib::SchemaLagrangeClass::SchemaLagrange* s,
+		    optionschemalib::OptionsSchema::Options* o,
 		    cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh,
 		    gesttempslib::GestionTempsClass::GestTemps* gt,
 		    limiteurslib::LimiteursClass::Limiteurs* l,
@@ -36,8 +39,9 @@ class LectureDonneesClass {
   std::unordered_map<string, int> schema_lagrange
   {
     {"Eucclhyd", 2000},
-      {"CSTS", 2001},
-	{"MYR", 2002}
+      {"VNR", 2001},
+       {"CSTS", 2002},
+	 {"MYR", 2003}
   };
 
   std::unordered_map<string, int> limiteur{

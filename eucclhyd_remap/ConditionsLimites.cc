@@ -7,7 +7,6 @@
 #include "EucclhydRemap.h"          // for EucclhydRemap, EucclhydRemap::Opt...
 #include "UtilesRemap-Impl.h"       // for EucclhydRemap::computeRemapFlux
 #include "mesh/CartesianMesh2D.h"   // for CartesianMesh2D
-#include "types/ArrayOperations.h"  // for multiply, plus
 #include "types/MathFunctions.h"    // for dot, matVectProduct, norm
 #include "types/MultiArray.h"       // for operator<<
 #include "utils/Utils.h"            // for indexOf
@@ -108,11 +107,9 @@ RealArray1D<dim> EucclhydRemap::nodeVelocityBoundaryCondition(
     int BC, RealArray1D<dim> BCValue, RealArray2D<dim, dim> Mp,
     RealArray1D<dim> Gp) {
   if (BC == 200)
-    return ArrayOperations::multiply(
-        MathFunctions::dot(Gp, BCValue) /
-            (MathFunctions::dot(MathFunctions::matVectProduct(Mp, BCValue),
-                                BCValue)),
-        BCValue);
+    return (dot(Gp, BCValue) /
+            (dot(MathFunctions::matVectProduct(Mp, BCValue),
+                                BCValue)) * BCValue);
   else if (BC == 201)
     return BCValue;
   else if (BC == 202)
@@ -127,20 +124,18 @@ RealArray1D<dim> EucclhydRemap::nodeVelocityBoundaryConditionCorner(
     RealArray2D<dim, dim> Mp, RealArray1D<dim> Gp) {
   if (BC1 == 200 && BC2 == 200) {
     if (MathFunctions::fabs(
-            MathFunctions::fabs(MathFunctions::dot(BCValue1, BCValue2)) -
+            MathFunctions::fabs(dot(BCValue1, BCValue2)) -
             MathFunctions::norm(BCValue1) * MathFunctions::norm(BCValue2)) <
         1.0E-8)
-      return ArrayOperations::multiply(
-          MathFunctions::dot(Gp, BCValue1) /
-              (MathFunctions::dot(MathFunctions::matVectProduct(Mp, BCValue1),
-                                  BCValue1)),
-          BCValue1);
+      return (
+          dot(Gp, BCValue1) /
+              (dot(MathFunctions::matVectProduct(Mp, BCValue1),
+                                  BCValue1)) * BCValue1);
     else {
       return zeroVect;
     }
   } else if (BC1 == 201 && BC2 == 201) {
-    return ArrayOperations::multiply(
-        0.5, (ArrayOperations::plus(BCValue1, BCValue2)));
+    return (0.5 * (BCValue1 + BCValue2));
   } else if (BC1 == 202 && BC2 == 202) {
     return MathFunctions::matVectProduct(inverse(Mp), Gp);
   } else {
@@ -157,12 +152,12 @@ RealArray1D<nbequamax> EucclhydRemap::computeBoundaryFluxes(
     // cellules Bottom
     int cId(cCells);
     int fbBottomFaceOfCellC(mesh->getBottomFaceOfCell(cId));
-    int fbId(fbBottomFaceOfCellC);
+    size_t fbId(fbBottomFaceOfCellC);
     int fbFaces(utils::indexOf(mesh->getFaces(), fbId));
     int fbFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), fbId));
 
     int ftTopFaceOfCellC(mesh->getTopFaceOfCell(cId));
-    int ftId(ftTopFaceOfCellC);
+    size_t ftId(ftTopFaceOfCellC);
     int ftFaces(utils::indexOf(mesh->getFaces(), ftId));
     int ftFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), ftId));
 
@@ -180,12 +175,12 @@ RealArray1D<nbequamax> EucclhydRemap::computeBoundaryFluxes(
     // cellules top
     int cId(cCells);
     int fbBottomFaceOfCellC(mesh->getBottomFaceOfCell(cId));
-    int fbId(fbBottomFaceOfCellC);
+    size_t fbId(fbBottomFaceOfCellC);
     int fbFaces(utils::indexOf(mesh->getFaces(), fbId));
     int fbFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), fbId));
 
     int ftTopFaceOfCellC(mesh->getTopFaceOfCell(cId));
-    int ftId(ftTopFaceOfCellC);
+    size_t ftId(ftTopFaceOfCellC);
     int ftFaces(utils::indexOf(mesh->getFaces(), ftId));
     int ftFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), ftId));
     std::cout << " Top cell   " << cCells << std::endl;
@@ -205,12 +200,12 @@ RealArray1D<nbequamax> EucclhydRemap::computeBoundaryFluxes(
       if (icCells == cCells) {
         int cId(cCells);
         int frRightFaceOfCellC(mesh->getRightFaceOfCell(cId));
-        int frId(frRightFaceOfCellC);
+        size_t frId(frRightFaceOfCellC);
         int frFaces(utils::indexOf(mesh->getFaces(), frId));
         int frFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), frId));
 
         int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cId));
-        int flId(flLeftFaceOfCellC);
+        size_t flId(flLeftFaceOfCellC);
         int flFaces(utils::indexOf(mesh->getFaces(), flId));
         int flFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), flId));
 
@@ -233,12 +228,12 @@ RealArray1D<nbequamax> EucclhydRemap::computeBoundaryFluxes(
       if (icCells == cCells) {
         int cId(cCells);
         int frRightFaceOfCellC(mesh->getRightFaceOfCell(cId));
-        int frId(frRightFaceOfCellC);
+        size_t frId(frRightFaceOfCellC);
         int frFaces(utils::indexOf(mesh->getFaces(), frId));
         int frFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), frId));
 
         int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cId));
-        int flId(flLeftFaceOfCellC);
+        size_t flId(flLeftFaceOfCellC);
         int flFaces(utils::indexOf(mesh->getFaces(), flId));
         int flFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), flId));
 

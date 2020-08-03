@@ -13,15 +13,15 @@
 #include <string>                         // for allocator, string
 #include <vector>                         // for vector
 
-//#include "EucclhydRemap.h"
-#include "../Constantes.h"
-#include "CasTest.h"
-#include "ConditionsLimites.h"
-#include "CstMesh.h"
-#include "Eos.h"
-#include "GestionTemps.h"
-#include "Limiteurs.h"
-#include "SchemaParticules.h"
+#include "../includes/Constantes.h"
+#include "../includes/Options.h"
+#include "../includes/CasTest.h"
+#include "../includes/ConditionsLimites.h"
+#include "../includes/CstMesh.h"
+#include "../includes/Eos.h"
+#include "../includes/GestionTemps.h"
+#include "../includes/Limiteurs.h"
+#include "../includes/SchemaParticules.h"
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D, CartesianM...
 #include "mesh/MeshGeometry.h"     // for MeshGeometry
 #include "mesh/PvdFileWriter2D.h"  // for PvdFileWriter2D
@@ -29,32 +29,21 @@
 #include "types/Types.h"  // for RealArray1D, RealArray2D
 #include "utils/Timer.h"  // for Timer
 
+#include "../includes/Freefunctions.h"
+
 /*---------------------------------------*/
 /*---------------------------------------*/
 using namespace nablalib;
 
 class EucclhydRemap {
  public:
-  struct Options {
-    int nbmat = -1;
-    double threshold = 1.0E-16;
-    int spaceOrder = 2;
-    int projectionOrder = 2;
-    int projectionConservative = 0;
-    int AvecProjection = 1;
-    int AvecParticules = 0;
-    int Adiabatique = 1;
-    int Isotherme = 2;
-    int AvecEquilibrage = -1;
-  };
-  Options* options;
-
   struct interval {
     double inf, sup;
   };
 
  private:
   CartesianMesh2D* mesh;
+  optionschemalib::OptionsSchema::Options* options;
   castestlib::CasTest::Test* test;
   particulelib::SchemaParticules::Particules* particules;
   conditionslimiteslib::ConditionsLimites::Cdl* cdl;
@@ -223,7 +212,7 @@ class EucclhydRemap {
 
  public:
   EucclhydRemap(
-      Options* aOptions,
+      optionschemalib::OptionsSchema::Options* aOptions,
       cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* acstmesh,
       gesttempslib::GestionTempsClass::GestTemps* agt,
       castestlib::CasTest::Test* aTest,
@@ -386,7 +375,7 @@ class EucclhydRemap {
     const auto& gNodes = mesh->getGeometry()->getNodes();
     Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const int& rNodes) {
       X(rNodes) = gNodes[rNodes];
-    });
+      });
   }
 
  private:

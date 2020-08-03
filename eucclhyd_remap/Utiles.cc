@@ -5,8 +5,8 @@
 
 RealArray2D<2, 2> EucclhydRemap::inverse(RealArray2D<2, 2> a) {
   double alpha = 1.0 / MathFunctions::det(a);
-  return {{{{a[1][1] * alpha, -a[0][1] * alpha}},
-           {{-a[1][0] * alpha, a[0][0] * alpha}}}};
+  return {{a[1][1] * alpha, -a[0][1] * alpha, 
+           -a[1][0] * alpha, a[0][0] * alpha}};
 }
 
 double EucclhydRemap::divideNoExcept(double a, double b) {

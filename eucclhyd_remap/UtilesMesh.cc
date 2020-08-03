@@ -4,7 +4,7 @@
 
 int EucclhydRemap::getLeftCells(const int cells) {
   int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cells));
-  int flId(flLeftFaceOfCellC);
+  size_t flId(flLeftFaceOfCellC);
   int flFaces(utils::indexOf(mesh->getFaces(), flId));
   int cbBackCellF(mesh->getBackCell(flId));
   int cbId(cbBackCellF);
@@ -16,7 +16,7 @@ int EucclhydRemap::getLeftCells(const int cells) {
 
 int EucclhydRemap::getRightCells(const int cells) {
   int frRightFaceOfCellC(mesh->getRightFaceOfCell(cells));
-  int frId(frRightFaceOfCellC);
+  size_t frId(frRightFaceOfCellC);
   int frFaces(utils::indexOf(mesh->getFaces(), frId));
   int cfFrontCellF(mesh->getFrontCell(frId));
   int cfId(cfFrontCellF);
@@ -28,7 +28,7 @@ int EucclhydRemap::getRightCells(const int cells) {
 
 int EucclhydRemap::getBottomCells(const int cells) {
   int fbBottomFaceOfCellC(mesh->getBottomFaceOfCell(cells));
-  int fbId(fbBottomFaceOfCellC);
+  size_t fbId(fbBottomFaceOfCellC);
   int fbFaces(utils::indexOf(mesh->getFaces(), fbId));
   int cfFrontCellF(mesh->getFrontCell(fbId));
   int cfId(cfFrontCellF);
@@ -40,7 +40,7 @@ int EucclhydRemap::getBottomCells(const int cells) {
 
 int EucclhydRemap::getTopCells(const int cells) {
   int ftTopFaceOfCellC(mesh->getTopFaceOfCell(cells));
-  int ftId(ftTopFaceOfCellC);
+  size_t ftId(ftTopFaceOfCellC);
   int ftFaces(utils::indexOf(mesh->getFaces(), ftId));
   int cbBackCellF(mesh->getBackCell(ftId));
   int cbId(cbBackCellF);

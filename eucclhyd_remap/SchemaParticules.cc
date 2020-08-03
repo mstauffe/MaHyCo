@@ -8,20 +8,15 @@
 #include <vector>     // for allocator, vector
 
 #include "EucclhydRemap.h"  // for EucclhydRemap, EucclhydRemap::Opt...
-#include "SchemaParticules.h"  // for SchemaParticules, SchemaParticules::Particules
-#include "types/ArrayOperations.h"  // for multiply, minus, plus
+#include "../includes/SchemaParticules.h"  // for SchemaParticules, SchemaParticules::Particules
 #include "types/MathFunctions.h"    // for max
-
-#include "SchemaParticules.h"
 
 void EucclhydRemap::updateParticlePosition() noexcept {
   Kokkos::parallel_for(
       "updateParticleCoefficient", mesh->getNbCells(),
       KOKKOS_LAMBDA(const int& cCells) { listpart(cCells).clear(); });
   Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
-    Xpart_nplus1(ipart) = ArrayOperations::plus(
-        Xpart_n(ipart),
-        ArrayOperations::multiply(Vpart_n(ipart), gt->deltat_n));
+    Xpart_nplus1(ipart) = Xpart_n(ipart) + Vpart_n(ipart) * gt->deltat_n;
     if (Xpart_nplus1(ipart)[1] < 0.) {
       Xpart_nplus1(ipart)[1] = -Xpart_nplus1(ipart)[1];
       Vpart_n(ipart)[1] = -Vpart_n(ipart)[1];
@@ -48,11 +43,8 @@ void EucclhydRemap::updateParticlePosition() noexcept {
       double module_vit = sqrt(Vpart_n(ipart)[0] * Vpart_n(ipart)[0] +
                                Vpart_n(ipart)[1] * Vpart_n(ipart)[1]);
       double module_gradf = sqrt(gradf[0] * gradf[0] + gradf[1] * gradf[1]);
-      Vpart_n(ipart) =
-          ArrayOperations::multiply(gradf, 1.1 * module_vit / module_gradf);
-      Xpart_nplus1(ipart) = ArrayOperations::plus(
-          Xpart_n(ipart),
-          ArrayOperations::multiply(Vpart_n(ipart), gt->deltat_n));
+      Vpart_n(ipart) = gradf * 1.1 * module_vit / module_gradf;
+      Xpart_nplus1(ipart) = Xpart_n(ipart) + Vpart_n(ipart) * gt->deltat_n;
       if (Xpart_nplus1(ipart)[1] < 0.) {
         Xpart_nplus1(ipart)[1] = -Xpart_nplus1(ipart)[1];
         Vpart_n(ipart)[1] = -Vpart_n(ipart)[1];
@@ -143,9 +135,8 @@ void EucclhydRemap::updateParticleCoefficients() noexcept {
 void EucclhydRemap::updateParticleVelocity() noexcept {
   Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
     int icells = ICellp(ipart);
-    Vpart_nplus1(ipart) = ArrayOperations::minus(
-        Vpart_n(ipart), ArrayOperations::multiply(gt->deltat_n / rhopart(ipart),
-                                                  ForceGradp(icells)));
+    Vpart_nplus1(ipart) = 
+        Vpart_n(ipart) - ForceGradp(icells) * gt->deltat_n / rhopart(ipart);
 
     // std::cout << " Part  " << ipart << " vit " << Vpart_nplus1(ipart)  <<
     // std::endl;
@@ -177,8 +168,7 @@ void EucclhydRemap::updateParticleVelocity() noexcept {
 void EucclhydRemap::updateParticleRetroaction() noexcept {
   Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
     int icells = ICellp(ipart);
-    RealArray1D<dim> AccelerationP =
-        ArrayOperations::minus(Vpart_n(ipart), Vpart_nplus1(ipart));
+    RealArray1D<dim> AccelerationP = Vpart_n(ipart) - Vpart_nplus1(ipart);
     V_nplus1(icells)[0] += mpart(ipart) * AccelerationP[0] / m(icells);
     V_nplus1(icells)[1] += mpart(ipart) * AccelerationP[1] / m(icells);
   });

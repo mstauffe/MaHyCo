@@ -10,7 +10,6 @@
 #include "EucclhydRemap.h"          // for EucclhydRemap, EucclhydRemap::...
 #include "Utiles-Impl.h"            // for EucclhydRemap::tensProduct
 #include "mesh/CartesianMesh2D.h"   // for CartesianMesh2D
-#include "types/ArrayOperations.h"  // for plus, multiply, minus, divide
 #include "types/MathFunctions.h"    // for max, min, dot, matVectProduct
 #include "types/MultiArray.h"       // for operator<<
 #include "utils/Utils.h"            // for indexOf
@@ -25,7 +24,7 @@
 void EucclhydRemap::computeCornerNormal() noexcept {
   Kokkos::parallel_for(
       "computeCornerNormal", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-        int cId(cCells);
+        size_t cId(cCells);
         {
           auto nodesOfCellC(mesh->getNodesOfCell(cId));
           for (int pNodesOfCellC = 0; pNodesOfCellC < nodesOfCellC.size();
@@ -46,19 +45,17 @@ void EucclhydRemap::computeCornerNormal() noexcept {
             npc_plus[0] = 0.5 * (xpPlus[1] - xp[1]);
             npc_plus[1] = 0.5 * (xp[0] - xpPlus[0]);
             double lpc_plus = MathFunctions::norm(npc_plus);
-            npc_plus = ArrayOperations::divide(npc_plus, lpc_plus);
+            npc_plus = npc_plus / lpc_plus;
             nplus(pNodes, cCellsOfNodeP) = npc_plus;
             lplus(pNodes, cCellsOfNodeP) = lpc_plus;
             RealArray1D<dim> npc_minus;
             npc_minus[0] = 0.5 * (xp[1] - xpMinus[1]);
             npc_minus[1] = 0.5 * (xpMinus[0] - xp[0]);
             double lpc_minus = MathFunctions::norm(npc_minus);
-            npc_minus = ArrayOperations::divide(npc_minus, lpc_minus);
+            npc_minus = npc_minus / lpc_minus;
             nminus(pNodes, cCellsOfNodeP) = npc_minus;
             lminus(pNodes, cCellsOfNodeP) = lpc_minus;
-            lpc_n(pNodes, cCellsOfNodeP) = ArrayOperations::plus(
-                ArrayOperations::multiply(lpc_plus, npc_plus),
-                ArrayOperations::multiply(lpc_minus, npc_minus));
+            lpc_n(pNodes, cCellsOfNodeP) = (lpc_plus * npc_plus) + (lpc_minus * npc_minus);
           }
         }
       });
@@ -176,7 +173,7 @@ void EucclhydRemap::computeGradients() noexcept {
       });
   Kokkos::parallel_for(
       "computeGradients", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-        int cId(cCells);
+        size_t cId(cCells);
         RealArray1D<dim> reductionF1 = zeroVect;
         RealArray1D<dim> reductionF2 = zeroVect;
         RealArray1D<dim> reductionF3 = zeroVect;
@@ -187,28 +184,22 @@ void EucclhydRemap::computeGradients() noexcept {
             int pId(nodesOfCellC[pNodesOfCellC]);
             int cCellsOfNodeP(utils::indexOf(mesh->getCellsOfNode(pId), cId));
             int pNodes(pId);
-            reductionF1 = ArrayOperations::plus(
-                reductionF1,
-                ArrayOperations::multiply(fracvolnode(pNodes)[0],
-                                          lpc_n(pNodes, cCellsOfNodeP)));
-            reductionF2 = ArrayOperations::plus(
-                reductionF2,
-                ArrayOperations::multiply(fracvolnode(pNodes)[1],
-                                          lpc_n(pNodes, cCellsOfNodeP)));
-            reductionF3 = ArrayOperations::plus(
-                reductionF3,
-                ArrayOperations::multiply(fracvolnode(pNodes)[2],
-                                          lpc_n(pNodes, cCellsOfNodeP)));
+            reductionF1 = 
+                reductionF1 +(fracvolnode(pNodes)[0] * lpc_n(pNodes, cCellsOfNodeP));
+            reductionF2 = 
+                reductionF2 +(fracvolnode(pNodes)[1] * lpc_n(pNodes, cCellsOfNodeP));
+            reductionF3 = 
+                reductionF3 +(fracvolnode(pNodes)[2] * lpc_n(pNodes, cCellsOfNodeP));
           }
         }
-        gradf1(cCells) = ArrayOperations::divide(reductionF1, v(cCells));
-        gradf2(cCells) = ArrayOperations::divide(reductionF2, v(cCells));
-        gradf3(cCells) = ArrayOperations::divide(reductionF3, v(cCells));
+        gradf1(cCells) = reductionF1 / v(cCells);
+        gradf2(cCells) = reductionF2 / v(cCells);
+        gradf3(cCells) = reductionF3 / v(cCells);
       });
   if (options->spaceOrder == 2)
     Kokkos::parallel_for(
         "computeGradients", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-          int cId(cCells);
+          size_t cId(cCells);
           RealArray2D<dim, dim> reduction14 = zeroMat;
           {
             auto nodesOfCellC(mesh->getNodesOfCell(cId));
@@ -217,12 +208,12 @@ void EucclhydRemap::computeGradients() noexcept {
               int pId(nodesOfCellC[pNodesOfCellC]);
               int cCellsOfNodeP(utils::indexOf(mesh->getCellsOfNode(pId), cId));
               int pNodes(pId);
-              reduction14 = ArrayOperations::plus(
-                  reduction14,
-                  (tensProduct(Vnode_n(pNodes), lpc_n(pNodes, cCellsOfNodeP))));
+              reduction14 = 
+                  reduction14 +
+                  (tensProduct(Vnode_n(pNodes), lpc_n(pNodes, cCellsOfNodeP)));
             }
           }
-          gradV(cCells) = ArrayOperations::divide(reduction14, v(cCells));
+          gradV(cCells) = reduction14 / v(cCells);
           RealArray1D<dim> reduction15 = zeroVect;
           RealArray1D<dim> reduction15a = zeroVect;
           RealArray1D<dim> reduction15b = zeroVect;
@@ -234,23 +225,18 @@ void EucclhydRemap::computeGradients() noexcept {
               int pId(nodesOfCellC[pNodesOfCellC]);
               int cCellsOfNodeP(utils::indexOf(mesh->getCellsOfNode(pId), cId));
               int pNodes(pId);
-              reduction15 = ArrayOperations::plus(reduction15,
-                                                  (F_n(pNodes, cCellsOfNodeP)));
+              reduction15 = reduction15 + F_n(pNodes, cCellsOfNodeP);
 
-              reduction15a = ArrayOperations::plus(
-                  reduction15a, (F1_n(pNodes, cCellsOfNodeP)));
+              reduction15a = reduction15a + F1_n(pNodes, cCellsOfNodeP);
+              reduction15b = reduction15b + F2_n(pNodes, cCellsOfNodeP);
 
-              reduction15b = ArrayOperations::plus(
-                  reduction15b, (F2_n(pNodes, cCellsOfNodeP)));
-
-              reduction15c = ArrayOperations::plus(
-                  reduction15c, (F3_n(pNodes, cCellsOfNodeP)));
+              reduction15c = reduction15c + F3_n(pNodes, cCellsOfNodeP);
             }
           }
-          gradp(cCells) = ArrayOperations::divide(reduction15, v(cCells));
-          gradp1(cCells) = ArrayOperations::divide(reduction15a, v(cCells));
-          gradp2(cCells) = ArrayOperations::divide(reduction15b, v(cCells));
-          gradp3(cCells) = ArrayOperations::divide(reduction15c, v(cCells));
+          gradp(cCells)  = reduction15  / v(cCells);
+          gradp1(cCells) = reduction15a / v(cCells);
+          gradp2(cCells) = reduction15b / v(cCells);
+          gradp3(cCells) = reduction15c / v(cCells);
         });
 }
 
@@ -284,24 +270,20 @@ void EucclhydRemap::computeDissipationMatrix() noexcept {
                cCellsOfNodeP++) {
             int cId(cellsOfNodeP[cCellsOfNodeP]);
             int cCells(cId);
-            RealArray2D<dim, dim> cornerMatrix = ArrayOperations::plus(
-                ArrayOperations::multiply(
-                    lplus(pNodes, cCellsOfNodeP),
+            RealArray2D<dim, dim> cornerMatrix =          
+	      (lplus(pNodes, cCellsOfNodeP) *
                     tensProduct(nplus(pNodes, cCellsOfNodeP),
-                                nplus(pNodes, cCellsOfNodeP))),
-                ArrayOperations::multiply(
-                    lminus(pNodes, cCellsOfNodeP),
+                                nplus(pNodes, cCellsOfNodeP)))
+	       +
+              (lminus(pNodes, cCellsOfNodeP) *
                     tensProduct(nminus(pNodes, cCellsOfNodeP),
-                                nminus(pNodes, cCellsOfNodeP))));
-            M(pNodes, cCellsOfNodeP) = ArrayOperations::multiply(
-                rho_n(cCells) * vitson(cCells), cornerMatrix);
+                                nminus(pNodes, cCellsOfNodeP)));
+	    
+            M(pNodes, cCellsOfNodeP) = rho_n(cCells) * vitson(cCells) * cornerMatrix;
 
-            M1(pNodes, cCellsOfNodeP) = ArrayOperations::multiply(
-                rhop_n(cCells)[0] * vitson(cCells), cornerMatrix);
-            M2(pNodes, cCellsOfNodeP) = ArrayOperations::multiply(
-                rhop_n(cCells)[1] * vitson(cCells), cornerMatrix);
-            M3(pNodes, cCellsOfNodeP) = ArrayOperations::multiply(
-                rhop_n(cCells)[2] * vitson(cCells), cornerMatrix);
+            M1(pNodes, cCellsOfNodeP) = rhop_n(cCells)[0] * vitson(cCells) * cornerMatrix;
+            M2(pNodes, cCellsOfNodeP) = rhop_n(cCells)[1] * vitson(cCells) * cornerMatrix;
+            M3(pNodes, cCellsOfNodeP) = rhop_n(cCells)[2] * vitson(cCells) * cornerMatrix;
           }
         }
       });
@@ -350,7 +332,7 @@ void EucclhydRemap::extrapolateValue() noexcept {
   } else {
     Kokkos::parallel_for(
         "extrapolateValue", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
-          int pId(pNodes);
+          size_t pId(pNodes);
           double reduction16 = numeric_limits<double>::max();
           double reduction16a = numeric_limits<double>::max();
           double reduction16b = numeric_limits<double>::max();
@@ -450,21 +432,18 @@ void EucclhydRemap::extrapolateValue() noexcept {
 
               // pour chaque matériau,
               double ptmp1 = pp(cCells)[0] +
-                             MathFunctions::dot(
-                                 gradp1(cCells),
-                                 ArrayOperations::minus(X(pNodes), Xc(cCells)));
+                             dot(gradp1(cCells),
+				 (X(pNodes)- Xc(cCells)));
               pp_extrap(cCells, pNodesOfCellC)[0] =
-                  MathFunctions::max(MathFunctions::min(maxP1, ptmp1), minP1);
+		  MathFunctions::max(MathFunctions::min(maxP1, ptmp1), minP1);
               double ptmp2 = pp(cCells)[1] +
-                             MathFunctions::dot(
-                                 gradp2(cCells),
-                                 ArrayOperations::minus(X(pNodes), Xc(cCells)));
+		             dot(gradp2(cCells),
+                                 (X(pNodes) - Xc(cCells)));
               pp_extrap(cCells, pNodesOfCellC)[1] =
                   MathFunctions::max(MathFunctions::min(maxP2, ptmp2), minP2);
               double ptmp3 = pp(cCells)[2] +
-                             MathFunctions::dot(
-                                 gradp3(cCells),
-                                 ArrayOperations::minus(X(pNodes), Xc(cCells)));
+                             dot(gradp3(cCells),
+                                 (X(pNodes) - Xc(cCells)));
               pp_extrap(cCells, pNodesOfCellC)[2] =
                   MathFunctions::max(MathFunctions::min(maxP3, ptmp3), minP3);
 
@@ -476,14 +455,13 @@ void EucclhydRemap::extrapolateValue() noexcept {
                     fracvol(cCells)[imat] *
                     pp_extrap(cCells, pNodesOfCellC)[imat];
 
-              RealArray1D<dim> Vtmp = ArrayOperations::plus(
-                  V_n(cCells), MathFunctions::matVectProduct(
-                                   gradV(cCells), ArrayOperations::minus(
-                                                      X(pNodes), Xc(cCells))));
+              RealArray1D<dim> Vtmp = 
+                  V_n(cCells) +
+		MathFunctions::matVectProduct(gradV(cCells), (X(pNodes) - Xc(cCells)));
               V_extrap(cCells, pNodesOfCellC)[0] =
-                  MathFunctions::max(MathFunctions::min(maxVx, Vtmp[0]), minVx);
+                  std::max(MathFunctions::min(maxVx, Vtmp[0]), minVx);
               V_extrap(cCells, pNodesOfCellC)[1] =
-                  MathFunctions::max(MathFunctions::min(maxVy, Vtmp[1]), minVy);
+                  std::max(MathFunctions::min(maxVy, Vtmp[1]), minVy);
             }
           }
         });
@@ -496,7 +474,7 @@ void EucclhydRemap::extrapolateValue() noexcept {
  */
 void EucclhydRemap::computeG() noexcept {
   Kokkos::parallel_for("computeG", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
-    int pId(pNodes);
+    size_t pId(pNodes);
     RealArray1D<dim> reduction1 = zeroVect;
     {
       auto cellsOfNodeP(mesh->getCellsOfNode(pId));
@@ -505,13 +483,12 @@ void EucclhydRemap::computeG() noexcept {
         int cId(cellsOfNodeP[cCellsOfNodeP]);
         int cCells(cId);
         int pNodesOfCellC(utils::indexOf(mesh->getNodesOfCell(cId), pId));
-        reduction1 = ArrayOperations::plus(
-            reduction1,
-            (ArrayOperations::plus(
-                MathFunctions::matVectProduct(M(pNodes, cCellsOfNodeP),
-                                              V_extrap(cCells, pNodesOfCellC)),
-                ArrayOperations::multiply(p_extrap(cCells, pNodesOfCellC),
-                                          lpc_n(pNodes, cCellsOfNodeP)))));
+        reduction1 = 
+            reduction1 +
+            (MathFunctions::matVectProduct(M(pNodes, cCellsOfNodeP),
+                                              V_extrap(cCells, pNodesOfCellC))
+		+
+	     (p_extrap(cCells, pNodesOfCellC) * lpc_n(pNodes, cCellsOfNodeP)));
       }
     }
     G(pNodes) = reduction1;
@@ -533,8 +510,7 @@ void EucclhydRemap::computeNodeDissipationMatrixAndG() noexcept {
           auto cellsOfNodeP(mesh->getCellsOfNode(pId));
           for (int cCellsOfNodeP = 0; cCellsOfNodeP < cellsOfNodeP.size();
                cCellsOfNodeP++) {
-            reduction0 =
-                ArrayOperations::plus(reduction0, (M(pNodes, cCellsOfNodeP)));
+            reduction0 = reduction0 + (M(pNodes, cCellsOfNodeP));
           }
         }
         Mnode(pNodes) = reduction0;
@@ -573,12 +549,10 @@ void EucclhydRemap::computeFaceVelocity() noexcept {
                pNodesOfFaceF++) {
             int pId(nodesOfFaceF[pNodesOfFaceF]);
             int pNodes(pId);
-            reduction5 =
-                ArrayOperations::plus(reduction5, (Vnode_nplus1(pNodes)));
+            reduction5 = reduction5 + (Vnode_nplus1(pNodes));
           }
         }
-        faceNormalVelocity(fFaces) = MathFunctions::dot(
-            ArrayOperations::multiply(0.5, reduction5), faceNormal(fFaces));
+        faceNormalVelocity(fFaces) = dot((0.5 * reduction5), faceNormal(fFaces));
       });
 }
 
@@ -590,9 +564,8 @@ void EucclhydRemap::computeFaceVelocity() noexcept {
 void EucclhydRemap::computeLagrangePosition() noexcept {
   Kokkos::parallel_for(
       "computeLagrangePosition", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
-        XLagrange(pNodes) = ArrayOperations::plus(
-            X(pNodes),
-            ArrayOperations::multiply(Vnode_nplus1(pNodes), gt->deltat_n));
+        XLagrange(pNodes) = 
+            X(pNodes) + Vnode_nplus1(pNodes) * gt->deltat_n;
       });
   auto faces(mesh->getFaces());
   Kokkos::parallel_for(
@@ -604,11 +577,8 @@ void EucclhydRemap::computeLagrangePosition() noexcept {
         int n2SecondNodeOfFaceF(mesh->getSecondNodeOfFace(fId));
         int n2Id(n2SecondNodeOfFaceF);
         int n2Nodes(n2Id);
-        RealArray1D<dim> X_face = ArrayOperations::multiply(
-            0.5,
-            (ArrayOperations::plus(XLagrange(n1Nodes), XLagrange(n2Nodes))));
-        RealArray1D<dim> face_vec =
-            ArrayOperations::minus(XLagrange(n2Nodes), XLagrange(n1Nodes));
+        RealArray1D<dim> X_face = 0.5 * (XLagrange(n1Nodes)+ XLagrange(n2Nodes));
+        RealArray1D<dim> face_vec = XLagrange(n2Nodes) - XLagrange(n1Nodes);
         XfLagrange(fFaces) = X_face;
         faceLengthLagrange(fFaces) = MathFunctions::norm(face_vec);
       });
@@ -627,8 +597,7 @@ void EucclhydRemap::computeLagrangePosition() noexcept {
               int pNodes(pId);
               int pPlus1Nodes(pPlus1Id);
               reduction13 =
-                  reduction13 + (MathFunctions::norm(ArrayOperations::minus(
-                                    X(pNodes), X(pPlus1Nodes))));
+		reduction13 + (MathFunctions::norm(X(pNodes) - X(pPlus1Nodes)));
             }
           }
           perim(cCells) = reduction13;
@@ -644,7 +613,7 @@ void EucclhydRemap::computeLagrangePosition() noexcept {
 void EucclhydRemap::computeSubCellForce() noexcept {
   Kokkos::parallel_for(
       "computeSubCellForce", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
-        int pId(pNodes);
+        size_t pId(pNodes);
         {
           auto cellsOfNodeP(mesh->getCellsOfNode(pId));
           for (int cCellsOfNodeP = 0; cCellsOfNodeP < cellsOfNodeP.size();
@@ -652,37 +621,32 @@ void EucclhydRemap::computeSubCellForce() noexcept {
             int cId(cellsOfNodeP[cCellsOfNodeP]);
             int cCells(cId);
             int pNodesOfCellC(utils::indexOf(mesh->getNodesOfCell(cId), pId));
-            F_nplus1(pNodes, cCellsOfNodeP) = ArrayOperations::plus(
-                ArrayOperations::multiply(-p_extrap(cCells, pNodesOfCellC),
-                                          lpc_n(pNodes, cCellsOfNodeP)),
-                MathFunctions::matVectProduct(
-                    M(pNodes, cCellsOfNodeP),
-                    ArrayOperations::minus(Vnode_nplus1(pNodes),
-                                           V_extrap(cCells, pNodesOfCellC))));
+            F_nplus1(pNodes, cCellsOfNodeP) = 
+                (-p_extrap(cCells, pNodesOfCellC) * lpc_n(pNodes, cCellsOfNodeP))
+	      +
+                MathFunctions::matVectProduct( M(pNodes, cCellsOfNodeP),
+                              (Vnode_nplus1(pNodes) - V_extrap(cCells, pNodesOfCellC)));
 
-            F1_nplus1(pNodes, cCellsOfNodeP) = ArrayOperations::plus(
-                ArrayOperations::multiply(-pp_extrap(cCells, pNodesOfCellC)[0],
-                                          lpc_n(pNodes, cCellsOfNodeP)),
+            F1_nplus1(pNodes, cCellsOfNodeP) = 
+                (-pp_extrap(cCells, pNodesOfCellC)[0] * lpc_n(pNodes, cCellsOfNodeP))
+	      +
                 MathFunctions::matVectProduct(
                     M1(pNodes, cCellsOfNodeP),
-                    ArrayOperations::minus(Vnode_nplus1(pNodes),
-                                           V_extrap(cCells, pNodesOfCellC))));
-
-            F2_nplus1(pNodes, cCellsOfNodeP) = ArrayOperations::plus(
-                ArrayOperations::multiply(-pp_extrap(cCells, pNodesOfCellC)[1],
-                                          lpc_n(pNodes, cCellsOfNodeP)),
+		    Vnode_nplus1(pNodes) - V_extrap(cCells, pNodesOfCellC));
+	    
+	    F2_nplus1(pNodes, cCellsOfNodeP) = 
+                (-pp_extrap(cCells, pNodesOfCellC)[1] * lpc_n(pNodes, cCellsOfNodeP))
+	      +
                 MathFunctions::matVectProduct(
                     M2(pNodes, cCellsOfNodeP),
-                    ArrayOperations::minus(Vnode_nplus1(pNodes),
-                                           V_extrap(cCells, pNodesOfCellC))));
+		    Vnode_nplus1(pNodes) - V_extrap(cCells, pNodesOfCellC));
 
-            F3_nplus1(pNodes, cCellsOfNodeP) = ArrayOperations::plus(
-                ArrayOperations::multiply(-pp_extrap(cCells, pNodesOfCellC)[2],
-                                          lpc_n(pNodes, cCellsOfNodeP)),
+	    F3_nplus1(pNodes, cCellsOfNodeP) = 
+                (-pp_extrap(cCells, pNodesOfCellC)[2] * lpc_n(pNodes, cCellsOfNodeP))
+	      +
                 MathFunctions::matVectProduct(
                     M3(pNodes, cCellsOfNodeP),
-                    ArrayOperations::minus(Vnode_nplus1(pNodes),
-                                           V_extrap(cCells, pNodesOfCellC))));
+		    Vnode_nplus1(pNodes) - V_extrap(cCells, pNodesOfCellC));
           }
         }
       });
@@ -725,16 +689,13 @@ void EucclhydRemap::computeLagrangeVolumeAndCenterOfGravity() noexcept {
                                       nbNodesOfCell]);
             int pNodes(pId);
             int pPlus1Nodes(pPlus1Id);
-            reduction7 = ArrayOperations::plus(
-                reduction7,
-                (ArrayOperations::multiply(
-                    crossProduct2d(XLagrange(pNodes), XLagrange(pPlus1Nodes)),
-                    (ArrayOperations::plus(XLagrange(pNodes),
-                                           XLagrange(pPlus1Nodes))))));
+            reduction7 = 
+                reduction7 +
+                (crossProduct2d(XLagrange(pNodes), XLagrange(pPlus1Nodes)) *
+		 (XLagrange(pNodes) + XLagrange(pPlus1Nodes)));
           }
         }
-        XcLagrange(cCells) =
-            ArrayOperations::multiply(1.0 / (6.0 * vol), reduction7);
+        XcLagrange(cCells) = (1.0 / (6.0 * vol) * reduction7);
       });
 }
 /**
@@ -743,19 +704,21 @@ void EucclhydRemap::computeLagrangeVolumeAndCenterOfGravity() noexcept {
  * Out variables: deltaxLagrange
  */
 void EucclhydRemap::computeFacedeltaxLagrange() noexcept {
+  //auto faces(mesh->getInnerFaces());
+  //int nbInnerFaces(mesh->getNbInnerFaces());
   auto faces(mesh->getFaces());
   Kokkos::parallel_for(
       "computeFacedeltaxLagrange", nbFaces, KOKKOS_LAMBDA(const int& fFaces) {
-        int fId(faces[fFaces]);
+        size_t fId(faces[fFaces]);
         int cfFrontCellF(mesh->getFrontCell(fId));
         int cfId(cfFrontCellF);
         int cfCells(cfId);
         int cbBackCellF(mesh->getBackCell(fId));
         int cbId(cbBackCellF);
         int cbCells(cbId);
-        deltaxLagrange(fFaces) = MathFunctions::dot(
-            ArrayOperations::minus(XcLagrange(cfCells), XcLagrange(cbCells)),
-            faceNormal(fFaces));
+        deltaxLagrange(fFaces) = dot(
+			       (XcLagrange(cfCells) - XcLagrange(cbCells)),
+			       faceNormal(fFaces));
       });
 }
 
@@ -768,7 +731,7 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
   Kokkos::parallel_for(
       "updateCellCenteredLagrangeVariables", nbCells,
       KOKKOS_LAMBDA(const int& cCells) {
-        int cId(cCells);
+        size_t cId(cCells);
         double reduction2 = 0.0;
         {
           auto nodesOfCellC(mesh->getNodesOfCell(cId));
@@ -778,7 +741,7 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
             int cCellsOfNodeP(utils::indexOf(mesh->getCellsOfNode(pId), cId));
             int pNodes(pId);
             reduction2 =
-                reduction2 + (MathFunctions::dot(lpc_n(pNodes, cCellsOfNodeP),
+                reduction2 + (dot(lpc_n(pNodes, cCellsOfNodeP),
                                                  Vnode_nplus1(pNodes)));
           }
         }
@@ -793,14 +756,12 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
             int pId(nodesOfCellC[pNodesOfCellC]);
             int cCellsOfNodeP(utils::indexOf(mesh->getCellsOfNode(pId), cId));
             int pNodes(pId);
-            reduction3 = ArrayOperations::plus(
-                reduction3, (F_nplus1(pNodes, cCellsOfNodeP)));
+            reduction3 = reduction3 + F_nplus1(pNodes, cCellsOfNodeP);
           }
         }
-        ForceGradp(cCells) = ArrayOperations::divide(reduction3, v(cCells));
-        RealArray1D<dim> VLagrange = ArrayOperations::plus(
-            V_n(cCells),
-            ArrayOperations::multiply(gt->deltat_n / m(cCells), reduction3));
+        ForceGradp(cCells) = reduction3 / v(cCells);
+        RealArray1D<dim> VLagrange =
+            V_n(cCells) + reduction3 * gt->deltat_n / m(cCells);
 
         double reduction4 = 0.0;
         RealArray1D<nbmatmax> preduction4 = zeroVectmat;
@@ -812,40 +773,22 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
             int cCellsOfNodeP(utils::indexOf(mesh->getCellsOfNode(pId), cId));
             int pNodes(pId);
             reduction4 =
-                reduction4 + (MathFunctions::dot(
-                                 F_nplus1(pNodes, cCellsOfNodeP),
-                                 ArrayOperations::minus(
-                                     Vnode_nplus1(pNodes),
-                                     ArrayOperations::multiply(
-                                         0.5, (ArrayOperations::plus(
-                                                  V_n(cCells), VLagrange))))));
+                reduction4 + (dot(F_nplus1(pNodes, cCellsOfNodeP),
+				  (Vnode_nplus1(pNodes) -
+				   (0.5 * (V_n(cCells) + VLagrange)))));
             preduction4[0] =
-                preduction4[0] +
-                (MathFunctions::dot(
-                    F1_nplus1(pNodes, cCellsOfNodeP),
-                    ArrayOperations::minus(
-                        Vnode_nplus1(pNodes),
-                        ArrayOperations::multiply(
-                            0.5,
-                            (ArrayOperations::plus(V_n(cCells), VLagrange))))));
-            preduction4[1] =
-                preduction4[1] +
-                (MathFunctions::dot(
-                    F2_nplus1(pNodes, cCellsOfNodeP),
-                    ArrayOperations::minus(
-                        Vnode_nplus1(pNodes),
-                        ArrayOperations::multiply(
-                            0.5,
-                            (ArrayOperations::plus(V_n(cCells), VLagrange))))));
-            preduction4[2] =
-                preduction4[2] +
-                (MathFunctions::dot(
-                    F3_nplus1(pNodes, cCellsOfNodeP),
-                    ArrayOperations::minus(
-                        Vnode_nplus1(pNodes),
-                        ArrayOperations::multiply(
-                            0.5,
-                            (ArrayOperations::plus(V_n(cCells), VLagrange))))));
+                preduction4[0] + (dot(F1_nplus1(pNodes, cCellsOfNodeP),
+				  (Vnode_nplus1(pNodes) -
+				   (0.5 * (V_n(cCells) + VLagrange)))));
+            preduction4[1] = 
+                preduction4[1] + (dot(F2_nplus1(pNodes, cCellsOfNodeP),
+				  (Vnode_nplus1(pNodes) -
+				   (0.5 * (V_n(cCells) + VLagrange)))));
+            preduction4[2] = 
+                preduction4[2] + (dot(F3_nplus1(pNodes, cCellsOfNodeP),
+				  (Vnode_nplus1(pNodes) -
+				   (0.5 * (V_n(cCells) + VLagrange)))));
+	    
             if (F1_nplus1(pNodes, cCellsOfNodeP) !=
                 F1_nplus1(pNodes, cCellsOfNodeP))
               std::cout << " cell   " << cCells
@@ -1001,8 +944,7 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
                 ULagrange(cCells)[3 * nbmat + 2] / somme_masse;
 
         } else {
-          Phi(cCells) =
-              ArrayOperations::divide(ULagrange(cCells), vLagrange(cCells));
+          Phi(cCells) = ULagrange(cCells) / vLagrange(cCells);
         }
 
         if ((cCells == dbgcell3 || cCells == dbgcell2 || cCells == dbgcell1) &&

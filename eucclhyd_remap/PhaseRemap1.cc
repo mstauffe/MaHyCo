@@ -9,7 +9,6 @@
 #include "EucclhydRemap.h"          // for EucclhydRemap, EucclhydRemap::Opt...
 #include "UtilesRemap-Impl.h"       // for EucclhydRemap::computeFluxPP
 #include "mesh/CartesianMesh2D.h"   // for CartesianMesh2D
-#include "types/ArrayOperations.h"  // for divide, minus, plus
 #include "types/MathFunctions.h"    // for dot
 #include "types/MultiArray.h"       // for operator<<
 #include "utils/Utils.h"            // for indexOf
@@ -27,7 +26,7 @@ void EucclhydRemap::computeGradPhiFace1() noexcept {
       Kokkos::parallel_for(
           "computeGradPhiFace1", nbInnerVerticalFaces,
           KOKKOS_LAMBDA(const int& fInnerVerticalFaces) {
-            int fId(innerVerticalFaces[fInnerVerticalFaces]);
+            size_t fId(innerVerticalFaces[fInnerVerticalFaces]);
             int fFaces(utils::indexOf(mesh->getFaces(), fId));
             int cfFrontCellF(mesh->getFrontCell(fId));
             int cfId(cfFrontCellF);
@@ -36,9 +35,8 @@ void EucclhydRemap::computeGradPhiFace1() noexcept {
             int cbId(cbBackCellF);
             int cbCells(cbId);
             //
-            gradPhiFace1(fFaces) = ArrayOperations::divide(
-                ArrayOperations::minus(Phi(cfCells), Phi(cbCells)),
-                deltaxLagrange(fFaces));
+            gradPhiFace1(fFaces) = 
+               (Phi(cfCells) - Phi(cbCells)) / deltaxLagrange(fFaces);
             //
             int n1FirstNodeOfFaceF(mesh->getFirstNodeOfFace(fId));
             int n1Id(n1FirstNodeOfFaceF);
@@ -59,12 +57,12 @@ void EucclhydRemap::computeGradPhiFace1() noexcept {
             HvLagrange(cCells) = 0.;
 
             int fbBottomFaceOfCellC(mesh->getBottomFaceOfCell(cId));
-            int fbId(fbBottomFaceOfCellC);
+            size_t fbId(fbBottomFaceOfCellC);
             int fbFaces(utils::indexOf(mesh->getFaces(), fbId));
             HvLagrange(cCells) += 0.5 * faceLengthLagrange(fbFaces);
 
             int ftTopFaceOfCellC(mesh->getTopFaceOfCell(cId));
-            int ftId(ftTopFaceOfCellC);
+            size_t ftId(ftTopFaceOfCellC);
             int ftFaces(utils::indexOf(mesh->getFaces(), ftId));
             HvLagrange(cCells) += 0.5 * faceLengthLagrange(ftFaces);
           });
@@ -74,7 +72,7 @@ void EucclhydRemap::computeGradPhiFace1() noexcept {
       Kokkos::parallel_for(
           "computeGradPhiFace1", nbInnerHorizontalFaces,
           KOKKOS_LAMBDA(const int& fInnerHorizontalFaces) {
-            int fId(innerHorizontalFaces[fInnerHorizontalFaces]);
+            size_t fId(innerHorizontalFaces[fInnerHorizontalFaces]);
             int fFaces(utils::indexOf(mesh->getFaces(), fId));
             int cfFrontCellF(mesh->getFrontCell(fId));
             int cfId(cfFrontCellF);
@@ -83,9 +81,8 @@ void EucclhydRemap::computeGradPhiFace1() noexcept {
             int cbId(cbBackCellF);
             int cbCells(cbId);
             //
-            gradPhiFace1(fFaces) = ArrayOperations::divide(
-                ArrayOperations::minus(Phi(cfCells), Phi(cbCells)),
-                deltaxLagrange(fFaces));
+            gradPhiFace1(fFaces) = 
+                (Phi(cfCells) - Phi(cbCells)) / deltaxLagrange(fFaces);
             int n1FirstNodeOfFaceF(mesh->getFirstNodeOfFace(fId));
             int n1Id(n1FirstNodeOfFaceF);
             int n1Nodes(n1Id);
@@ -106,12 +103,12 @@ void EucclhydRemap::computeGradPhiFace1() noexcept {
             // seconde methode
             HvLagrange(cCells) = 0.;
             int frRightFaceOfCellC(mesh->getRightFaceOfCell(cId));
-            int frId(frRightFaceOfCellC);
+            size_t frId(frRightFaceOfCellC);
             int frFaces(utils::indexOf(mesh->getFaces(), frId));
             HvLagrange(cCells) += 0.5 * faceLengthLagrange(frFaces);
 
             int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cId));
-            int flId(flLeftFaceOfCellC);
+            size_t flId(flLeftFaceOfCellC);
             int flFaces(utils::indexOf(mesh->getFaces(), flId));
             HvLagrange(cCells) += 0.5 * faceLengthLagrange(flFaces);
           });
@@ -131,11 +128,11 @@ void EucclhydRemap::computeGradPhi1() noexcept {
           "computeGradPhi1", nbCells, KOKKOS_LAMBDA(const int& cCells) {
             int cId(cCells);
             int frRightFaceOfCellC(mesh->getRightFaceOfCell(cId));
-            int frId(frRightFaceOfCellC);
+            size_t frId(frRightFaceOfCellC);
             int frFaces(utils::indexOf(mesh->getFaces(), frId));
 
             int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cId));
-            int flId(flLeftFaceOfCellC);
+            size_t flId(flLeftFaceOfCellC);
             int flFaces(utils::indexOf(mesh->getFaces(), flId));
             // maille devant
             int cfFrontCellF(mesh->getFrontCell(frId));
@@ -147,7 +144,6 @@ void EucclhydRemap::computeGradPhi1() noexcept {
             int cbId(cbBackCellF);
             int cbCells(cbId);
             int flFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), flId));
-
             // std::cout << " Phase 1 Horizontale " << std::endl;
             RealArray1D<dim> exy = {{1.0, 0.0}};
 
@@ -170,7 +166,7 @@ void EucclhydRemap::computeGradPhi1() noexcept {
 
             if (limiteurs->projectionAvecPlateauPente == 1) {
               double Flux_sortant_ar =
-                  MathFunctions::dot(outerFaceNormal(cCells, flFacesOfCellC),
+                 dot(outerFaceNormal(cCells, flFacesOfCellC),
                                      exy) *
                   faceNormalVelocity(flFaces);
 
@@ -188,7 +184,7 @@ void EucclhydRemap::computeGradPhi1() noexcept {
                     cCells, options->threshold);
 
               double Flux_sortant_av =
-                  MathFunctions::dot(outerFaceNormal(cCells, frFacesOfCellC),
+                  dot(outerFaceNormal(cCells, frFacesOfCellC),
                                      exy) *
                   faceNormalVelocity(frFaces);
               if (voisinage_pure)
@@ -211,10 +207,10 @@ void EucclhydRemap::computeGradPhi1() noexcept {
           "computeGradPhi1", nbCells, KOKKOS_LAMBDA(const int& cCells) {
             int cId(cCells);
             int fbBottomFaceOfCellC(mesh->getBottomFaceOfCell(cId));
-            int fbId(fbBottomFaceOfCellC);
+            size_t fbId(fbBottomFaceOfCellC);
             int fbFaces(utils::indexOf(mesh->getFaces(), fbId));
             int ftTopFaceOfCellC(mesh->getTopFaceOfCell(cId));
-            int ftId(ftTopFaceOfCellC);
+            size_t ftId(ftTopFaceOfCellC);
             int ftFaces(utils::indexOf(mesh->getFaces(), ftId));
             // maille dessous
             int cfFrontCellF(mesh->getFrontCell(fbId));
@@ -248,7 +244,7 @@ void EucclhydRemap::computeGradPhi1() noexcept {
               RealArray1D<dim> exy = {{0.0, 1.0}};
 
               double Flux_sortant_av =
-                  MathFunctions::dot(outerFaceNormal(cCells, fbFacesOfCellC),
+                  dot(outerFaceNormal(cCells, fbFacesOfCellC),
                                      exy) *
                   faceNormalVelocity(fbFaces);
               if (voisinage_pure)
@@ -265,7 +261,7 @@ void EucclhydRemap::computeGradPhi1() noexcept {
                     cCells, options->threshold);
 
               double Flux_sortant_ar =
-                  MathFunctions::dot(outerFaceNormal(cCells, ftFacesOfCellC),
+		dot(outerFaceNormal(cCells, ftFacesOfCellC),
                                      exy) *
                   faceNormalVelocity(ftFaces);
 
@@ -301,7 +297,7 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
     Kokkos::parallel_for(
         "computeUpwindFaceQuantitiesForProjection1", nbInnerVerticalFaces,
         KOKKOS_LAMBDA(const int& fInnerVerticalFaces) {
-          int fId(innerVerticalFaces[fInnerVerticalFaces]);
+          size_t fId(innerVerticalFaces[fInnerVerticalFaces]);
           int fFaces(utils::indexOf(mesh->getFaces(), fId));
           int cfFrontCellF(mesh->getFrontCell(fId));
           int cfId(cfFrontCellF);
@@ -319,15 +315,13 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
               phiFace1(fFaces) = computeUpwindFaceQuantities(
                   faceNormal(fFaces), faceNormalVelocity(fFaces),
                   deltaxLagrange(fFaces), Xf(fFaces),
-                  ArrayOperations::divide(ULagrange(cbCells),
-                                          vLagrange(cbCells)),
+                  (ULagrange(cbCells) / vLagrange(cbCells)),
                   gradPhi1(cbCells), XcLagrange(cbCells),
-                  ArrayOperations::divide(ULagrange(cfCells),
-                                          vLagrange(cfCells)),
+                  (ULagrange(cfCells) / vLagrange(cfCells)),
                   gradPhi1(cfCells), XcLagrange(cfCells));
             } else {
-              phiFace1(fFaces) = ArrayOperations::minus(
-                  deltaPhiFaceAv(cbCells), deltaPhiFaceAr(cfCells));
+              phiFace1(fFaces) = 
+                  deltaPhiFaceAv(cbCells) - deltaPhiFaceAr(cfCells);
             }
           } else if (options->projectionOrder == 3) {
             // cfCells est à droite de cCells
@@ -343,16 +337,12 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
             int cbbbCells(getLeftCells(cbbCells));
 
             phiFace1(fFaces) = computeVecFluxOrdre3(
-                ArrayOperations::divide(ULagrange(cbbbCells),
-                                        vLagrange(cbbbCells)),
-                ArrayOperations::divide(ULagrange(cbbCells),
-                                        vLagrange(cbbCells)),
-                ArrayOperations::divide(ULagrange(cbCells), vLagrange(cbCells)),
-                ArrayOperations::divide(ULagrange(cfCells), vLagrange(cfCells)),
-                ArrayOperations::divide(ULagrange(cffCells),
-                                        vLagrange(cffCells)),
-                ArrayOperations::divide(ULagrange(cfffCells),
-                                        vLagrange(cfffCells)),
+                (ULagrange(cbbbCells) / vLagrange(cbbbCells)),
+                (ULagrange(cbbCells)  / vLagrange(cbbCells)),
+                (ULagrange(cbCells)   / vLagrange(cbCells)),
+                (ULagrange(cfCells)   / vLagrange(cfCells)),
+                (ULagrange(cffCells)  / vLagrange(cffCells)),
+                (ULagrange(cfffCells) / vLagrange(cfffCells)),
                 HvLagrange(cbbbCells), HvLagrange(cbbCells),
                 HvLagrange(cbCells), HvLagrange(cfCells), HvLagrange(cffCells),
                 HvLagrange(cfffCells), faceNormalVelocity(fFaces),
@@ -366,7 +356,7 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
     Kokkos::parallel_for(
         "computeUpwindFaceQuantitiesForProjection1", nbInnerHorizontalFaces,
         KOKKOS_LAMBDA(const int& fInnerHorizontalFaces) {
-          int fId(innerHorizontalFaces[fInnerHorizontalFaces]);
+          size_t fId(innerHorizontalFaces[fInnerHorizontalFaces]);
           int fFaces(utils::indexOf(mesh->getFaces(), fId));
           int cfFrontCellF(mesh->getFrontCell(fId));
           int cfId(cfFrontCellF);
@@ -384,15 +374,13 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
               phiFace1(fFaces) = computeUpwindFaceQuantities(
                   faceNormal(fFaces), faceNormalVelocity(fFaces),
                   deltaxLagrange(fFaces), Xf(fFaces),
-                  ArrayOperations::divide(ULagrange(cbCells),
-                                          vLagrange(cbCells)),
+                  (ULagrange(cbCells) / vLagrange(cbCells)),
                   gradPhi1(cbCells), XcLagrange(cbCells),
-                  ArrayOperations::divide(ULagrange(cfCells),
-                                          vLagrange(cfCells)),
+                  (ULagrange(cfCells) / vLagrange(cfCells)),
                   gradPhi1(cfCells), XcLagrange(cfCells));
             } else {
-              phiFace1(fFaces) = ArrayOperations::minus(
-                  deltaPhiFaceAv(cfCells), deltaPhiFaceAr(cbCells));
+              phiFace1(fFaces) = 
+                  deltaPhiFaceAv(cfCells) - deltaPhiFaceAr(cbCells);
             }
           } else if (options->projectionOrder == 3) {
             // cfCells est en dessous de cCells
@@ -408,16 +396,12 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
             int cbbbCells(getTopCells(cbbCells));
 
             phiFace1(fFaces) = computeVecFluxOrdre3(
-                ArrayOperations::divide(ULagrange(cfffCells),
-                                        vLagrange(cfffCells)),
-                ArrayOperations::divide(ULagrange(cffCells),
-                                        vLagrange(cffCells)),
-                ArrayOperations::divide(ULagrange(cfCells), vLagrange(cfCells)),
-                ArrayOperations::divide(ULagrange(cbCells), vLagrange(cbCells)),
-                ArrayOperations::divide(ULagrange(cbbCells),
-                                        vLagrange(cbbCells)),
-                ArrayOperations::divide(ULagrange(cbbbCells),
-                                        vLagrange(cbbbCells)),
+		    (ULagrange(cfffCells) / vLagrange(cfffCells)),
+		    (ULagrange(cffCells)  / vLagrange(cffCells)),
+		    (ULagrange(cfCells)   / vLagrange(cfCells)),
+		    (ULagrange(cbCells)   / vLagrange(cbCells)),
+		    (ULagrange(cbbCells)  / vLagrange(cbbCells)),
+		    (ULagrange(cbbbCells) / vLagrange(cbbbCells)),
                 HvLagrange(cfffCells), HvLagrange(cffCells),
                 HvLagrange(cfCells), HvLagrange(cbCells), HvLagrange(cbbCells),
                 HvLagrange(cbbbCells), faceNormalVelocity(fFaces),
@@ -448,17 +432,17 @@ void EucclhydRemap::computeUremap1() noexcept {
                dNeighbourCellsC < neighbourCellsC.size(); dNeighbourCellsC++) {
             int dId(neighbourCellsC[dNeighbourCellsC]);
             int fCommonFaceCD(mesh->getCommonFace(cId, dId));
-            int fId(fCommonFaceCD);
+            size_t fId(fCommonFaceCD);
             int fFaces(utils::indexOf(mesh->getFaces(), fId));
             int fFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), fId));
-            reduction8 = ArrayOperations::plus(
-                reduction8, (computeRemapFlux(
+            reduction8 =  reduction8 + (computeRemapFlux(
                                 options->projectionOrder,
                                 limiteurs->projectionAvecPlateauPente,
                                 faceNormalVelocity(fFaces), faceNormal(fFaces),
                                 faceLength(fFaces), phiFace1(fFaces),
                                 outerFaceNormal(cCells, fFacesOfCellC), exy,
-                                gt->deltat_n)));
+                                gt->deltat_n));
+	    
           }
           if (cdl->FluxBC > 0) {
             // flux exterieur eventuel
@@ -471,8 +455,7 @@ void EucclhydRemap::computeUremap1() noexcept {
                         << reduction8 << std::endl;
             }
             //
-            reduction8 = ArrayOperations::plus(
-                reduction8, (computeBoundaryFluxes(1, cCells, exy)));
+            reduction8 = reduction8 + (computeBoundaryFluxes(1, cCells, exy));
             //
             if ((cCells == dbgcell3 || cCells == dbgcell2 ||
                  cCells == dbgcell1)) {
@@ -485,8 +468,8 @@ void EucclhydRemap::computeUremap1() noexcept {
           }
         }
 
-        Uremap1(cCells) = ArrayOperations::minus(ULagrange(cCells), reduction8);
-
+        Uremap1(cCells) = ULagrange(cCells) - reduction8;
+	
         if (limiteurs->projectionAvecPlateauPente == 1) {
           // option ou on ne regarde pas la variation de rho, V et e
           // phi = (f1, f2, rho1*f1, rho2*f2, Vx, Vy, e1, e2
@@ -530,14 +513,13 @@ void EucclhydRemap::computeUremap1() noexcept {
                 Uremap1(cCells)[3 * nbmat + 2] / somme_masse;
 
         } else {
-          Phi(cCells) =
-              ArrayOperations::divide(Uremap1(cCells), vLagrange(cCells));
+          Phi(cCells) = Uremap1(cCells) / vLagrange(cCells);
         }
 
         if ((cCells == dbgcell3 || cCells == dbgcell2 || cCells == dbgcell1)) {
-          std::cout << " cell   " << cCells << "Phi apres Uremap1"
-                    << Phi(cCells) << std::endl;
-        }
+          std::cout << " cell   " << cCells << "Uremap1"
+                    << Uremap1(cCells) << std::endl;
+	}
         // Mises à jour de l'indicateur mailles mixtes
         int matcell(0);
         int imatpure(-1);

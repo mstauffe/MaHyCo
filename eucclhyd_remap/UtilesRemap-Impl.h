@@ -1,7 +1,7 @@
 #ifndef UTILESREMAP_IMPL_H
 #define UTILESREMAP_IMPL_H
 
-#include "types/ArrayOperations.h"
+//#include "types/ArrayOperations.h"
 #include "types/MathFunctions.h"
 
 template <size_t d>
@@ -397,17 +397,9 @@ RealArray1D<d> EucclhydRemap::computeUpwindFaceQuantities(
     RealArray1D<dim> x_cb, RealArray1D<d> phi_cf, RealArray1D<d> grad_phi_cf,
     RealArray1D<dim> x_cf) {
   if (face_normal_velocity * delta_x > 0.0)
-    return ArrayOperations::plus(
-        phi_cb,
-        ArrayOperations::multiply(
-            MathFunctions::dot(ArrayOperations::minus(x_f, x_cb), face_normal),
-            grad_phi_cb));
+    return phi_cb + (dot((x_f - x_cb), face_normal) * grad_phi_cb);
   else
-    return ArrayOperations::plus(
-        phi_cf,
-        ArrayOperations::multiply(
-            MathFunctions::dot(ArrayOperations::minus(x_f, x_cf), face_normal),
-            grad_phi_cf));
+    return phi_cf + (dot((x_f - x_cf), face_normal) * grad_phi_cf);
 }
 
 template <size_t d>
@@ -420,19 +412,16 @@ RealArray1D<d> EucclhydRemap::computeRemapFlux(
   if (projectionAvecPlateauPente == 0) {
     // cas projection ordre 3 ou 1 ou 2 sans plateau pente (flux calculé ici
     // avec phi_face)
-    if (MathFunctions::fabs(MathFunctions::dot(face_normal, exy)) < 1.0E-10)
-      return ArrayOperations::multiply(0.0, phi_face);
-    return ArrayOperations::multiply(
-        MathFunctions::dot(outer_face_normal, exy) * face_normal_velocity *
-            face_length * deltat_n,
-        phi_face);
+    if (MathFunctions::fabs(dot(face_normal, exy)) < 1.0E-10)
+      return (0.0 * phi_face);
+    return (dot(outer_face_normal, exy) * face_normal_velocity *
+            face_length * deltat_n * phi_face);
   } else {
     // cas projection ordre 2 avec plateau pente (flux dans la variable
     // phi_face)
-    if (MathFunctions::fabs(MathFunctions::dot(face_normal, exy)) < 1.0E-10)
-      return ArrayOperations::multiply(0.0, phi_face);
-    return ArrayOperations::multiply(
-        MathFunctions::dot(outer_face_normal, exy) * face_length, phi_face);
+    if (MathFunctions::fabs(dot(face_normal, exy)) < 1.0E-10)
+      return (0.0 * phi_face);
+    return (dot(outer_face_normal, exy) * face_length * phi_face);
   }
 }
 

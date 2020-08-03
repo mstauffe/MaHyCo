@@ -8,7 +8,6 @@
 
 #include "EucclhydRemap.h"          // for EucclhydRemap, EucclhydRemap::...
 #include "mesh/CartesianMesh2D.h"   // for CartesianMesh2D
-#include "types/ArrayOperations.h"  // for minus, multiply, plus, divide
 #include "types/MathFunctions.h"    // for max, norm, dot
 #include "types/MultiArray.h"       // for operator<<
 #include "utils/Utils.h"            // for indexOf
@@ -133,15 +132,11 @@ void EucclhydRemap::initMeshGeometryForCells() noexcept {
                                       nbNodesOfCell]);
             int pNodes(pId);
             int pPlus1Nodes(pPlus1Id);
-            reduction12 = ArrayOperations::plus(
-                reduction12,
-                (ArrayOperations::multiply(
-                    crossProduct2d(X(pNodes), X(pPlus1Nodes)),
-                    (ArrayOperations::plus(X(pNodes), X(pPlus1Nodes))))));
+            reduction12 = reduction12 + ((crossProduct2d(X(pNodes), X(pPlus1Nodes)) * 
+                    ((X(pNodes) + X(pPlus1Nodes)))));
           }
         }
-        RealArray1D<dim> xc =
-            ArrayOperations::multiply(1.0 / (6.0 * vol), reduction12);
+        RealArray1D<dim> xc = (1.0 / (6.0 * vol) * reduction12);
         Xc(cCells) = xc;
         Xc_x(cCells) = xc[0];
         Xc_y(cCells) = xc[1];
@@ -157,8 +152,7 @@ void EucclhydRemap::initMeshGeometryForCells() noexcept {
             int pNodes(pId);
             int pPlus1Nodes(pPlus1Id);
             reduction13 =
-                reduction13 + (MathFunctions::norm(ArrayOperations::minus(
-                                  X(pNodes), X(pPlus1Nodes))));
+                reduction13 + (MathFunctions::norm((X(pNodes)- X(pPlus1Nodes))));
           }
         }
         perim(cCells) = reduction13;
@@ -660,17 +654,15 @@ void EucclhydRemap::initMeshGeometryForFaces() noexcept {
   auto faces(mesh->getFaces());
   Kokkos::parallel_for(
       "initMeshGeometryForFaces", nbFaces, KOKKOS_LAMBDA(const int& fFaces) {
-        int fId(faces[fFaces]);
+        size_t fId(faces[fFaces]);
         int n1FirstNodeOfFaceF(mesh->getFirstNodeOfFace(fId));
         int n1Id(n1FirstNodeOfFaceF);
         int n1Nodes(n1Id);
         int n2SecondNodeOfFaceF(mesh->getSecondNodeOfFace(fId));
         int n2Id(n2SecondNodeOfFaceF);
         int n2Nodes(n2Id);
-        RealArray1D<dim> X_face = ArrayOperations::multiply(
-            0.5, (ArrayOperations::plus(X(n1Nodes), X(n2Nodes))));
-        RealArray1D<dim> face_vec =
-            ArrayOperations::minus(X(n2Nodes), X(n1Nodes));
+        RealArray1D<dim> X_face = (0.5 * ((X(n1Nodes) + X(n2Nodes))));
+        RealArray1D<dim> face_vec = (X(n2Nodes) - X(n1Nodes));
         Xf(fFaces) = X_face;
         faceLength(fFaces) = MathFunctions::norm(face_vec);
         {
@@ -680,19 +672,18 @@ void EucclhydRemap::initMeshGeometryForFaces() noexcept {
             int cId(cellsOfFaceF[cCellsOfFaceF]);
             int cCells(cId);
             int fFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), fId));
-            outerFaceNormal(cCells, fFacesOfCellC) = ArrayOperations::divide(
-                (ArrayOperations::minus(X_face, Xc(cCells))),
-                MathFunctions::norm(
-                    ArrayOperations::minus(X_face, Xc(cCells))));
+            outerFaceNormal(cCells, fFacesOfCellC) = (
+                ((X_face - Xc(cCells))) / MathFunctions::norm((X_face - Xc(cCells))));
           }
         }
         RealArray1D<dim> face_normal;
-        if (MathFunctions::fabs(MathFunctions::dot(face_vec, ex)) <
+        if (MathFunctions::fabs(dot(face_vec, ex)) <
             options->threshold)
           face_normal = ex;
         else
           face_normal = ey;
         faceNormal(fFaces) = face_normal;
+	//std::cout << " fFaces   " << fFaces << " facen " << faceNormal(fFaces) << std::endl;
       });
 }
 
