@@ -2,7 +2,8 @@
 #include <cstdlib>          // for atof, atoi, exit
 #include <iostream>         // for operator<<, endl, basic_o...
 #include <string>           // for string
-#include "EucclhydRemap.h"  // for EucclhydRemap::Options et Cdl
+#include "EucclhydRemap.h"  // for EucclhydRemap
+#include "VnrRemap.h"
 #include "lecture_donnees/LectureDonnees.h"  // for LectureDonnees
 #include "mesh/CartesianMesh2D.h"            // for CartesianMesh2D
 #include "mesh/CartesianMesh2DGenerator.h"   // for CartesianMesh2DGenerator
@@ -13,7 +14,8 @@ int main(int argc, char* argv[]) {
   // initialisation de Kokkos
   Kokkos::initialize(argc, argv);
   // class utilisable
-  auto o = new EucclhydRemap::Options();
+  auto scheme = new schemalagrangelib::SchemaLagrangeClass::SchemaLagrange();
+  auto o = new optionschemalib::OptionsSchema::Options();
   auto cl = new conditionslimiteslib::ConditionsLimites::Cdl();
   auto lim = new limiteurslib::LimiteursClass::Limiteurs();
   auto part = new particulelib::SchemaParticules::Particules();
@@ -26,7 +28,7 @@ int main(int argc, char* argv[]) {
   // Lecture des donnees
   if (argc == 2) {
     LectureDonneesClass lecture;
-    lecture.LectureDonnees(argv[1], o, cstmesh, gt, lim, eos, test);
+    lecture.LectureDonnees(argv[1], scheme, o, cstmesh, gt, lim, eos, test);
   } else if (argc != 1) {
     std::cerr << "[ERREUR] Fichier de donnees non passé en argument "
               << std::endl;
@@ -38,12 +40,19 @@ int main(int argc, char* argv[]) {
       cstmesh->Y_EDGE_LENGTH);
 
   // appel au schéma Lagrange Eucclhyd + schéma de projection ADI (en option)
-  auto c =
+  if (scheme->schema == scheme->Eucclhyd) {
+    auto c =
       new EucclhydRemap(o, cstmesh, gt, test, cl, lim, part, eos, nm, output);
+    c->simulate();
+    delete c;
+    delete o;
+  } else if (scheme->schema == scheme->VNR) {
+    auto c = new VnrRemap(o, cstmesh, gt, test, cl, lim, part, eos, nm, output);
+    c->simulate();
+    delete c;
+    delete o;
+  }
 
-  c->simulate();
-
-  delete c;
   delete nm;
   delete o;
   delete cl;
@@ -53,6 +62,7 @@ int main(int argc, char* argv[]) {
   delete test;
   delete cstmesh;
   delete gt;
+  delete scheme;
 
   Kokkos::finalize();
 
