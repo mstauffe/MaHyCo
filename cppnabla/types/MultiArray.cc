@@ -22,7 +22,7 @@ template<size_t M, size_t N>
 using IntArray2D = MultiArray<int, M, N>;
 
 template<size_t N>
-using  RealArray1D = MultiArray<double, N>;
+using RealArray1D = MultiArray<double, N>;
 
 template<size_t M, size_t N>
 using RealArray2D = MultiArray<double, M, N>;
@@ -30,7 +30,7 @@ using RealArray2D = MultiArray<double, M, N>;
 /******************************************************************************/
 void dummy() {
   
-  RealArray<7> v{0., 1., 2., 3., 4., 5., 6.};
+  RealArray1D<7> v{0., 1., 2., 3., 4., 5., 6.};
    
   std::cout << "RealArray<7> v test value:\t" << v << std::endl;
   std::cout << "v dimension is: " << v.dimensions << std::endl;
