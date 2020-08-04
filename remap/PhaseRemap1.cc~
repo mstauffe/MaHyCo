@@ -13,7 +13,6 @@
 #include "types/MultiArray.h"       // for operator<<
 #include "utils/Utils.h"            // for indexOf
 
-#include "../includes/VariablesLagRemap.h"
 /**
  * Job computeGradPhiFace1 called @8.0 in executeTimeLoopN method.
  * In variables: ULagrange, deltaxLagrange, projectionOrder, vLagrange,

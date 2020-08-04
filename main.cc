@@ -41,6 +41,7 @@ int main(int argc, char* argv[]) {
 
   // appel au schéma Lagrange Eucclhyd + schéma de projection ADI (en option)
   if (scheme->schema == scheme->Eucclhyd) {
+    VariablesLagRemap(nm);
     auto c =
       new EucclhydRemap(o, cstmesh, gt, test, cl, lim, part, eos, nm, output);
     c->simulate();

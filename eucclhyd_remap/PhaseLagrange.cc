@@ -16,6 +16,9 @@
 
 #include <thread>
 
+#include "../includes/VariablesLagRemap.h"
+using namespace variableslagremaplib;
+
 /**
  * Job computeCornerNormal called @1.0 in simulate method.
  * In variables: X

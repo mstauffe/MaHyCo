@@ -6,20 +6,19 @@
 #include <iostream>   // for operator<<, basic_ostream::operat...
 #include <vector>     // for allocator, vector
 
-#include "EucclhydRemap.h"          // for EucclhydRemap, EucclhydRemap::Opt...
-#include "UtilesRemap-Impl.h"       // for EucclhydRemap::computeFluxPP
+#include "Remap.h"          // for Remap, Remap::Opt...
+#include "UtilesRemap-Impl.h"       // for Remap::computeFluxPP
 #include "mesh/CartesianMesh2D.h"   // for CartesianMesh2D
 #include "types/MathFunctions.h"    // for dot
 #include "types/MultiArray.h"       // for operator<<
 #include "utils/Utils.h"            // for indexOf
 
-#include "../includes/VariablesLagRemap.h"
 /**
  * Job computeGradPhiFace1 called @8.0 in executeTimeLoopN method.
  * In variables: ULagrange, deltaxLagrange, projectionOrder, vLagrange,
  * x_then_y_n Out variables: gradPhiFace1
  */
-void EucclhydRemap::computeGradPhiFace1() noexcept {
+void Remap::computeGradPhiFace1() noexcept {
   if (options->projectionOrder > 1) {
     if (x_then_y_n) {
       auto innerVerticalFaces(mesh->getInnerVerticalFaces());
@@ -121,7 +120,7 @@ void EucclhydRemap::computeGradPhiFace1() noexcept {
  * In variables: gradPhiFace1, projectionLimiterId, projectionOrder, x_then_y_n
  * Out variables: gradPhi1
  */
-void EucclhydRemap::computeGradPhi1() noexcept {
+void Remap::computeGradPhi1() noexcept {
   if (options->projectionOrder > 1) {
     if (x_then_y_n) {
       // std::cout << " Phase 1 Horizontale computeGradPhi1 " << std::endl;
@@ -290,7 +289,7 @@ void EucclhydRemap::computeGradPhi1() noexcept {
  * deltaxLagrange, faceNormal, faceNormalVelocity, gradPhi1, vLagrange,
  * x_then_y_n Out variables: phiFace1
  */
-void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
+void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
   if (x_then_y_n) {
     // std::cout << " Phase Projection 1 Horizontale " << std::endl;
     auto innerVerticalFaces(mesh->getInnerVerticalFaces());
@@ -417,7 +416,7 @@ void EucclhydRemap::computeUpwindFaceQuantitiesForProjection1() noexcept {
  * faceNormalVelocity, outerFaceNormal, phiFace1, x_then_y_n Out variables:
  * Uremap1
  */
-void EucclhydRemap::computeUremap1() noexcept {
+void Remap::computeUremap1() noexcept {
   int nbmat = options->nbmat;
   RealArray1D<dim> exy = xThenYToDirection(x_then_y_n);
   Kokkos::parallel_for(
