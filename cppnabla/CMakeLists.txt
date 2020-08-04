@@ -10,6 +10,11 @@ endif()
 list( APPEND CMAKE_PREFIX_PATH "${KOKKOS_INSTALL_PATH}" )
 find_package( Kokkos REQUIRED )
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR
+      CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
+    string(APPEND CMAKE_CXX_FLAGS " -Wno-c++11-narrowing")
+endif()
+
 if( ${Kokkos_FOUND} )
     message( STATUS "Kokkos found" )
 endif()
