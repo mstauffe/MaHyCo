@@ -10,10 +10,16 @@ endif()
 list( APPEND CMAKE_PREFIX_PATH "${KOKKOS_INSTALL_PATH}" )
 find_package( Kokkos REQUIRED )
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR
-      CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
-    string(APPEND CMAKE_CXX_FLAGS " -Wno-c++11-narrowing")
-endif()
+# pour lever (?) l'erreur
+# non-type template argument evaluates to 2, which cannot be narrowed to type 'bool'
+# dans Multiarray.h
+#if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR
+#      CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
+#    string(APPEND CMAKE_CXX_FLAGS " -Wno-c++11-narrowing")
+#endif()
+# mais donne une autre erreur
+# use of overloaded operator '<<' is ambiguous (with operand types 'basic_ostream
+# dans Multiarray.c
 
 if( ${Kokkos_FOUND} )
     message( STATUS "Kokkos found" )
