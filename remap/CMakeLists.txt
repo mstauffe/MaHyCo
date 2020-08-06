@@ -1,15 +1,13 @@
-set( LIBRARY_NAME "eucclhydremap" )
+set( LIBRARY_NAME "remap" )
 
 add_library( ${LIBRARY_NAME} )
 target_sources( ${LIBRARY_NAME} 
     PRIVATE
-        EucclhydRemap.cc
-        ConditionsLimites.cc
-        Init.cc
-        PhaseLagrange.cc
-        PhaseRemapFinal.cc
-        SchemaParticules.cc
-        Utiles.cc
+        PhaseRemap1.cc
+        PhaseRemap2.cc
+        UtilesRemap.cc
+	UtilesMesh.cc
+	BoundaryFluxes.cc
 )
 target_include_directories( ${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} )
 if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )

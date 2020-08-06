@@ -16,7 +16,7 @@
  */
 void EucclhydRemap::remapCellcenteredVariable() noexcept {
   ETOTALE_T = 0.;
-  x_then_y_nplus1 = !x_then_y_n;
+  varlp->x_then_y_nplus1 = !(varlp->x_then_y_n);
   int nbmat = options->nbmat;
   Kokkos::parallel_for(
       "remapCellcenteredVariable", nbCells, KOKKOS_LAMBDA(const int& cCells) {
@@ -25,10 +25,10 @@ void EucclhydRemap::remapCellcenteredVariable() noexcept {
         double masset = 0.;
         RealArray1D<nbmatmax> vol_np1;
         for (int imat = 0; imat < nbmat; imat++) {
-          vol_np1[imat] = Uremap2(cCells)[imat];
+          vol_np1[imat] = varlp->Uremap2(cCells)[imat];
           volt += vol_np1[imat];
           // somme des masses
-          masset += Uremap2(cCells)[nbmat + imat];
+          masset += varlp->Uremap2(cCells)[nbmat + imat];
         }
 
         double volt_normalise = 0.;
@@ -55,15 +55,15 @@ void EucclhydRemap::remapCellcenteredVariable() noexcept {
             imatpure = imat;
           }
         if (matcell > 1) {
-          mixte(cCells) = 1;
-          pure(cCells) = -1;
+          varlp->mixte(cCells) = 1;
+          varlp->pure(cCells) = -1;
         } else {
-          mixte(cCells) = 0;
-          pure(cCells) = imatpure;
+          varlp->mixte(cCells) = 0;
+          varlp->pure(cCells) = imatpure;
         }
         // -----
         for (int imat = 0; imat < nbmat; imat++)
-          fracmass(cCells)[imat] = Uremap2(cCells)[nbmat + imat] / masset;
+          fracmass(cCells)[imat] = varlp->Uremap2(cCells)[nbmat + imat] / masset;
 
         // on enleve les petits fractions de volume aussi sur la fraction
         // massique et on normalise
@@ -83,22 +83,22 @@ void EucclhydRemap::remapCellcenteredVariable() noexcept {
         // vol_np1[0] << " " << vol_np1[1] << std::endl;
         for (int imat = 0; imat < nbmat; imat++) {
           if (fracvol(cCells)[imat] > options->threshold)
-            rhop_np1[imat] = Uremap2(cCells)[nbmat + imat] / vol_np1[imat];
+            rhop_np1[imat] = varlp->Uremap2(cCells)[nbmat + imat] / vol_np1[imat];
           // rho_np1 += fracmass(cCells)[imat] / rhop_np1[imat];
           rho_np1 += fracvol(cCells)[imat] * rhop_np1[imat];
         }
 
         RealArray1D<dim> V_np1 = {
-            {Uremap2(cCells)[3 * nbmat] / (rho_np1 * vol),
-             Uremap2(cCells)[3 * nbmat + 1] / (rho_np1 * vol)}};
+            {varlp->Uremap2(cCells)[3 * nbmat] / (rho_np1 * vol),
+             varlp->Uremap2(cCells)[3 * nbmat + 1] / (rho_np1 * vol)}};
 
         // double eps_np1 = Uremap2(cCells)[6] / (rho_np1 * vol);
         RealArray1D<nbmatmax> pesp_np1 = zeroVectmat;
         for (int imat = 0; imat < nbmat; imat++) {
           if ((fracvol(cCells)[imat] > options->threshold) &&
-              (Uremap2(cCells)[nbmat + imat] != 0.))
-            pesp_np1[imat] = Uremap2(cCells)[2 * nbmat + imat] /
-                             Uremap2(cCells)[nbmat + imat];
+              (varlp->Uremap2(cCells)[nbmat + imat] != 0.))
+            pesp_np1[imat] = varlp->Uremap2(cCells)[2 * nbmat + imat] /
+                             varlp->Uremap2(cCells)[nbmat + imat];
         }
         rho_nplus1(cCells) = rho_np1;
         // vitesse
@@ -110,7 +110,7 @@ void EucclhydRemap::remapCellcenteredVariable() noexcept {
         // idem
         delta_ec(cCells) = 0.;
         if (options->projectionConservative == 1)
-          delta_ec(cCells) = Uremap2(cCells)[3 * nbmat + 2] / masset -
+          delta_ec(cCells) = varlp->Uremap2(cCells)[3 * nbmat + 2] / masset -
                              0.5 * (V_np1[0] * V_np1[0] + V_np1[1] * V_np1[1]);
 
         for (int imat = 0; imat < nbmat; imat++) {
@@ -153,9 +153,8 @@ void EucclhydRemap::remapCellcenteredVariable() noexcept {
             std::cout << " concentrations   " << fracmass(cCells)[0] << " "
                       << fracmass(cCells)[1] << " " << fracmass(cCells)[2]
                       << std::endl;
-            std::cout << "ULagrange " << ULagrange(cCells) << std::endl;
-            std::cout << "Uremap1 " << Uremap1(cCells) << std::endl;
-            std::cout << "Uremap2 " << Uremap2(cCells) << std::endl;
+            std::cout << "varlp->ULagrange " << varlp->ULagrange(cCells) << std::endl;
+            std::cout << "varlp->Uremap2 " << varlp->Uremap2(cCells) << std::endl;
             rhop_nplus1(cCells)[imat] = 0.;
             epsp_nplus1(cCells)[imat] = 0.;
             fracmass(cCells)[imat] = 0.;
@@ -177,9 +176,8 @@ void EucclhydRemap::remapCellcenteredVariable() noexcept {
           std::cout << " energies   " << epsp_nplus1(cCells)[0] << " "
                     << epsp_nplus1(cCells)[1] << " " << epsp_nplus1(cCells)[2]
                     << std::endl;
-          std::cout << "ULagrange " << ULagrange(cCells) << std::endl;
-          std::cout << "Uremap1 " << Uremap1(cCells) << std::endl;
-          std::cout << "Uremap2 " << Uremap2(cCells) << std::endl;
+          std::cout << "varlp->ULagrange " << varlp->ULagrange(cCells) << std::endl;
+          std::cout << "varlp->Uremap2 " << varlp->Uremap2(cCells) << std::endl;
           exit(1);
         }
         // pour les sorties :

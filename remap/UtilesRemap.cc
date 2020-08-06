@@ -3,10 +3,10 @@
 
 #include <array>  // for array
 
-#include "EucclhydRemap.h"        // for EucclhydRemap, EucclhydRemap::Options
+#include "Remap.h"        // for Remap, Remap::Options
 #include "types/MathFunctions.h"  // for min, max
 
-double EucclhydRemap::fluxLimiter(int projectionLimiterId, double r) {
+double Remap::fluxLimiter(int projectionLimiterId, double r) {
   if (projectionLimiterId == limiteurs->minmod) {
     return MathFunctions::max(0.0, MathFunctions::min(1.0, r));
   } else if (projectionLimiterId == limiteurs->superBee) {
@@ -22,7 +22,7 @@ double EucclhydRemap::fluxLimiter(int projectionLimiterId, double r) {
     return 0.0;  // ordre 1
 }
 
-double EucclhydRemap::fluxLimiterPP(int projectionLimiterId, double gradplus,
+double Remap::fluxLimiterPP(int projectionLimiterId, double gradplus,
                                     double gradmoins, double y0, double yplus,
                                     double ymoins, double h0, double hplus,
                                     double hmoins) {
@@ -71,7 +71,7 @@ double EucclhydRemap::fluxLimiterPP(int projectionLimiterId, double gradplus,
   return grady;
 }
 
-double EucclhydRemap::computeY0(int projectionLimiterId, double y0,
+double Remap::computeY0(int projectionLimiterId, double y0,
                                 double yplus, double ymoins, double h0,
                                 double hplus, double hmoins, int type) {
   // retourne {{y0plus, y0moins}}
@@ -124,7 +124,7 @@ double EucclhydRemap::computeY0(int projectionLimiterId, double y0,
     return 0.0;  // lancer forcement avec type 0 ou 1 mais warning compile
 }
 
-double EucclhydRemap::computexgxd(double y0, double yplus, double ymoins,
+double Remap::computexgxd(double y0, double yplus, double ymoins,
                                   double h0, double y0plus, double y0moins,
                                   int type) {
   // retourne {{xg, xd}}
@@ -145,7 +145,7 @@ double EucclhydRemap::computexgxd(double y0, double yplus, double ymoins,
     return 0.0;  // lancer forcement avec type 0 ou 1 mais warning compile
 }
 
-double EucclhydRemap::computeygyd(double y0, double yplus, double ymoins,
+double Remap::computeygyd(double y0, double yplus, double ymoins,
                                   double h0, double y0plus, double y0moins,
                                   double grady, int type) {
   // retourne {{yg, yd}}
@@ -166,7 +166,7 @@ double EucclhydRemap::computeygyd(double y0, double yplus, double ymoins,
     return 0.0;  // lancer forcement avec type 0 ou 1 mais warning compile
 }
 
-double EucclhydRemap::INTY(double X, double x0, double y0, double x1,
+double Remap::INTY(double X, double x0, double y0, double x1,
                            double y1) {
   double flux = 0.;
   double Xbar = MathFunctions::min(MathFunctions::max(x0, X), x1);
@@ -176,7 +176,7 @@ double EucclhydRemap::INTY(double X, double x0, double y0, double x1,
   return flux;
 }
 
-double EucclhydRemap::INT2Y(double X, double x0, double y0, double x1,
+double Remap::INT2Y(double X, double x0, double y0, double x1,
                             double y1) {
   double flux = 0.;
   // std::cout << " x0 " << x0 << std::endl;
@@ -190,7 +190,7 @@ double EucclhydRemap::INT2Y(double X, double x0, double y0, double x1,
   return flux;
 }
 
-RealArray1D<dim> EucclhydRemap::xThenYToDirection(bool x_then_y_) {
+RealArray1D<dim> Remap::xThenYToDirection(bool x_then_y_) {
   if (x_then_y_)
     return {{1.0, 0.0}};
 
@@ -200,7 +200,7 @@ RealArray1D<dim> EucclhydRemap::xThenYToDirection(bool x_then_y_) {
 // fonctions pour l'ordre 3
 // ----------------------------------
 // fonction pour evaluer le gradient
-double EucclhydRemap::evaluate_grad(double hm, double h0, double hp, double ym,
+double Remap::evaluate_grad(double hm, double h0, double hp, double ym,
                                     double y0, double yp) {
   double grad;
   grad = h0 / (hm + h0 + hp) *
@@ -210,7 +210,7 @@ double EucclhydRemap::evaluate_grad(double hm, double h0, double hp, double ym,
 }
 // ----------------------------------
 // fonction pour évaluer ystar
-double EucclhydRemap::evaluate_ystar(double hmm, double hm, double hp,
+double Remap::evaluate_ystar(double hmm, double hm, double hp,
                                      double hpp, double ymm, double ym,
                                      double yp, double ypp, double gradm,
                                      double gradp) {
@@ -226,7 +226,7 @@ double EucclhydRemap::evaluate_ystar(double hmm, double hm, double hp,
 }
 // ----------------------------------
 // fonction pour évaluer fm
-double EucclhydRemap::evaluate_fm(double x, double dx, double up, double du,
+double Remap::evaluate_fm(double x, double dx, double up, double du,
                                   double u6) {
   double fm;
   fm = up - 0.5 * x / dx * (du - (1. - 2. / 3. * x / dx) * u6);
@@ -234,7 +234,7 @@ double EucclhydRemap::evaluate_fm(double x, double dx, double up, double du,
 }
 // ----------------------------------
 // fonction pour évaluer fr
-double EucclhydRemap::evaluate_fp(double x, double dx, double um, double du,
+double Remap::evaluate_fp(double x, double dx, double um, double du,
                                   double u6) {
   double fp;
   fp = um + 0.5 * x / dx * (du - (1. - 2. / 3. * x / dx) * u6);
@@ -242,7 +242,7 @@ double EucclhydRemap::evaluate_fp(double x, double dx, double um, double du,
 }
 // ----------------------------------
 // fonction pour initialiser la structure interval
-EucclhydRemap::interval EucclhydRemap::define_interval(double a, double b) {
+Remap::interval Remap::define_interval(double a, double b) {
   interval I;
   I.inf = MathFunctions::min(a, b);
   I.sup = MathFunctions::max(a, b);
@@ -250,7 +250,7 @@ EucclhydRemap::interval EucclhydRemap::define_interval(double a, double b) {
 }
 // ----------------------------------
 // fonction pour calculer l'intersection entre deux intervals
-EucclhydRemap::interval EucclhydRemap::intersection(interval I1, interval I2) {
+Remap::interval Remap::intersection(interval I1, interval I2) {
   interval I;
   if ((I1.sup < I2.inf) || (I2.sup < I1.inf)) {
     I.inf = 0.;
@@ -263,7 +263,7 @@ EucclhydRemap::interval EucclhydRemap::intersection(interval I1, interval I2) {
 }
 // ----------------------------------
 // fonction pour calculer le flux
-double EucclhydRemap::ComputeFluxOrdre3(double ymmm, double ymm, double ym,
+double Remap::ComputeFluxOrdre3(double ymmm, double ymm, double ym,
                                         double yp, double ypp, double yppp,
                                         double hmmm, double hmm, double hm,
                                         double hp, double hpp, double hppp,

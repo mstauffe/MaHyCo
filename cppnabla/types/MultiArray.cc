@@ -27,6 +27,7 @@ using RealArray1D = MultiArray<double, N>;
 template<size_t M, size_t N>
 using RealArray2D = MultiArray<double, M, N>;
 
+#ifdef TEST
 /******************************************************************************/
 void dummy() {
   
@@ -119,7 +120,6 @@ void dummy() {
 }
 
 /******************************************************************************/
-#ifdef TEST
 
 int main() {
   dummy();
