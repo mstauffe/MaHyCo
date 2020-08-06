@@ -1,11 +1,12 @@
 #ifndef UTILESREMAP_IMPL_H
 #define UTILESREMAP_IMPL_H
 
+#include "Remap.h"          // for Remap, Remap::Opt...
 //#include "types/ArrayOperations.h"
 #include "types/MathFunctions.h"
 
 template <size_t d>
-RealArray1D<d> EucclhydRemap::computeAndLimitGradPhi(
+RealArray1D<d> Remap::computeAndLimitGradPhi(
     int projectionLimiterId, RealArray1D<d> gradphiplus,
     RealArray1D<d> gradphimoins, RealArray1D<d> phi, RealArray1D<d> phiplus,
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins) {
@@ -33,7 +34,7 @@ RealArray1D<d> EucclhydRemap::computeAndLimitGradPhi(
   }
 }
 template <size_t d>
-RealArray1D<d> EucclhydRemap::computeVecFluxOrdre3(
+RealArray1D<d> Remap::computeVecFluxOrdre3(
     RealArray1D<d> phimmm, RealArray1D<d> phimm, RealArray1D<d> phim,
     RealArray1D<d> phip, RealArray1D<d> phipp, RealArray1D<d> phippp,
     double hmmm, double hmm, double hm, double hp, double hpp, double hppp,
@@ -48,7 +49,7 @@ RealArray1D<d> EucclhydRemap::computeVecFluxOrdre3(
 }
 
 template <size_t d>
-RealArray1D<d> EucclhydRemap::computeFluxPP(
+RealArray1D<d> Remap::computeFluxPP(
     RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
     double face_normal_velocity, double deltat_n, int type, int cell,
@@ -192,10 +193,6 @@ RealArray1D<d> EucclhydRemap::computeFluxPP(
       // flux3 << " Flux3m " << flux3m << " soit " << Flux[i] << std::endl;
     }
 
-    // Calcul du flux a deplacer peut etre dans computeUremap1 et 2
-    // FluxFace[i] = computeflux(faceNormalVelocity, faceNormal, faceLength,
-    // deltat_n, h0, phiplus[i], phimoins[i], xd[i], xg[i], yd[i], yg[i],
-    // outerFaceNormal, exy);
   }
   // std::cout << " Flux " << Flux << std::endl;
   // les flux de masse, de quantité de mouvement et d'energie massique se
@@ -220,7 +217,7 @@ RealArray1D<d> EucclhydRemap::computeFluxPP(
 }
 
 template <size_t d>
-RealArray1D<d> EucclhydRemap::computeFluxPPPure(
+RealArray1D<d> Remap::computeFluxPPPure(
     RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
     double face_normal_velocity, double deltat_n, int type, int cell,
@@ -365,10 +362,6 @@ RealArray1D<d> EucclhydRemap::computeFluxPPPure(
       // flux3 << " Flux3m " << flux3m << " soit " << Flux[i] << std::endl;
     }
 
-    // Calcul du flux a deplacer peut etre dans computeUremap1 et 2
-    // FluxFace[i] = computeflux(faceNormalVelocity, faceNormal, faceLength,
-    // deltat_n, h0, phiplus[i], phimoins[i], xd[i], xg[i], yd[i], yg[i],
-    // outerFaceNormal, exy);
   }
   // std::cout << " Flux " << Flux << std::endl;
   // les flux de masse, de quantité de mouvement et d'energie massique se
@@ -391,7 +384,7 @@ RealArray1D<d> EucclhydRemap::computeFluxPPPure(
 }
 
 template <size_t d>
-RealArray1D<d> EucclhydRemap::computeUpwindFaceQuantities(
+RealArray1D<d> Remap::computeUpwindFaceQuantities(
     RealArray1D<dim> face_normal, double face_normal_velocity, double delta_x,
     RealArray1D<dim> x_f, RealArray1D<d> phi_cb, RealArray1D<d> grad_phi_cb,
     RealArray1D<dim> x_cb, RealArray1D<d> phi_cf, RealArray1D<d> grad_phi_cf,
@@ -403,7 +396,7 @@ RealArray1D<d> EucclhydRemap::computeUpwindFaceQuantities(
 }
 
 template <size_t d>
-RealArray1D<d> EucclhydRemap::computeRemapFlux(
+RealArray1D<d> Remap::computeRemapFlux(
     int projectionOrder, int projectionAvecPlateauPente,
     double face_normal_velocity, RealArray1D<dim> face_normal,
     double face_length, RealArray1D<d> phi_face,

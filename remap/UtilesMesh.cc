@@ -1,8 +1,8 @@
-#include "EucclhydRemap.h"         // for EucclhydRemap, EucclhydRemap::Options
+#include "Remap.h"         // for Remap, Remap::Options
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D
 #include "utils/Utils.h"           // for indexOf
 
-int EucclhydRemap::getLeftCells(const int cells) {
+int Remap::getLeftCells(const int cells) {
   int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cells));
   size_t flId(flLeftFaceOfCellC);
   int flFaces(utils::indexOf(mesh->getFaces(), flId));
@@ -14,7 +14,7 @@ int EucclhydRemap::getLeftCells(const int cells) {
     return cbId;
 }
 
-int EucclhydRemap::getRightCells(const int cells) {
+int Remap::getRightCells(const int cells) {
   int frRightFaceOfCellC(mesh->getRightFaceOfCell(cells));
   size_t frId(frRightFaceOfCellC);
   int frFaces(utils::indexOf(mesh->getFaces(), frId));
@@ -26,7 +26,7 @@ int EucclhydRemap::getRightCells(const int cells) {
     return cfId;
 }
 
-int EucclhydRemap::getBottomCells(const int cells) {
+int Remap::getBottomCells(const int cells) {
   int fbBottomFaceOfCellC(mesh->getBottomFaceOfCell(cells));
   size_t fbId(fbBottomFaceOfCellC);
   int fbFaces(utils::indexOf(mesh->getFaces(), fbId));
@@ -38,7 +38,7 @@ int EucclhydRemap::getBottomCells(const int cells) {
     return cfId;
 }
 
-int EucclhydRemap::getTopCells(const int cells) {
+int Remap::getTopCells(const int cells) {
   int ftTopFaceOfCellC(mesh->getTopFaceOfCell(cells));
   size_t ftId(ftTopFaceOfCellC);
   int ftFaces(utils::indexOf(mesh->getFaces(), ftId));

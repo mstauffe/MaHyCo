@@ -41,21 +41,21 @@ int main(int argc, char* argv[]) {
 
   // appel au schéma Lagrange Eucclhyd + schéma de projection ADI (en option)
   if (scheme->schema == scheme->Eucclhyd) {
-    VariablesLagRemap(nm);
+    auto varlp = new variableslagremaplib::VariablesLagRemap(nm);
+    auto proj =  new Remap(o, cstmesh, gt, cl, lim, nm, varlp);
     auto c =
-      new EucclhydRemap(o, cstmesh, gt, test, cl, lim, part, eos, nm, output);
+      new EucclhydRemap(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, output);
     c->simulate();
-    delete c;
-    delete o;
+    delete varlp;
+    //delete c;
+  
   } else if (scheme->schema == scheme->VNR) {
     auto c = new VnrRemap(o, cstmesh, gt, test, cl, lim, part, eos, nm, output);
     c->simulate();
     delete c;
-    delete o;
   }
-
-  delete nm;
   delete o;
+  // delete nm;
   delete cl;
   delete lim;
   delete part;

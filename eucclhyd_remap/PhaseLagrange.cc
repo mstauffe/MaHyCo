@@ -555,7 +555,7 @@ void EucclhydRemap::computeFaceVelocity() noexcept {
             reduction5 = reduction5 + (Vnode_nplus1(pNodes));
           }
         }
-        faceNormalVelocity(fFaces) = dot((0.5 * reduction5), faceNormal(fFaces));
+        varlp->faceNormalVelocity(fFaces) = dot((0.5 * reduction5), varlp->faceNormal(fFaces));
       });
 }
 
@@ -567,7 +567,7 @@ void EucclhydRemap::computeFaceVelocity() noexcept {
 void EucclhydRemap::computeLagrangePosition() noexcept {
   Kokkos::parallel_for(
       "computeLagrangePosition", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
-        XLagrange(pNodes) = 
+        varlp->XLagrange(pNodes) = 
             X(pNodes) + Vnode_nplus1(pNodes) * gt->deltat_n;
       });
   auto faces(mesh->getFaces());
@@ -580,10 +580,10 @@ void EucclhydRemap::computeLagrangePosition() noexcept {
         int n2SecondNodeOfFaceF(mesh->getSecondNodeOfFace(fId));
         int n2Id(n2SecondNodeOfFaceF);
         int n2Nodes(n2Id);
-        RealArray1D<dim> X_face = 0.5 * (XLagrange(n1Nodes)+ XLagrange(n2Nodes));
-        RealArray1D<dim> face_vec = XLagrange(n2Nodes) - XLagrange(n1Nodes);
-        XfLagrange(fFaces) = X_face;
-        faceLengthLagrange(fFaces) = MathFunctions::norm(face_vec);
+        RealArray1D<dim> X_face = 0.5 * (varlp->XLagrange(n1Nodes) + varlp->XLagrange(n2Nodes));
+        RealArray1D<dim> face_vec = varlp->XLagrange(n2Nodes) - varlp->XLagrange(n1Nodes);
+        varlp->XfLagrange(fFaces) = X_face;
+        varlp->faceLengthLagrange(fFaces) = MathFunctions::norm(face_vec);
       });
   if (options->AvecProjection == 0) {
     Kokkos::parallel_for(
@@ -673,12 +673,12 @@ void EucclhydRemap::computeLagrangeVolumeAndCenterOfGravity() noexcept {
                                       nbNodesOfCell]);
             int pNodes(pId);
             int pPlus1Nodes(pPlus1Id);
-            reduction6 = reduction6 + (crossProduct2d(XLagrange(pNodes),
-                                                      XLagrange(pPlus1Nodes)));
+            reduction6 = reduction6 + (crossProduct2d(varlp->XLagrange(pNodes),
+                                                      varlp->XLagrange(pPlus1Nodes)));
           }
         }
         double vol = 0.5 * reduction6;
-        vLagrange(cCells) = vol;
+        varlp->vLagrange(cCells) = vol;
         int nbmat = options->nbmat;
         for (int imat = 0; imat < nbmat; imat++)
           vpLagrange(cCells)[imat] = fracvol(cCells)[imat] * vol;
@@ -694,11 +694,12 @@ void EucclhydRemap::computeLagrangeVolumeAndCenterOfGravity() noexcept {
             int pPlus1Nodes(pPlus1Id);
             reduction7 = 
                 reduction7 +
-                (crossProduct2d(XLagrange(pNodes), XLagrange(pPlus1Nodes)) *
-		 (XLagrange(pNodes) + XLagrange(pPlus1Nodes)));
+                (crossProduct2d(varlp->XLagrange(pNodes),
+				varlp->XLagrange(pPlus1Nodes)) *
+		 (varlp->XLagrange(pNodes) + varlp->XLagrange(pPlus1Nodes)));
           }
         }
-        XcLagrange(cCells) = (1.0 / (6.0 * vol) * reduction7);
+        varlp->XcLagrange(cCells) = (1.0 / (6.0 * vol) * reduction7);
       });
 }
 /**
@@ -707,11 +708,11 @@ void EucclhydRemap::computeLagrangeVolumeAndCenterOfGravity() noexcept {
  * Out variables: deltaxLagrange
  */
 void EucclhydRemap::computeFacedeltaxLagrange() noexcept {
-  //auto faces(mesh->getInnerFaces());
-  //int nbInnerFaces(mesh->getNbInnerFaces());
-  auto faces(mesh->getFaces());
+  auto faces(mesh->getInnerFaces());
+  int nbInnerFaces(mesh->getNbInnerFaces());
+  //auto faces(mesh->getFaces());
   Kokkos::parallel_for(
-      "computeFacedeltaxLagrange", nbFaces, KOKKOS_LAMBDA(const int& fFaces) {
+      "computeFacedeltaxLagrange", nbInnerFaces, KOKKOS_LAMBDA(const int& fFaces) {
         size_t fId(faces[fFaces]);
         int cfFrontCellF(mesh->getFrontCell(fId));
         int cfId(cfFrontCellF);
@@ -719,9 +720,8 @@ void EucclhydRemap::computeFacedeltaxLagrange() noexcept {
         int cbBackCellF(mesh->getBackCell(fId));
         int cbId(cbBackCellF);
         int cbCells(cbId);
-        deltaxLagrange(fFaces) = dot(
-			       (XcLagrange(cfCells) - XcLagrange(cbCells)),
-			       faceNormal(fFaces));
+	varlp->deltaxLagrange(fId) = dot(
+	 (varlp->XcLagrange(cfCells) - varlp->XcLagrange(cbCells)), varlp->faceNormal(fId));
       });
 }
 
@@ -835,26 +835,26 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
                                            mp(cCells)[imat] * preduction4[imat];
         }
         for (int imat = 0; imat < nbmat; imat++) {
-          ULagrange(cCells)[imat] = vpLagrange(cCells)[imat];
+          varlp->ULagrange(cCells)[imat] = vpLagrange(cCells)[imat];
 
-          ULagrange(cCells)[nbmat + imat] =
-              fracmass(cCells)[imat] * vLagrange(cCells) * rhoLagrange;
+          varlp->ULagrange(cCells)[nbmat + imat] =
+              fracmass(cCells)[imat] * varlp->vLagrange(cCells) * rhoLagrange;
 
-          ULagrange(cCells)[2 * nbmat + imat] =
-              fracmass(cCells)[imat] * vLagrange(cCells) * rhoLagrange *
+          varlp->ULagrange(cCells)[2 * nbmat + imat] =
+              fracmass(cCells)[imat] * varlp->vLagrange(cCells) * rhoLagrange *
               pepsLagrange[imat];
         }
 
-        ULagrange(cCells)[3 * nbmat] =
-            vLagrange(cCells) * rhoLagrange * VLagrange[0];
-        ULagrange(cCells)[3 * nbmat + 1] =
-            vLagrange(cCells) * rhoLagrange * VLagrange[1];
+        varlp->ULagrange(cCells)[3 * nbmat] =
+            varlp->vLagrange(cCells) * rhoLagrange * VLagrange[0];
+        varlp->ULagrange(cCells)[3 * nbmat + 1] =
+            varlp->vLagrange(cCells) * rhoLagrange * VLagrange[1];
         // projection de l'energie cinétique
         if (options->projectionConservative == 1)
-          ULagrange(cCells)[3 * nbmat + 2] =
-              0.5 * vLagrange(cCells) * rhoLagrange *
+          varlp->ULagrange(cCells)[3 * nbmat + 2] =
+              0.5 * varlp->vLagrange(cCells) * rhoLagrange *
               (VLagrange[0] * VLagrange[0] + VLagrange[1] * VLagrange[1]);
-
+	
         if (options->AvecProjection == 0) {
           // Calcul des valeurs en n+1 si on ne fait pas de projection
           // Vnode_nplus1
@@ -913,53 +913,57 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
 
           double somme_volume = 0.;
           for (int imat = 0; imat < nbmat; imat++) {
-            somme_volume += ULagrange(cCells)[imat];
+            somme_volume += varlp->ULagrange(cCells)[imat];
           }
           // Phi volume
           double somme_masse = 0.;
           for (int imat = 0; imat < nbmat; imat++) {
-            Phi(cCells)[imat] = ULagrange(cCells)[imat] / somme_volume;
+            varlp->Phi(cCells)[imat] = varlp->ULagrange(cCells)[imat] / somme_volume;
 
             // Phi masse
-            if (ULagrange(cCells)[imat] != 0.)
-              Phi(cCells)[nbmat + imat] =
-                  ULagrange(cCells)[nbmat + imat] / ULagrange(cCells)[imat];
+            if (varlp->ULagrange(cCells)[imat] != 0.)
+              varlp->Phi(cCells)[nbmat + imat] =
+                  varlp->ULagrange(cCells)[nbmat + imat] /
+		  varlp->ULagrange(cCells)[imat];
             else
-              Phi(cCells)[nbmat + imat] = 0.;
-            somme_masse += ULagrange(cCells)[nbmat + imat];
+              varlp->Phi(cCells)[nbmat + imat] = 0.;
+            somme_masse += varlp->ULagrange(cCells)[nbmat + imat];
           }
           // Phi Vitesse
-          Phi(cCells)[3 * nbmat] = ULagrange(cCells)[3 * nbmat] / somme_masse;
-          Phi(cCells)[3 * nbmat + 1] =
-              ULagrange(cCells)[3 * nbmat + 1] / somme_masse;
+          varlp->Phi(cCells)[3 * nbmat] =
+	    varlp->ULagrange(cCells)[3 * nbmat] / somme_masse;
+          varlp->Phi(cCells)[3 * nbmat + 1] =
+	    varlp->ULagrange(cCells)[3 * nbmat + 1] / somme_masse;
           // Phi energie
           for (int imat = 0; imat < nbmat; imat++) {
-            if (ULagrange(cCells)[nbmat + imat] != 0.)
-              Phi(cCells)[2 * nbmat + imat] =
-                  ULagrange(cCells)[2 * nbmat + imat] /
-                  ULagrange(cCells)[nbmat + imat];
+            if (varlp->ULagrange(cCells)[nbmat + imat] != 0.)
+              varlp->Phi(cCells)[2 * nbmat + imat] =
+                  varlp->ULagrange(cCells)[2 * nbmat + imat] /
+                  varlp->ULagrange(cCells)[nbmat + imat];
             else
-              Phi(cCells)[2 * nbmat + imat] = 0.;
+              varlp->Phi(cCells)[2 * nbmat + imat] = 0.;
           }
           // Phi energie cinétique
           if (options->projectionConservative == 1)
-            Phi(cCells)[3 * nbmat + 2] =
-                ULagrange(cCells)[3 * nbmat + 2] / somme_masse;
+            varlp->Phi(cCells)[3 * nbmat + 2] =
+                varlp->ULagrange(cCells)[3 * nbmat + 2] / somme_masse;
 
         } else {
-          Phi(cCells) = ULagrange(cCells) / vLagrange(cCells);
+          varlp->Phi(cCells) = varlp->ULagrange(cCells) /
+	    varlp->vLagrange(cCells);
         }
 
         if ((cCells == dbgcell3 || cCells == dbgcell2 || cCells == dbgcell1) &&
             test_debug == 1) {
           std::cout << " Apres Phase Lagrange cell   " << cCells << "Phi"
-                    << Phi(cCells) << std::endl;
-          std::cout << " cell   " << cCells << "ULagrange " << ULagrange(cCells)
+                    << varlp->Phi(cCells) << std::endl;
+          std::cout << " cell   " << cCells << "varlp->ULagrange "
+		    << varlp->ULagrange(cCells)
                     << std::endl;
-        }
-        if (ULagrange(cCells) != ULagrange(cCells)) {
-          std::cout << " cell   " << cCells << " Ulagrange "
-                    << ULagrange(cCells) << std::endl;
+	}
+        if (varlp->ULagrange(cCells) != varlp->ULagrange(cCells)) {
+          std::cout << " cell   " << cCells << " varlp->Ulagrange "
+                    << varlp->ULagrange(cCells) << std::endl;
           std::cout << " cell   " << cCells << " f1 " << fracvol(cCells)[0]
                     << " f2 " << fracvol(cCells)[1] << " f3 "
                     << fracvol(cCells)[2] << std::endl;
@@ -987,14 +991,14 @@ void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
         // 0.5 * (VLagrange[0] * VLagrange[0] + VLagrange[1] * VLagrange[1]));
         MTOT_L(cCells) = 0.;
         ETOT_L(cCells) =
-            (rhoLagrange * vLagrange(cCells)) *
+            (rhoLagrange * varlp->vLagrange(cCells)) *
             (fracmass(cCells)[0] * pepsLagrange[0] +
              fracmass(cCells)[1] * pepsLagrange[1] +
              fracmass(cCells)[2] * pepsLagrange[2] +
              0.5 * (VLagrange[0] * VLagrange[0] + VLagrange[1] * VLagrange[1]));
         for (int imat = 0; imat < nbmat; imat++) {
           MTOT_L(cCells) +=
-              fracmass(cCells)[imat] * (rhoLagrange * vLagrange(cCells));
+              fracmass(cCells)[imat] * (rhoLagrange * varlp->vLagrange(cCells));
         }
       });
   double reductionE(0.), reductionM(0.);

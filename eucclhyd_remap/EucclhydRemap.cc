@@ -1,4 +1,5 @@
 #include "EucclhydRemap.h"
+#include "../remap/Remap.h"
 
 #include <stdlib.h>  // for exit
 
@@ -116,14 +117,14 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
     updateCellCenteredLagrangeVariables();      // @7.0
 
     if (options->AvecProjection == 1) {
-      computeGradPhiFace1();                        // @8.0
-      computeGradPhi1();                            // @9.0
-      computeUpwindFaceQuantitiesForProjection1();  // @10.0
-      computeUremap1();                             // @11.0
-      computeGradPhiFace2();                        // @12.0
-      computeGradPhi2();                            // @13.0
-      computeUpwindFaceQuantitiesForProjection2();  // @14.0
-      computeUremap2();                             // @15.0
+      remap->computeGradPhiFace1();                        // @8.0
+      remap->computeGradPhi1();                            // @9.0
+      remap->computeUpwindFaceQuantitiesForProjection1();  // @10.0
+      remap->computeUremap1();                             // @11.0
+      remap->computeGradPhiFace2();                        // @12.0
+      remap->computeGradPhi2();                            // @13.0
+      remap->computeUpwindFaceQuantitiesForProjection2();  // @14.0
+      remap->computeUremap2();                             // @15.0
       remapCellcenteredVariable();                  // @16.0
     }
     if (options->AvecParticules == 1) {
@@ -139,7 +140,7 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
 
     if (continueLoop) {
       // Switch variables to prepare next iteration
-      std::swap(x_then_y_nplus1, x_then_y_n);
+      std::swap(varlp->x_then_y_nplus1, varlp->x_then_y_n);
       std::swap(gt->t_nplus1, gt->t_n);
       std::swap(gt->deltat_nplus1, gt->deltat_n);
       std::swap(Vnode_nplus1, Vnode_n);
@@ -157,16 +158,16 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
         std::swap(Xpart_nplus1, Xpart_n);
       }
       if (options->AvecProjection == 0) {
-        std::swap(vLagrange, v);
-        std::swap(XLagrange, X);
-        std::swap(XfLagrange, Xf);
-        std::swap(faceLengthLagrange, faceLength);
-        std::swap(XcLagrange, Xc);
+        std::swap(varlp->vLagrange, v);
+        std::swap(varlp->XLagrange, X);
+        std::swap(varlp->XfLagrange, varlp->Xf);
+        std::swap(varlp->faceLengthLagrange, varlp->faceLength);
+        std::swap(varlp->XcLagrange, Xc);
       }
     }
-
     cpu_timer.stop();
     global_timer.stop();
+    
 
     // Timers display
     if (!writer.isDisabled())
@@ -177,9 +178,12 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
       std::cout << " {CPU: " << __BLUE__ << cpu_timer.print(true)
                 << __RESET__ ", IO: " << __RED__ << "none" << __RESET__ << "} ";
 
+
     // Progress
     std::cout << utils::progress_bar(n, gt->max_time_iterations, gt->t_n,
                                      gt->final_time, 30);
+    
+    
     std::cout << __BOLD__ << __CYAN__
               << utils::Timer::print(
                      utils::eta(n, gt->max_time_iterations, gt->t_n,

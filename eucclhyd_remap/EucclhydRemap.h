@@ -31,6 +31,7 @@
 #include "utils/Timer.h"  // for Timer
 
 #include "../includes/Freefunctions.h"
+#include "../remap/Remap.h"
 
 /*---------------------------------------*/
 /*---------------------------------------*/
@@ -53,16 +54,17 @@ class EucclhydRemap {
   eoslib::EquationDetat::Eos* eos;
   cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh;
   gesttempslib::GestionTempsClass::GestTemps* gt;
+  variableslagremaplib::VariablesLagRemap* varlp;
+  Remap* remap;
   PvdFileWriter2D writer;
   PvdFileWriter2D writerpart;
   int nbPartMax;
   int nbPart = 0;
-  int nbNodes, nbCells, nbFaces, nbCellsOfNode, nbFacesOfCell, nbNodesOfCell,
+  int nbNodes, nbCells, nbFaces, nbCellsOfNode, nbNodesOfCell,
       nbNodesOfFace, nbCellsOfFace;
 
   // Global Variables
   int n, nbCalls;
-  bool x_then_y_n, x_then_y_nplus1;
   double lastDump;
   double ETOTALE_L, ETOTALE_T, ETOTALE_0;
   double MASSET_L, MASSET_T, MASSET_0;
@@ -78,10 +80,6 @@ class EucclhydRemap {
   // Connectivity Variables
   Kokkos::View<RealArray1D<dim>*> X;
   Kokkos::View<RealArray1D<dim>*> Xc;
-  Kokkos::View<RealArray1D<dim>*> Xf;
-  Kokkos::View<RealArray1D<dim>*> XfLagrange;
-  Kokkos::View<RealArray1D<dim>*> XLagrange;
-  Kokkos::View<RealArray1D<dim>*> XcLagrange;
   Kokkos::View<double*> Xc_x;
   Kokkos::View<double*> Xc_y;
   Kokkos::View<RealArray1D<dim>**> lpc_n;
@@ -94,18 +92,12 @@ class EucclhydRemap {
   Kokkos::View<double*> m;
   Kokkos::View<RealArray1D<nbmatmax>*> mp;
   Kokkos::View<double*> v;
-  Kokkos::View<double*> vLagrange;
   Kokkos::View<double*> LfLagrange;
   Kokkos::View<double*> HvLagrange;
   Kokkos::View<RealArray1D<nbmatmax>*> vpLagrange;
   Kokkos::View<double*> perim;
   Kokkos::View<double*> vitson;
   Kokkos::View<RealArray1D<nbmatmax>*> vitsonp;
-  Kokkos::View<double*> faceLength;
-  Kokkos::View<double*> faceLengthLagrange;
-  Kokkos::View<double*> faceNormalVelocity;
-  Kokkos::View<RealArray1D<dim>*> faceNormal;
-  Kokkos::View<RealArray1D<dim>**> outerFaceNormal;
   Kokkos::View<double*> deltatc;
   Kokkos::View<RealArray1D<dim>*> Vnode_n;
   Kokkos::View<RealArray1D<dim>*> Vnode_nplus1;
@@ -134,9 +126,7 @@ class EucclhydRemap {
   Kokkos::View<RealArray1D<nbmatmax>*> epsp_n;
   Kokkos::View<RealArray1D<nbmatmax>*> epsp_nplus1;
   Kokkos::View<RealArray1D<nbmatmax>*> epsp_n0;
-  Kokkos::View<RealArray1D<nbequamax>*> ULagrange;
   Kokkos::View<RealArray1D<nbequamax>*> Uremap1;
-  Kokkos::View<RealArray1D<nbequamax>*> Uremap2;
   Kokkos::View<RealArray1D<nbequamax>*> gradPhiFace1;
   Kokkos::View<RealArray1D<nbequamax>*> gradPhiFace2;
   Kokkos::View<RealArray1D<nbequamax>*> gradPhi1;
@@ -145,7 +135,6 @@ class EucclhydRemap {
   Kokkos::View<RealArray1D<nbequamax>*> phiFace2;
   Kokkos::View<RealArray1D<nbequamax>*> deltaPhiFaceAv;
   Kokkos::View<RealArray1D<nbequamax>*> deltaPhiFaceAr;
-  Kokkos::View<RealArray1D<nbequamax>*> Phi;
   Kokkos::View<double**> p_extrap;
   Kokkos::View<RealArray1D<nbmatmax>**> pp_extrap;
   Kokkos::View<RealArray1D<dim>**> V_extrap;
@@ -198,8 +187,6 @@ class EucclhydRemap {
   Kokkos::View<RealArray1D<dim>*> Vpart_n0;
   Kokkos::View<RealArray1D<dim>*> Vpart_n;
   Kokkos::View<RealArray1D<dim>*> Vpart_nplus1;
-  Kokkos::View<int*> mixte;
-  Kokkos::View<int*> pure;
   Kokkos::View<int*> ICellp;
   Kokkos::View<int*> IMatp;
   Kokkos::View<double*> fracpart;
@@ -221,6 +208,8 @@ class EucclhydRemap {
       limiteurslib::LimiteursClass::Limiteurs* aLimiteurs,
       particulelib::SchemaParticules::Particules* aParticules,
       eoslib::EquationDetat::Eos* aEos, CartesianMesh2D* aCartesianMesh2D,
+      variableslagremaplib::VariablesLagRemap* avarlp,
+      Remap* aremap,
       string output)
       : options(aOptions),
         cstmesh(acstmesh),
@@ -231,6 +220,8 @@ class EucclhydRemap {
         particules(aParticules),
         eos(aEos),
         mesh(aCartesianMesh2D),
+        varlp(avarlp),
+        remap(aremap),
         writer("EucclhydRemap", output),
         writerpart("Particules", output),
         nbNodes(mesh->getNbNodes()),
@@ -238,11 +229,8 @@ class EucclhydRemap {
         nbCells(mesh->getNbCells()),
         nbFaces(mesh->getNbFaces()),
         nbCellsOfNode(CartesianMesh2D::MaxNbCellsOfNode),
-        nbFacesOfCell(CartesianMesh2D::MaxNbFacesOfCell),
         nbNodesOfCell(CartesianMesh2D::MaxNbNodesOfCell),
         nbNodesOfFace(CartesianMesh2D::MaxNbNodesOfFace),
-        x_then_y_n(true),
-        x_then_y_nplus1(true),
         nbCalls(0),
         lastDump(0.0),
         vpart("VolumePart", nbPartMax),
@@ -266,11 +254,7 @@ class EucclhydRemap {
         IMatp("Imatp", nbPartMax),
         X("X", nbNodes),
         Xc("Xc", nbCells),
-        Xf("Xf", nbFaces),
-        XfLagrange("Xf", nbFaces),
         LfLagrange("LfLagrange", nbFaces),
-        XLagrange("XLagrange", nbNodes),
-        XcLagrange("XcLagrange", nbCells),
         HvLagrange("HvLagrange", nbCells),
         Xc_x("Xc_x", nbCells),
         Xc_y("Xc_y", nbCells),
@@ -288,23 +272,15 @@ class EucclhydRemap {
         mp("mp", nbCells),
         v("v", nbCells),
         fracmass("fracmass", nbCells),
-        mixte("mixte", nbCells),
-        pure("pure", nbCells),
         fracvol("fracvol", nbCells),
         fracvolnode("fracvolnode", nbNodes),
         fracvol1("fracvol1", nbCells),
         fracvol2("fracvol2", nbCells),
         fracvol3("fracvol3", nbCells),
-        vLagrange("vLagrange", nbCells),
         vpLagrange("vpLagrange", nbCells),
         perim("perim", nbCells),
         vitson("vitson", nbCells),
         vitsonp("vitsonp", nbCells),
-        faceLength("faceLength", nbFaces),
-        faceLengthLagrange("faceLengthLagrange", nbFaces),
-        faceNormalVelocity("faceNormalVelocity", nbFaces),
-        faceNormal("faceNormal", nbFaces),
-        outerFaceNormal("outerFaceNormal", nbCells, nbFacesOfCell),
         deltatc("deltatc", nbCells),
         Vnode_n("Vnode_n", nbNodes),
         Vnode_nplus1("Vnode_nplus1", nbNodes),
@@ -333,9 +309,7 @@ class EucclhydRemap {
         epsp_nplus1("epsp_nplus1", nbCells),
         epsp_n0("epsp_n0", nbCells),
         delta_ec("delta_ec", nbCells),
-        ULagrange("ULagrange", nbCells),
         Uremap1("Uremap1", nbCells),
-        Uremap2("Uremap2", nbCells),
         gradPhiFace1("gradPhiFace1", nbFaces),
         gradPhiFace2("gradPhiFace2", nbFaces),
         gradPhi1("gradPhi1", nbCells),
@@ -344,7 +318,6 @@ class EucclhydRemap {
         phiFace2("phiFace2", nbFaces),
         deltaPhiFaceAv("deltaPhiFaceAv", nbCells),
         deltaPhiFaceAr("deltaPhiFaceAr", nbCells),
-        Phi("Phi", nbCells),
         p_extrap("p_extrap", nbCells, nbNodesOfCell),
         pp_extrap("pp_extrap", nbCells, nbNodesOfCell),
         V_extrap("V_extrap", nbCells, nbNodesOfCell),
@@ -387,8 +360,6 @@ class EucclhydRemap {
   RealArray1D<dim> nodeVelocityBoundaryConditionCorner(
       int BC1, RealArray1D<dim> BCValue1, int BC2, RealArray1D<dim> BCValue2,
       RealArray2D<dim, dim> Mp, RealArray1D<dim> Gp);
-  RealArray1D<nbequamax> computeBoundaryFluxes(int proj, int cCells,
-                                               RealArray1D<dim> exy);
 
   void initBoundaryConditions() noexcept;
   void initMeshGeometryForCells() noexcept;
@@ -423,16 +394,6 @@ class EucclhydRemap {
   void computeFacedeltaxLagrange() noexcept;
   void updateCellCenteredLagrangeVariables() noexcept;
 
-  void computeGradPhiFace1() noexcept;
-  void computeGradPhi1() noexcept;
-  void computeUpwindFaceQuantitiesForProjection1() noexcept;
-  void computeUremap1() noexcept;
-
-  void computeGradPhiFace2() noexcept;
-  void computeGradPhi2() noexcept;
-  void computeUpwindFaceQuantitiesForProjection2() noexcept;
-  void computeUremap2() noexcept;
-
   void remapCellcenteredVariable() noexcept;
 
   void updateParticlePosition() noexcept;
@@ -444,81 +405,10 @@ class EucclhydRemap {
   void switchrho_alpharho() noexcept;
 
   RealArray2D<2, 2> inverse(RealArray2D<2, 2> a);
-  double divideNoExcept(double a, double b);
   template <size_t N, size_t M>
   RealArray2D<N, M> tensProduct(RealArray1D<N> a, RealArray1D<M> b);
   double crossProduct2d(RealArray1D<2> a, RealArray1D<2> b);
-
-  int getLeftCells(const int cells);
-  int getRightCells(const int cells);
-  int getBottomCells(const int cells);
-  int getTopCells(const int cells);
-
-  double fluxLimiter(int projectionLimiterId, double r);
-  double fluxLimiterPP(int projectionLimiterId, double gradplus,
-                       double gradmoins, double y0, double yplus, double ymoins,
-                       double h0, double hplus, double hmoins);
-  double computeY0(int projectionLimiterId, double y0, double yplus,
-                   double ymoins, double h0, double hplus, double hmoins,
-                   int type);
-  double computexgxd(double y0, double yplus, double ymoins, double h0,
-                     double y0plus, double y0moins, int type);
-  double computeygyd(double y0, double yplus, double ymoins, double h0,
-                     double y0plus, double y0moins, double grady, int type);
-  double INTY(double X, double x0, double y0, double x1, double y1);
-  double INT2Y(double X, double x0, double y0, double x1, double y1);
-  template <size_t d>
-  RealArray1D<d> computeAndLimitGradPhi(
-      int projectionLimiterId, RealArray1D<d> gradphiplus,
-      RealArray1D<d> gradphimoins, RealArray1D<d> phi, RealArray1D<d> phiplus,
-      RealArray1D<d> phimoins, double h0, double hplus, double hmoins);
-  template <size_t d>
-  RealArray1D<d> computeFluxPP(RealArray1D<d> gradphi, RealArray1D<d> phi,
-                               RealArray1D<d> phiplus, RealArray1D<d> phimoins,
-                               double h0, double hplus, double hmoins,
-                               double face_normal_velocity, double deltat_n,
-                               int type, int cell, double flux_threhold);
-  template <size_t d>
-  RealArray1D<d> computeFluxPPPure(RealArray1D<d> gradphi, RealArray1D<d> phi,
-                                   RealArray1D<d> phiplus,
-                                   RealArray1D<d> phimoins, double h0,
-                                   double hplus, double hmoins,
-                                   double face_normal_velocity, double deltat_n,
-                                   int type, int cell, double flux_threhold);
-  template <size_t d>
-  RealArray1D<d> computeUpwindFaceQuantities(
-      RealArray1D<dim> face_normal, double face_normal_velocity, double delta_x,
-      RealArray1D<dim> x_f, RealArray1D<d> phi_cb, RealArray1D<d> grad_phi_cb,
-      RealArray1D<dim> x_cb, RealArray1D<d> phi_cf, RealArray1D<d> grad_phi_cf,
-      RealArray1D<dim> x_cf);
-  RealArray1D<dim> xThenYToDirection(bool x_then_y_);
-  template <size_t d>
-  RealArray1D<d> computeRemapFlux(int projectionOrder,
-                                  int projectionAvecPlateauPente,
-                                  double face_normal_velocity,
-                                  RealArray1D<dim> face_normal,
-                                  double face_length, RealArray1D<d> phi_face,
-                                  RealArray1D<dim> outer_face_normal,
-                                  RealArray1D<dim> exy, double deltat_n);
-  template <size_t d>
-  RealArray1D<d> computeVecFluxOrdre3(
-      RealArray1D<d> phimmm, RealArray1D<d> phimm, RealArray1D<d> phim,
-      RealArray1D<d> phip, RealArray1D<d> phipp, RealArray1D<d> phippp,
-      double hmmm, double hmm, double hm, double hp, double hpp, double hppp,
-      double face_normal_velocity, double deltat_n);
-  interval define_interval(double a, double b);
-  interval intersection(interval I1, interval I2);
-  double evaluate_grad(double hm, double h0, double hp, double ym, double y0,
-                       double yp);
-  double evaluate_ystar(double hmm, double hm, double hp, double hpp,
-                        double ymm, double ym, double yp, double ypp,
-                        double gradm, double gradp);
-  double evaluate_fm(double x, double dx, double up, double du, double u6);
-  double evaluate_fp(double x, double dx, double um, double du, double u6);
-  double ComputeFluxOrdre3(double ymmm, double ymm, double ym, double yp,
-                           double ypp, double yppp, double hmmm, double hmm,
-                           double hm, double hp, double hpp, double hppp,
-                           double v_dt);
+  
   /**
    * Job dumpVariables called @2.0 in executeTimeLoopN method.
    * In variables: Xc_x, Xc_y, eps_n, m, p, rho_n, t_n, v
@@ -564,6 +454,5 @@ class EucclhydRemap {
 };
 
 #include "Utiles-Impl.h"
-#include "UtilesRemap-Impl.h"
 
 #endif  // EUCCLHYDREMAP_H

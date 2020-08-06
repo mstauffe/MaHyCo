@@ -13,14 +13,15 @@
 #include "types/MultiArray.h"       // for operator<<
 #include "utils/Utils.h"            // for indexOf
 
+#include "../includes/VariablesLagRemap.h"
 /**
  * Job computeGradPhiFace1 called @8.0 in executeTimeLoopN method.
  * In variables: ULagrange, deltaxLagrange, projectionOrder, vLagrange,
- * x_then_y_n Out variables: gradPhiFace1
+ * varlp->x_then_y_n Out variables: gradPhiFace1
  */
 void Remap::computeGradPhiFace1() noexcept {
   if (options->projectionOrder > 1) {
-    if (x_then_y_n) {
+    if (varlp->x_then_y_n) {
       auto innerVerticalFaces(mesh->getInnerVerticalFaces());
       int nbInnerVerticalFaces(mesh->getNbInnerVerticalFaces());
       Kokkos::parallel_for(
@@ -36,7 +37,7 @@ void Remap::computeGradPhiFace1() noexcept {
             int cbCells(cbId);
             //
             gradPhiFace1(fFaces) = 
-               (Phi(cfCells) - Phi(cbCells)) / deltaxLagrange(fFaces);
+               (varlp->Phi(cfCells) - varlp->Phi(cbCells)) / varlp->deltaxLagrange(fFaces);
             //
             int n1FirstNodeOfFaceF(mesh->getFirstNodeOfFace(fId));
             int n1Id(n1FirstNodeOfFaceF);
@@ -45,10 +46,10 @@ void Remap::computeGradPhiFace1() noexcept {
             int n2Id(n2SecondNodeOfFaceF);
             int n2Nodes(n2Id);
             LfLagrange(fFaces) =
-                sqrt((XLagrange(n1Nodes)[0] - XLagrange(n2Nodes)[0]) *
-                         (XLagrange(n1Nodes)[0] - XLagrange(n2Nodes)[0]) +
-                     (XLagrange(n1Nodes)[1] - XLagrange(n2Nodes)[1]) *
-                         (XLagrange(n1Nodes)[1] - XLagrange(n2Nodes)[1]));
+                sqrt((varlp->XLagrange(n1Nodes)[0] - varlp->XLagrange(n2Nodes)[0]) *
+                         (varlp->XLagrange(n1Nodes)[0] - varlp->XLagrange(n2Nodes)[0]) +
+                     (varlp->XLagrange(n1Nodes)[1] - varlp->XLagrange(n2Nodes)[1]) *
+                         (varlp->XLagrange(n1Nodes)[1] - varlp->XLagrange(n2Nodes)[1]));
           });
 
       Kokkos::parallel_for(
@@ -59,12 +60,12 @@ void Remap::computeGradPhiFace1() noexcept {
             int fbBottomFaceOfCellC(mesh->getBottomFaceOfCell(cId));
             size_t fbId(fbBottomFaceOfCellC);
             int fbFaces(utils::indexOf(mesh->getFaces(), fbId));
-            HvLagrange(cCells) += 0.5 * faceLengthLagrange(fbFaces);
+            HvLagrange(cCells) += 0.5 * varlp->faceLengthLagrange(fbFaces);
 
             int ftTopFaceOfCellC(mesh->getTopFaceOfCell(cId));
             size_t ftId(ftTopFaceOfCellC);
             int ftFaces(utils::indexOf(mesh->getFaces(), ftId));
-            HvLagrange(cCells) += 0.5 * faceLengthLagrange(ftFaces);
+            HvLagrange(cCells) += 0.5 * varlp->faceLengthLagrange(ftFaces);
           });
     } else {
       auto innerHorizontalFaces(mesh->getInnerHorizontalFaces());
@@ -82,7 +83,7 @@ void Remap::computeGradPhiFace1() noexcept {
             int cbCells(cbId);
             //
             gradPhiFace1(fFaces) = 
-                (Phi(cfCells) - Phi(cbCells)) / deltaxLagrange(fFaces);
+                (varlp->Phi(cfCells) - varlp->Phi(cbCells)) / varlp->deltaxLagrange(fFaces);
             int n1FirstNodeOfFaceF(mesh->getFirstNodeOfFace(fId));
             int n1Id(n1FirstNodeOfFaceF);
             int n1Nodes(n1Id);
@@ -91,10 +92,10 @@ void Remap::computeGradPhiFace1() noexcept {
             int n2Nodes(n2Id);
             //
             LfLagrange(fFaces) =
-                sqrt((XLagrange(n1Nodes)[0] - XLagrange(n2Nodes)[0]) *
-                         (XLagrange(n1Nodes)[0] - XLagrange(n2Nodes)[0]) +
-                     (XLagrange(n1Nodes)[1] - XLagrange(n2Nodes)[1]) *
-                         (XLagrange(n1Nodes)[1] - XLagrange(n2Nodes)[1]));
+                sqrt((varlp->XLagrange(n1Nodes)[0] - varlp->XLagrange(n2Nodes)[0]) *
+                         (varlp->XLagrange(n1Nodes)[0] - varlp->XLagrange(n2Nodes)[0]) +
+                     (varlp->XLagrange(n1Nodes)[1] - varlp->XLagrange(n2Nodes)[1]) *
+                         (varlp->XLagrange(n1Nodes)[1] - varlp->XLagrange(n2Nodes)[1]));
           });
       Kokkos::parallel_for(
           "computeGradPhiFace1", nbCells, KOKKOS_LAMBDA(const int& cCells) {
@@ -105,24 +106,25 @@ void Remap::computeGradPhiFace1() noexcept {
             int frRightFaceOfCellC(mesh->getRightFaceOfCell(cId));
             size_t frId(frRightFaceOfCellC);
             int frFaces(utils::indexOf(mesh->getFaces(), frId));
-            HvLagrange(cCells) += 0.5 * faceLengthLagrange(frFaces);
+            HvLagrange(cCells) += 0.5 * varlp->faceLengthLagrange(frFaces);
 
             int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cId));
             size_t flId(flLeftFaceOfCellC);
             int flFaces(utils::indexOf(mesh->getFaces(), flId));
-            HvLagrange(cCells) += 0.5 * faceLengthLagrange(flFaces);
+            HvLagrange(cCells) += 0.5 * varlp->faceLengthLagrange(flFaces);
           });
     }
   }
 }
 /**
  * Job computeGradPhi1 called @9.0 in executeTimeLoopN method.
- * In variables: gradPhiFace1, projectionLimiterId, projectionOrder, x_then_y_n
+ * In variables: gradPhiFace1, projectionLimiterId, projectionOrder, varlp->x_then_y_n
  * Out variables: gradPhi1
  */
 void Remap::computeGradPhi1() noexcept {
+  //std::cout << " ordre de la projection " << options->projectionOrder << std::endl;
   if (options->projectionOrder > 1) {
-    if (x_then_y_n) {
+    if (varlp->x_then_y_n) {
       // std::cout << " Phase 1 Horizontale computeGradPhi1 " << std::endl;
       Kokkos::parallel_for(
           "computeGradPhi1", nbCells, KOKKOS_LAMBDA(const int& cCells) {
@@ -151,9 +153,9 @@ void Remap::computeGradPhi1() noexcept {
             if (cfCells == -1) cfCells = cCells;
             bool voisinage_pure =
                 (limiteurs->projectionLimiteurMixte == 1) &&
-                (mixte(cCells) == 0 && mixte(cfCells) == 0 &&
-                 mixte(cbCells) == 0 && pure(cCells) == pure(cfCells) &&
-                 pure(cCells) == pure(cbCells));
+                (varlp->mixte(cCells) == 0 && varlp->mixte(cfCells) == 0 &&
+                 varlp->mixte(cbCells) == 0 && varlp->pure(cCells) == varlp->pure(cfCells) &&
+                 varlp->pure(cCells) == varlp->pure(cbCells));
 
             int limiter = limiteurs->projectionLimiterId;
             if ((limiteurs->projectionAvecPlateauPente == 1) && voisinage_pure)
@@ -161,44 +163,41 @@ void Remap::computeGradPhi1() noexcept {
 
             gradPhi1(cCells) = computeAndLimitGradPhi(
                 limiter, gradPhiFace1(frFaces), gradPhiFace1(flFaces),
-                Phi(cCells), Phi(cfCells), Phi(cbCells), HvLagrange(cCells),
-                HvLagrange(cfCells), HvLagrange(cbCells));
+                varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
+		HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells));
 
             if (limiteurs->projectionAvecPlateauPente == 1) {
               double Flux_sortant_ar =
-                 dot(outerFaceNormal(cCells, flFacesOfCellC),
+                 dot(varlp->outerFaceNormal(cCells, flFacesOfCellC),
                                      exy) *
-                  faceNormalVelocity(flFaces);
+                  varlp->faceNormalVelocity(flFaces);
 
               if (voisinage_pure)
-                deltaPhiFaceAr(cCells) = computeFluxPPPure(
-                    gradPhi1(cCells), Phi(cCells), Phi(cfCells), Phi(cbCells),
-                    HvLagrange(cCells), HvLagrange(cfCells),
-                    HvLagrange(cbCells), Flux_sortant_ar, gt->deltat_n, 0,
-                    cCells, options->threshold);
+                deltaPhiFaceAr(cCells) = computeFluxPPPure(gradPhi1(cCells),
+		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
+		    HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
+		    Flux_sortant_ar, gt->deltat_n, 0, cCells, options->threshold);
               else
-                deltaPhiFaceAr(cCells) = computeFluxPP(
-                    gradPhi1(cCells), Phi(cCells), Phi(cfCells), Phi(cbCells),
-                    HvLagrange(cCells), HvLagrange(cfCells),
-                    HvLagrange(cbCells), Flux_sortant_ar, gt->deltat_n, 0,
-                    cCells, options->threshold);
+                deltaPhiFaceAr(cCells) = computeFluxPP(gradPhi1(cCells),
+		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
+                    HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
+		    Flux_sortant_ar, gt->deltat_n, 0, cCells, options->threshold);
 
               double Flux_sortant_av =
-                  dot(outerFaceNormal(cCells, frFacesOfCellC),
+                  dot(varlp->outerFaceNormal(cCells, frFacesOfCellC),
                                      exy) *
-                  faceNormalVelocity(frFaces);
+                  varlp->faceNormalVelocity(frFaces);
               if (voisinage_pure)
-                deltaPhiFaceAv(cCells) = computeFluxPPPure(
-                    gradPhi1(cCells), Phi(cCells), Phi(cfCells), Phi(cbCells),
+                deltaPhiFaceAv(cCells) = computeFluxPPPure(gradPhi1(cCells),
+		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
                     HvLagrange(cCells), HvLagrange(cfCells),
                     HvLagrange(cbCells), Flux_sortant_av, gt->deltat_n, 1,
                     cCells, options->threshold);
               else
-                deltaPhiFaceAv(cCells) = computeFluxPP(
-                    gradPhi1(cCells), Phi(cCells), Phi(cfCells), Phi(cbCells),
-                    HvLagrange(cCells), HvLagrange(cfCells),
-                    HvLagrange(cbCells), Flux_sortant_av, gt->deltat_n, 1,
-                    cCells, options->threshold);
+                deltaPhiFaceAv(cCells) = computeFluxPP(gradPhi1(cCells),
+		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
+                    HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
+		    Flux_sortant_av, gt->deltat_n, 1, cCells, options->threshold);
             }
           });
     } else {
@@ -227,9 +226,9 @@ void Remap::computeGradPhi1() noexcept {
             if (cfCells == -1) cfCells = cCells;
             bool voisinage_pure =
                 (limiteurs->projectionLimiteurMixte == 1) &&
-                (mixte(cCells) == 0 && mixte(cfCells) == 0 &&
-                 mixte(cbCells) == 0 && pure(cCells) == pure(cfCells) &&
-                 pure(cCells) == pure(cbCells));
+                (varlp->mixte(cCells) == 0 && varlp->mixte(cfCells) == 0 &&
+                 varlp->mixte(cbCells) == 0 && varlp->pure(cCells) == varlp->pure(cfCells) &&
+                 varlp->pure(cCells) == varlp->pure(cbCells));
 
             int limiter = limiteurs->projectionLimiterId;
             if ((limiteurs->projectionAvecPlateauPente == 1) && voisinage_pure)
@@ -237,46 +236,42 @@ void Remap::computeGradPhi1() noexcept {
 
             gradPhi1(cCells) = computeAndLimitGradPhi(
                 limiter, gradPhiFace1(fbFaces), gradPhiFace1(ftFaces),
-                Phi(cCells), Phi(cbCells), Phi(cfCells), HvLagrange(cCells),
-                HvLagrange(cbCells), HvLagrange(cfCells));
+                varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
+		HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells));
 
             if (limiteurs->projectionAvecPlateauPente == 1) {
               RealArray1D<dim> exy = {{0.0, 1.0}};
 
               double Flux_sortant_av =
-                  dot(outerFaceNormal(cCells, fbFacesOfCellC),
+                  dot(varlp->outerFaceNormal(cCells, fbFacesOfCellC),
                                      exy) *
-                  faceNormalVelocity(fbFaces);
+                  varlp->faceNormalVelocity(fbFaces);
               if (voisinage_pure)
-                deltaPhiFaceAr(cCells) = computeFluxPPPure(
-                    gradPhi1(cCells), Phi(cCells), Phi(cbCells), Phi(cfCells),
-                    HvLagrange(cCells), HvLagrange(cbCells),
-                    HvLagrange(cfCells), Flux_sortant_av, gt->deltat_n, 0,
-                    cCells, options->threshold);
+                deltaPhiFaceAr(cCells) = computeFluxPPPure(gradPhi1(cCells),
+		    varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
+                    HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
+		    Flux_sortant_av, gt->deltat_n, 0, cCells, options->threshold);
               else
-                deltaPhiFaceAr(cCells) = computeFluxPP(
-                    gradPhi1(cCells), Phi(cCells), Phi(cbCells), Phi(cfCells),
-                    HvLagrange(cCells), HvLagrange(cbCells),
-                    HvLagrange(cfCells), Flux_sortant_av, gt->deltat_n, 0,
-                    cCells, options->threshold);
+                deltaPhiFaceAr(cCells) = computeFluxPP(gradPhi1(cCells), 
+                    varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
+                    HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
+		    Flux_sortant_av, gt->deltat_n, 0, cCells, options->threshold);
 
               double Flux_sortant_ar =
-		dot(outerFaceNormal(cCells, ftFacesOfCellC),
+		dot(varlp->outerFaceNormal(cCells, ftFacesOfCellC),
                                      exy) *
-                  faceNormalVelocity(ftFaces);
+                  varlp->faceNormalVelocity(ftFaces);
 
               if (voisinage_pure)
-                deltaPhiFaceAv(cCells) = computeFluxPPPure(
-                    gradPhi1(cCells), Phi(cCells), Phi(cbCells), Phi(cfCells),
-                    HvLagrange(cCells), HvLagrange(cbCells),
-                    HvLagrange(cfCells), Flux_sortant_ar, gt->deltat_n, 1,
-                    cCells, options->threshold);
+                deltaPhiFaceAv(cCells) = computeFluxPPPure(gradPhi1(cCells),
+		    varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
+                    HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
+		    Flux_sortant_ar, gt->deltat_n, 1, cCells, options->threshold);
               else
-                deltaPhiFaceAv(cCells) = computeFluxPP(
-                    gradPhi1(cCells), Phi(cCells), Phi(cbCells), Phi(cfCells),
-                    HvLagrange(cCells), HvLagrange(cbCells),
-                    HvLagrange(cfCells), Flux_sortant_ar, gt->deltat_n, 1,
-                    cCells, options->threshold);
+                deltaPhiFaceAv(cCells) = computeFluxPP(gradPhi1(cCells),
+		    varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
+                    HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
+		    Flux_sortant_ar, gt->deltat_n, 1, cCells, options->threshold);
             }
           });
     }
@@ -287,10 +282,10 @@ void Remap::computeGradPhi1() noexcept {
  * Job computeUpwindFaceQuantitiesForProjection1 called @10.0 in
  * executeTimeLoopN method. In variables: ULagrange, XcLagrange, Xf,
  * deltaxLagrange, faceNormal, faceNormalVelocity, gradPhi1, vLagrange,
- * x_then_y_n Out variables: phiFace1
+ * varlp->x_then_y_n Out variables: phiFace1
  */
 void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
-  if (x_then_y_n) {
+  if (varlp->x_then_y_n) {
     // std::cout << " Phase Projection 1 Horizontale " << std::endl;
     auto innerVerticalFaces(mesh->getInnerVerticalFaces());
     int nbInnerVerticalFaces(mesh->getNbInnerVerticalFaces());
@@ -313,12 +308,12 @@ void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
           if (options->projectionOrder == 2) {
             if (limiteurs->projectionAvecPlateauPente == 0) {
               phiFace1(fFaces) = computeUpwindFaceQuantities(
-                  faceNormal(fFaces), faceNormalVelocity(fFaces),
-                  deltaxLagrange(fFaces), Xf(fFaces),
-                  (ULagrange(cbCells) / vLagrange(cbCells)),
-                  gradPhi1(cbCells), XcLagrange(cbCells),
-                  (ULagrange(cfCells) / vLagrange(cfCells)),
-                  gradPhi1(cfCells), XcLagrange(cfCells));
+                  varlp->faceNormal(fFaces), varlp->faceNormalVelocity(fFaces),
+                  varlp->deltaxLagrange(fFaces), varlp->Xf(fFaces),
+                  (varlp->ULagrange(cbCells) / varlp->vLagrange(cbCells)),
+                  gradPhi1(cbCells), varlp->XcLagrange(cbCells),
+                  (varlp->ULagrange(cfCells) / varlp->vLagrange(cfCells)),
+                  gradPhi1(cfCells), varlp->XcLagrange(cfCells));
             } else {
               phiFace1(fFaces) = 
                   deltaPhiFaceAv(cbCells) - deltaPhiFaceAr(cfCells);
@@ -337,15 +332,15 @@ void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
             int cbbbCells(getLeftCells(cbbCells));
 
             phiFace1(fFaces) = computeVecFluxOrdre3(
-                (ULagrange(cbbbCells) / vLagrange(cbbbCells)),
-                (ULagrange(cbbCells)  / vLagrange(cbbCells)),
-                (ULagrange(cbCells)   / vLagrange(cbCells)),
-                (ULagrange(cfCells)   / vLagrange(cfCells)),
-                (ULagrange(cffCells)  / vLagrange(cffCells)),
-                (ULagrange(cfffCells) / vLagrange(cfffCells)),
+                (varlp->ULagrange(cbbbCells) / varlp->vLagrange(cbbbCells)),
+                (varlp->ULagrange(cbbCells)  / varlp->vLagrange(cbbCells)),
+                (varlp->ULagrange(cbCells)   / varlp->vLagrange(cbCells)),
+                (varlp->ULagrange(cfCells)   / varlp->vLagrange(cfCells)),
+                (varlp->ULagrange(cffCells)  / varlp->vLagrange(cffCells)),
+                (varlp->ULagrange(cfffCells) / varlp->vLagrange(cfffCells)),
                 HvLagrange(cbbbCells), HvLagrange(cbbCells),
                 HvLagrange(cbCells), HvLagrange(cfCells), HvLagrange(cffCells),
-                HvLagrange(cfffCells), faceNormalVelocity(fFaces),
+                HvLagrange(cfffCells), varlp->faceNormalVelocity(fFaces),
                 gt->deltat_n);
           }
         });
@@ -372,12 +367,12 @@ void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
           if (options->projectionOrder == 2) {
             if (limiteurs->projectionAvecPlateauPente == 0) {
               phiFace1(fFaces) = computeUpwindFaceQuantities(
-                  faceNormal(fFaces), faceNormalVelocity(fFaces),
-                  deltaxLagrange(fFaces), Xf(fFaces),
-                  (ULagrange(cbCells) / vLagrange(cbCells)),
-                  gradPhi1(cbCells), XcLagrange(cbCells),
-                  (ULagrange(cfCells) / vLagrange(cfCells)),
-                  gradPhi1(cfCells), XcLagrange(cfCells));
+                  varlp->faceNormal(fFaces), varlp->faceNormalVelocity(fFaces),
+                  varlp->deltaxLagrange(fFaces), varlp->Xf(fFaces),
+                  (varlp->ULagrange(cbCells) / varlp->vLagrange(cbCells)),
+                  gradPhi1(cbCells), varlp->XcLagrange(cbCells),
+                  (varlp->ULagrange(cfCells) / varlp->vLagrange(cfCells)),
+                  gradPhi1(cfCells), varlp->XcLagrange(cfCells));
             } else {
               phiFace1(fFaces) = 
                   deltaPhiFaceAv(cfCells) - deltaPhiFaceAr(cbCells);
@@ -396,15 +391,15 @@ void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
             int cbbbCells(getTopCells(cbbCells));
 
             phiFace1(fFaces) = computeVecFluxOrdre3(
-		    (ULagrange(cfffCells) / vLagrange(cfffCells)),
-		    (ULagrange(cffCells)  / vLagrange(cffCells)),
-		    (ULagrange(cfCells)   / vLagrange(cfCells)),
-		    (ULagrange(cbCells)   / vLagrange(cbCells)),
-		    (ULagrange(cbbCells)  / vLagrange(cbbCells)),
-		    (ULagrange(cbbbCells) / vLagrange(cbbbCells)),
+		    (varlp->ULagrange(cfffCells) / varlp->vLagrange(cfffCells)),
+		    (varlp->ULagrange(cffCells)  / varlp->vLagrange(cffCells)),
+		    (varlp->ULagrange(cfCells)   / varlp->vLagrange(cfCells)),
+		    (varlp->ULagrange(cbCells)   / varlp->vLagrange(cbCells)),
+		    (varlp->ULagrange(cbbCells)  / varlp->vLagrange(cbbCells)),
+		    (varlp->ULagrange(cbbbCells) / varlp->vLagrange(cbbbCells)),
                 HvLagrange(cfffCells), HvLagrange(cffCells),
                 HvLagrange(cfCells), HvLagrange(cbCells), HvLagrange(cbbCells),
-                HvLagrange(cbbbCells), faceNormalVelocity(fFaces),
+                HvLagrange(cbbbCells), varlp->faceNormalVelocity(fFaces),
                 gt->deltat_n);
           }
         });
@@ -413,12 +408,12 @@ void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
 /**
  * Job computeUremap1 called @11.0 in executeTimeLoopN method.
  * In variables: ULagrange, deltat_n, faceLength, faceNormal,
- * faceNormalVelocity, outerFaceNormal, phiFace1, x_then_y_n Out variables:
+ * faceNormalVelocity, outerFaceNormal, phiFace1, varlp->x_then_y_n Out variables:
  * Uremap1
  */
 void Remap::computeUremap1() noexcept {
   int nbmat = options->nbmat;
-  RealArray1D<dim> exy = xThenYToDirection(x_then_y_n);
+  RealArray1D<dim> exy = xThenYToDirection(varlp->x_then_y_n);
   Kokkos::parallel_for(
       "computeUremap1", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         int cId(cCells);
@@ -438,9 +433,9 @@ void Remap::computeUremap1() noexcept {
             reduction8 =  reduction8 + (computeRemapFlux(
                                 options->projectionOrder,
                                 limiteurs->projectionAvecPlateauPente,
-                                faceNormalVelocity(fFaces), faceNormal(fFaces),
-                                faceLength(fFaces), phiFace1(fFaces),
-                                outerFaceNormal(cCells, fFacesOfCellC), exy,
+                                varlp->faceNormalVelocity(fFaces), varlp->faceNormal(fFaces),
+                                varlp->faceLength(fFaces), phiFace1(fFaces),
+                                varlp->outerFaceNormal(cCells, fFacesOfCellC), exy,
                                 gt->deltat_n));
 	    
           }
@@ -468,7 +463,7 @@ void Remap::computeUremap1() noexcept {
           }
         }
 
-        Uremap1(cCells) = ULagrange(cCells) - reduction8;
+        Uremap1(cCells) = varlp->ULagrange(cCells) - reduction8;
 	
         if (limiteurs->projectionAvecPlateauPente == 1) {
           // option ou on ne regarde pas la variation de rho, V et e
@@ -485,35 +480,32 @@ void Remap::computeUremap1() noexcept {
           // Phi volume
           double somme_masse = 0.;
           for (int imat = 0; imat < nbmat; imat++) {
-            Phi(cCells)[imat] = Uremap1(cCells)[imat] / somme_volume;
+            varlp->Phi(cCells)[imat] = Uremap1(cCells)[imat] / somme_volume;
             // Phi masse
             if (Uremap1(cCells)[imat] != 0.)
-              Phi(cCells)[nbmat + imat] =
+              varlp->Phi(cCells)[nbmat + imat] =
                   Uremap1(cCells)[nbmat + imat] / (Uremap1(cCells)[imat]);
             else
-              Phi(cCells)[nbmat + imat] = 0.;
+              varlp->Phi(cCells)[nbmat + imat] = 0.;
             somme_masse += Uremap1(cCells)[nbmat + imat];
           }
           // Phi Vitesse
-          Phi(cCells)[3 * nbmat] = Uremap1(cCells)[3 * nbmat] / somme_masse;
-          Phi(cCells)[3 * nbmat + 1] =
-              Uremap1(cCells)[3 * nbmat + 1] / somme_masse;
+          varlp->Phi(cCells)[3 * nbmat] = Uremap1(cCells)[3 * nbmat] / somme_masse;
+          varlp->Phi(cCells)[3 * nbmat + 1] = Uremap1(cCells)[3 * nbmat + 1] / somme_masse;
           // Phi energie
           for (int imat = 0; imat < nbmat; imat++) {
             if (Uremap1(cCells)[nbmat + imat] != 0.)
-              Phi(cCells)[2 * nbmat + imat] =
-                  Uremap1(cCells)[2 * nbmat + imat] /
-                  Uremap1(cCells)[nbmat + imat];
+              varlp->Phi(cCells)[2 * nbmat + imat] =
+                  Uremap1(cCells)[2 * nbmat + imat] / Uremap1(cCells)[nbmat + imat];
             else
-              Phi(cCells)[2 * nbmat + imat] = 0.;
+              varlp->Phi(cCells)[2 * nbmat + imat] = 0.;
           }
           // Phi energie cinétique
           if (options->projectionConservative == 1)
-            Phi(cCells)[3 * nbmat + 2] =
-                Uremap1(cCells)[3 * nbmat + 2] / somme_masse;
+            varlp->Phi(cCells)[3 * nbmat + 2] = Uremap1(cCells)[3 * nbmat + 2] / somme_masse;
 
         } else {
-          Phi(cCells) = Uremap1(cCells) / vLagrange(cCells);
+          varlp->Phi(cCells) = Uremap1(cCells) / varlp->vLagrange(cCells);
         }
 
         if ((cCells == dbgcell3 || cCells == dbgcell2 || cCells == dbgcell1)) {
@@ -524,16 +516,16 @@ void Remap::computeUremap1() noexcept {
         int matcell(0);
         int imatpure(-1);
         for (int imat = 0; imat < nbmat; imat++)
-          if (Phi(cCells)[imat] > 0.) {
+          if (varlp->Phi(cCells)[imat] > 0.) {
             matcell++;
             imatpure = imat;
           }
         if (matcell > 1) {
-          mixte(cCells) = 1;
-          pure(cCells) = -1;
+          varlp->mixte(cCells) = 1;
+          varlp->pure(cCells) = -1;
         } else {
-          mixte(cCells) = 0;
-          pure(cCells) = imatpure;
+          varlp->mixte(cCells) = 0;
+          varlp->pure(cCells) = imatpure;
         }
       });
 }

@@ -636,11 +636,11 @@ void EucclhydRemap::initDensity() noexcept {
                            }
 
                          if (matcell > 1) {
-                           mixte(cCells) = 1;
-                           pure(cCells) = -1;
+                           varlp->mixte(cCells) = 1;
+                           varlp->pure(cCells) = -1;
                          } else {
-                           mixte(cCells) = 0;
-                           pure(cCells) = imatpure;
+                           varlp->mixte(cCells) = 0;
+                           varlp->pure(cCells) = imatpure;
                          }
                        });
 }
@@ -663,8 +663,8 @@ void EucclhydRemap::initMeshGeometryForFaces() noexcept {
         int n2Nodes(n2Id);
         RealArray1D<dim> X_face = (0.5 * ((X(n1Nodes) + X(n2Nodes))));
         RealArray1D<dim> face_vec = (X(n2Nodes) - X(n1Nodes));
-        Xf(fFaces) = X_face;
-        faceLength(fFaces) = MathFunctions::norm(face_vec);
+        varlp->Xf(fFaces) = X_face;
+        varlp->faceLength(fFaces) = MathFunctions::norm(face_vec);
         {
           auto cellsOfFaceF(mesh->getCellsOfFace(fId));
           for (int cCellsOfFaceF = 0; cCellsOfFaceF < cellsOfFaceF.size();
@@ -672,7 +672,7 @@ void EucclhydRemap::initMeshGeometryForFaces() noexcept {
             int cId(cellsOfFaceF[cCellsOfFaceF]);
             int cCells(cId);
             int fFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), fId));
-            outerFaceNormal(cCells, fFacesOfCellC) = (
+            varlp->outerFaceNormal(cCells, fFacesOfCellC) = (
                 ((X_face - Xc(cCells))) / MathFunctions::norm((X_face - Xc(cCells))));
           }
         }
@@ -682,8 +682,9 @@ void EucclhydRemap::initMeshGeometryForFaces() noexcept {
           face_normal = ex;
         else
           face_normal = ey;
-        faceNormal(fFaces) = face_normal;
-	//std::cout << " fFaces   " << fFaces << " facen " << faceNormal(fFaces) << std::endl;
+        varlp->faceNormal(fFaces) = face_normal;
+	//std::cout << nbFaces << " "
+	//	  <<  varlp->faceNormal(fFaces) << std::endl;
       });
 }
 

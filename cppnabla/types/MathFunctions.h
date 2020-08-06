@@ -60,8 +60,8 @@ namespace MathFunctions
 
 	template<size_t N>
 	double norm(const RealArray1D<N>& a) noexcept
-	{
-		return sqrt(dot(a,a));
+	{ 
+	  return sqrt(dot(a,a));
 	}
 }
 }

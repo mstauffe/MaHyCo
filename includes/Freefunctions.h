@@ -1,3 +1,6 @@
+#ifndef FREEFUNCTIONS_H_
+#define FREEFUNCTIONS_H_
+
 /******************** Free functions definitions ********************/
 
 template<size_t x>
@@ -80,3 +83,12 @@ double minR0(double a, double b)
 	return std::min(a, b);
 }
 
+KOKKOS_INLINE_FUNCTION
+double divideNoExcept(double a, double b) {
+  if (std::fabs(b) < 1.0E-12)
+    return 0.0;
+  else
+    return a / b;
+}
+
+#endif /* FREEFUNCTIONS_H_ */

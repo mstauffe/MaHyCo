@@ -16,20 +16,63 @@
 #include "types/Types.h"  // for RealArray1D, RealArray2D
 #include "utils/Timer.h"  // for Timer
 
+using namespace nablalib;
+
 namespace variableslagremaplib {
 
 class VariablesLagRemap {
- public:
-  Kokkos::View<double*> deltaxLagrange;
+
  private:
   CartesianMesh2D* mesh;
-  int nbCells, nbFaces;
-  VariablesLagRemap(
-		    CartesianMesh2D* aCartesianMesh2D):
+  int nbNodes, nbCells, nbFaces, nbFacesOfCell;
+  
+ public: 
+  Kokkos::View<RealArray1D<nbequamax>*> Phi;
+  Kokkos::View<double*> deltaxLagrange;
+  Kokkos::View<RealArray1D<dim>*> XLagrange;
+  Kokkos::View<RealArray1D<dim>*> XfLagrange;
+  Kokkos::View<RealArray1D<dim>*> XcLagrange;
+  Kokkos::View<RealArray1D<dim>*> Xf;
+  Kokkos::View<RealArray1D<dim>*> faceNormal;
+  Kokkos::View<RealArray1D<dim>**> outerFaceNormal;
+  Kokkos::View<double*> faceLength; 
+  Kokkos::View<double*> faceLengthLagrange;
+  Kokkos::View<double*> faceNormalVelocity;
+  Kokkos::View<RealArray1D<nbequamax>*> ULagrange;
+  Kokkos::View<RealArray1D<nbequamax>*> Uremap2;
+  Kokkos::View<double*> vLagrange;
+  Kokkos::View<int*> mixte;
+  Kokkos::View<int*> pure;
+  bool x_then_y_n, x_then_y_nplus1;
+  
+  VariablesLagRemap(CartesianMesh2D* aCartesianMesh2D):
     mesh(aCartesianMesh2D),   
+    nbNodes(mesh->getNbNodes()),
     nbCells(mesh->getNbCells()),
     nbFaces(mesh->getNbFaces()),
-      deltaxLagrange("deltaxLagrange", nbFaces){}
-      };
+    nbFacesOfCell(CartesianMesh2D::MaxNbFacesOfCell),
+    Phi("Phi", nbCells),
+    deltaxLagrange("deltaxLagrange", nbFaces),
+    XLagrange("XLagrange", nbNodes),
+    XfLagrange("XfLagrange", nbFaces),
+    XcLagrange("XcLagrange", nbCells),
+    Xf("Xf", nbFaces),
+    faceNormal("faceNormal", nbFaces),
+    outerFaceNormal("outerFaceNormal", nbCells, nbFacesOfCell),
+    faceLength("faceLength", nbFaces),
+    faceLengthLagrange("faceLengthLagrange", nbFaces),
+    faceNormalVelocity("faceNormalVelocity", nbFaces),
+    ULagrange("ULagrange", nbCells),
+    Uremap2("Uremap2", nbCells),
+    vLagrange("vLagrange", nbCells),
+    mixte("mixte", nbCells),
+    pure("pure", nbCells),
+    x_then_y_n(true),
+    x_then_y_nplus1(true)
+    {
+      std::cout << "Nombre de mailles:  " <<  nbCells
+		<< "Nombre de noeuds: " << nbNodes
+		<< "Nombre de faces:  " << nbFaces << std::endl;}
+    };
 } // namespace variableslagremaplib
 #endif  // VARIABLESLAGREMAP_H
