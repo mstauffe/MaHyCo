@@ -4,7 +4,8 @@
 #include <string>  // for string
 #include <unordered_map>  // for unordered_map
 
-#include "../eucclhyd_remap/EucclhydRemap.h"  // for EucclhydRemap::Options
+
+#include "../eucclhyd_remap/Eucclhyd.h"  // for Eucclhyd and all
 #include "../includes/SchemaLagrange.h"
 
 class LectureDonneesClass {
