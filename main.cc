@@ -2,8 +2,8 @@
 #include <cstdlib>          // for atof, atoi, exit
 #include <iostream>         // for operator<<, endl, basic_o...
 #include <string>           // for string
-#include "EucclhydRemap.h"  // for EucclhydRemap
-#include "VnrRemap.h"
+#include "Eucclhyd.h"  // for EucclhydRemap
+#include "Vnr.h"
 #include "lecture_donnees/LectureDonnees.h"  // for LectureDonnees
 #include "mesh/CartesianMesh2D.h"            // for CartesianMesh2D
 #include "mesh/CartesianMesh2DGenerator.h"   // for CartesianMesh2DGenerator
@@ -44,13 +44,13 @@ int main(int argc, char* argv[]) {
     auto varlp = new variableslagremaplib::VariablesLagRemap(nm);
     auto proj =  new Remap(o, cstmesh, gt, cl, lim, nm, varlp);
     auto c =
-      new EucclhydRemap(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, output);
+      new Eucclhyd(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, output);
     c->simulate();
     delete varlp;
     //delete c;
   
   } else if (scheme->schema == scheme->VNR) {
-    auto c = new VnrRemap(o, cstmesh, gt, test, cl, lim, part, eos, nm, output);
+    auto c = new Vnr(o, cstmesh, gt, test, cl, lim, part, eos, nm, output);
     c->simulate();
     delete c;
   }

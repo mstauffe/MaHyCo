@@ -1,5 +1,5 @@
 #include <Kokkos_Core.hpp>
-#include "VnrRemap.h"               // for VnrRemap
+#include "Vnr.h"               // for VnrRemap
 #include "../includes/Freefunctions.h"
 #include "mesh/CartesianMesh2D.h"   // for CartesianMesh2D
 #include "utils/Utils.h"  // for Indexof
@@ -9,7 +9,7 @@
  * In variables: C, Q_nplus1, deltat_n, deltat_nplus1, m, p_n, u_n
  * Out variables: u_nplus1
  */
-void VnrRemap::updateVelocityBoundaryConditions() noexcept
+void Vnr::updateVelocityBoundaryConditions() noexcept
 {
   const double dt(0.5 * (gt->deltat_nplus1 + gt->deltat_n));
   if (cdl->bottomBC == cdl->symmetry)

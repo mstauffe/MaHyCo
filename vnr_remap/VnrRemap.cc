@@ -1,4 +1,4 @@
-#include "VnrRemap.h"
+#include "Vnr.h"
 
 using namespace nablalib;
 
@@ -12,7 +12,7 @@ using namespace nablalib;
  * In variables: SubVol_n, c_n, deltat_n
  * Out variables: deltat_nplus1
  */
-void VnrRemap::computeDeltaT() noexcept
+void Vnr::computeDeltaT() noexcept
 {
 	double reduction0;
 	Kokkos::parallel_reduce(nbCells, KOKKOS_LAMBDA(const size_t& cCells, double& accu)
@@ -40,7 +40,7 @@ void VnrRemap::computeDeltaT() noexcept
  * In variables: deltat_nplus1, t_n
  * Out variables: t_nplus1
  */
-void VnrRemap::computeTime() noexcept
+void Vnr::computeTime() noexcept
 {
 	gt->t_nplus1 = gt->t_n + gt->deltat_nplus1;
 }
@@ -53,7 +53,7 @@ void VnrRemap::computeTime() noexcept
  * In variables: SubVol_n0, X_n0, c_n0, cellPos_n0, deltat_init, divU_n0, e_n0, p_n0, rho_n0, tau_n0, u_n0
  * Out variables: SubVol_n, X_n, c_n, cellPos_n, deltat_n, divU_n, e_n, p_n, rho_n, tau_n, u_n
  */
-void VnrRemap::setUpTimeLoopN() noexcept
+void Vnr::setUpTimeLoopN() noexcept
 {
 	gt->deltat_n = gt->deltat_init;
 	deep_copy(X_n, X_n0);
@@ -74,7 +74,7 @@ void VnrRemap::setUpTimeLoopN() noexcept
  * In variables: C, Q_nplus1, SubVol_n, SubVol_nplus1, X_n, X_nplus1, c_n, cellMass, cellPos_nplus1, deltat_n, deltat_nplus1, divU_n, e_n, e_nplus1, gamma, m, p_n, rho_n, rho_nplus1, t_n, tau_n, tau_nplus1, u_n, u_nplus1
  * Out variables: C, Q_nplus1, SubVol_nplus1, V, X_nplus1, c_nplus1, deltat_nplus1, divU_nplus1, e_nplus1, p_nplus1, rho_nplus1, t_nplus1, tau_nplus1, u_nplus1
  */
-void VnrRemap::executeTimeLoopN() noexcept
+void Vnr::executeTimeLoopN() noexcept
 {
 	n = 0;
 	bool continueLoop = true;
@@ -148,7 +148,7 @@ void VnrRemap::executeTimeLoopN() noexcept
 	dumpVariables();
 }
 
-void VnrRemap::dumpVariables() noexcept {
+void Vnr::dumpVariables() noexcept {
   nbCalls++;
   if (!writer.isDisabled() &&
       (gt->t_n >= lastDump + gt->output_time || gt->t_n == 0.)) {
@@ -169,9 +169,9 @@ void VnrRemap::dumpVariables() noexcept {
   }
 }
 
-void VnrRemap::simulate()
+void Vnr::simulate()
 {
-	std::cout << "\n" << __BLUE_BKG__ << __YELLOW__ << __BOLD__ <<"\tStarting VnrRemap ..." << __RESET__ << "\n\n";
+	std::cout << "\n" << __BLUE_BKG__ << __YELLOW__ << __BOLD__ <<"\tStarting Vnr ..." << __RESET__ << "\n\n";
 	
 	std::cout << "[" << __GREEN__ << "MESH" << __RESET__ << "]      X=" << __BOLD__ << cstmesh->X_EDGE_ELEMS << __RESET__ << ", Y=" << __BOLD__ << cstmesh->Y_EDGE_ELEMS
 		<< __RESET__ << ", X length=" << __BOLD__ << cstmesh->X_EDGE_LENGTH << __RESET__ << ", Y length=" << __BOLD__ << cstmesh->Y_EDGE_LENGTH << __RESET__ << std::endl;

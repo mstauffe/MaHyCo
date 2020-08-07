@@ -4,7 +4,7 @@
 #include <iostream>   // for operator<<, basic_ostream::operat...
 #include <vector>     // for allocator, vector
 
-#include "EucclhydRemap.h"          // for EucclhydRemap, EucclhydRemap::Opt...
+#include "Eucclhyd.h"          // for Eucclhyd, Eucclhyd::Opt...
 #include "../remap/UtilesRemap-Impl.h"  // for Remap::computeRemapFlux
 #include "mesh/CartesianMesh2D.h"   // for CartesianMesh2D
 #include "types/MathFunctions.h"    // for dot, matVectProduct, norm
@@ -16,7 +16,7 @@
  * In variables: G, Mnode, bottomBC, bottomBCValue, leftBC, leftBCValue,
  * rightBC, rightBCValue, topBC, topBCValue Out variables: Vnode_nplus1
  */
-void EucclhydRemap::computeBoundaryNodeVelocities() noexcept {
+void Eucclhyd::computeBoundaryNodeVelocities() noexcept {
   auto leftNodes(mesh->getLeftNodes());
   int nbLeftNodes(mesh->getNbLeftNodes());
   Kokkos::parallel_for("computeBoundaryNodeVelocities", nbLeftNodes,
@@ -103,7 +103,7 @@ void EucclhydRemap::computeBoundaryNodeVelocities() noexcept {
       });
 }
 KOKKOS_INLINE_FUNCTION
-RealArray1D<dim> EucclhydRemap::nodeVelocityBoundaryCondition(
+RealArray1D<dim> Eucclhyd::nodeVelocityBoundaryCondition(
     int BC, RealArray1D<dim> BCValue, RealArray2D<dim, dim> Mp,
     RealArray1D<dim> Gp) {
   if (BC == 200)
@@ -119,7 +119,7 @@ RealArray1D<dim> EucclhydRemap::nodeVelocityBoundaryCondition(
 }
 
 KOKKOS_INLINE_FUNCTION
-RealArray1D<dim> EucclhydRemap::nodeVelocityBoundaryConditionCorner(
+RealArray1D<dim> Eucclhyd::nodeVelocityBoundaryConditionCorner(
     int BC1, RealArray1D<dim> BCValue1, int BC2, RealArray1D<dim> BCValue2,
     RealArray2D<dim, dim> Mp, RealArray1D<dim> Gp) {
   if (BC1 == 200 && BC2 == 200) {

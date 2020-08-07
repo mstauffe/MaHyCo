@@ -5,7 +5,7 @@
 #include <iostream>         // for operator<<, basic_ostream, endl
 #include <memory>           // for allocator
 
-#include "EucclhydRemap.h"        // for EucclhydRemap, EucclhydRemap::...
+#include "Eucclhyd.h"        // for Eucclhyd, Eucclhyd::...
 #include "types/MathFunctions.h"  // for max, min
 #include "types/MultiArray.h"     // for operator<<
 
@@ -14,7 +14,7 @@
  * In variables: Uremap2, v, x_then_y_n
  * Out variables: V_nplus1, eps_nplus1, rho_nplus1, x_then_y_nplus1
  */
-void EucclhydRemap::remapCellcenteredVariable() noexcept {
+void Eucclhyd::remapCellcenteredVariable() noexcept {
   ETOTALE_T = 0.;
   varlp->x_then_y_nplus1 = !(varlp->x_then_y_n);
   int nbmat = options->nbmat;

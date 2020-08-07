@@ -1,4 +1,4 @@
-#include "EucclhydRemap.h"
+#include "Eucclhyd.h"
 #include "../remap/Remap.h"
 
 #include <stdlib.h>  // for exit
@@ -21,7 +21,7 @@ using namespace nablalib;
  * Out variables:
  */
 KOKKOS_INLINE_FUNCTION
-void EucclhydRemap::dumpVariables() noexcept {
+void Eucclhyd::dumpVariables() noexcept {
   // std::cout << " Deltat = " << deltat_n << std::endl;
   // std::cout << " ---------------------------"
   //           << " Energie totale(t=0) = " << ETOTALE_0
@@ -80,7 +80,7 @@ void EucclhydRemap::dumpVariables() noexcept {
  * phiFace2, rho_nplus1, t_nplus1, vLagrange, x_then_y_nplus1
  */
 KOKKOS_INLINE_FUNCTION
-void EucclhydRemap::executeTimeLoopN() noexcept {
+void Eucclhyd::executeTimeLoopN() noexcept {
   n = 0;
   bool continueLoop = true;
   do {
@@ -203,7 +203,7 @@ void EucclhydRemap::executeTimeLoopN() noexcept {
  * Out variables: deltat_nplus1
  */
 KOKKOS_INLINE_FUNCTION
-void EucclhydRemap::computedeltat() noexcept {
+void Eucclhyd::computedeltat() noexcept {
   double reduction10(numeric_limits<double>::max());
   {
     Kokkos::Min<double> reducer(reduction10);
@@ -229,14 +229,14 @@ void EucclhydRemap::computedeltat() noexcept {
  * Out variables: t_nplus1
  */
 KOKKOS_INLINE_FUNCTION
-void EucclhydRemap::updateTime() noexcept {
+void Eucclhyd::updateTime() noexcept {
   gt->t_nplus1 = gt->t_n + gt->deltat_nplus1;
 }
 
-void EucclhydRemap::simulate() {
+void Eucclhyd::simulate() {
   std::cout << "\n"
             << __BLUE_BKG__ << __YELLOW__ << __BOLD__
-            << "\tStarting EucclhydRemap ..." << __RESET__ << "\n\n";
+            << "\tStarting Eucclhyd ..." << __RESET__ << "\n\n";
 
   std::cout << "[" << __GREEN__ << "MESH" << __RESET__
             << "]      X=" << __BOLD__ << cstmesh->X_EDGE_ELEMS << __RESET__

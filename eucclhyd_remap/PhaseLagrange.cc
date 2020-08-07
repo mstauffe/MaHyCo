@@ -7,8 +7,8 @@
 #include <limits>           // for numeric_limits
 #include <vector>           // for vector, allocator
 
-#include "EucclhydRemap.h"          // for EucclhydRemap, EucclhydRemap::...
-#include "Utiles-Impl.h"            // for EucclhydRemap::tensProduct
+#include "Eucclhyd.h"          // for Eucclhyd, Eucclhyd::...
+#include "Utiles-Impl.h"            // for Eucclhyd::tensProduct
 #include "mesh/CartesianMesh2D.h"   // for CartesianMesh2D
 #include "types/MathFunctions.h"    // for max, min, dot, matVectProduct
 #include "types/MultiArray.h"       // for operator<<
@@ -24,7 +24,7 @@ using namespace variableslagremaplib;
  * In variables: X
  * Out variables: lminus, lpc_n, lplus, nminus, nplus
  */
-void EucclhydRemap::computeCornerNormal() noexcept {
+void Eucclhyd::computeCornerNormal() noexcept {
   Kokkos::parallel_for(
       "computeCornerNormal", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         size_t cId(cCells);
@@ -66,7 +66,7 @@ void EucclhydRemap::computeCornerNormal() noexcept {
 /**
  * Job computeEOS called in executeTimeLoopN method.
  */
-void EucclhydRemap::computeEOS() {
+void Eucclhyd::computeEOS() {
   for (int imat = 0; imat < options->nbmat; ++imat) {
     if (eos->Nom[imat] == eos->PerfectGas) computeEOSGP(imat);
     if (eos->Nom[imat] == eos->Void) computeEOSVoid(imat);
@@ -80,7 +80,7 @@ void EucclhydRemap::computeEOS() {
  * In variables: eos, eosPerfectGas, eps_n, gammap, rho_n
  * Out variables: c, p
  */
-void EucclhydRemap::computeEOSGP(int imat) {
+void Eucclhyd::computeEOSGP(int imat) {
   Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
     pp(cCells)[imat] =
         (eos->gammap[imat] - 1.0) * rhop_n(cCells)[imat] * epsp_n(cCells)[imat];
@@ -96,7 +96,7 @@ void EucclhydRemap::computeEOSGP(int imat) {
  * In variables: eos, eosPerfectGas, eps_n, gammap, rho_n
  * Out variables: c, p
  */
-void EucclhydRemap::computeEOSVoid(int imat) {
+void Eucclhyd::computeEOSVoid(int imat) {
   Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
     pp(cCells)[imat] = 0.;
     vitsonp(cCells)[imat] = 1.e-20;
@@ -107,7 +107,7 @@ void EucclhydRemap::computeEOSVoid(int imat) {
  * In variables: eps_n, rho_n
  * Out variables: c, p
  */
-void EucclhydRemap::computeEOSSTIFG(int imat) {
+void Eucclhyd::computeEOSSTIFG(int imat) {
   Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
     std::cout << " Pas encore programmée" << std::endl;
   });
@@ -117,7 +117,7 @@ void EucclhydRemap::computeEOSSTIFG(int imat) {
  * In variables: eps_n, rho_n
  * Out variables: c, p
  */
-void EucclhydRemap::computeEOSMur(int imat) {
+void Eucclhyd::computeEOSMur(int imat) {
   Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
     std::cout << " Pas encore programmée" << std::endl;
   });
@@ -127,7 +127,7 @@ void EucclhydRemap::computeEOSMur(int imat) {
  * In variables: eps_n, rho_n
  * Out variables: c, p
  */
-void EucclhydRemap::computeEOSSL(int imat) {
+void Eucclhyd::computeEOSSL(int imat) {
   Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
     std::cout << " Pas encore programmée" << std::endl;
   });
@@ -135,7 +135,7 @@ void EucclhydRemap::computeEOSSL(int imat) {
 /**
  * Job computeEOS called in executeTimeLoopN method.
  */
-void EucclhydRemap::computePressionMoyenne() noexcept {
+void Eucclhyd::computePressionMoyenne() noexcept {
   for (int cCells = 0; cCells < nbCells; cCells++) {
     int nbmat = options->nbmat;
     p(cCells) = 0.;
@@ -156,7 +156,7 @@ void EucclhydRemap::computePressionMoyenne() noexcept {
  * In variables: F_n, Vnode_n, lpc_n, spaceOrder, v
  * Out variables: gradV, gradp, gradp1, gradp2, gradp3
  */
-void EucclhydRemap::computeGradients() noexcept {
+void Eucclhyd::computeGradients() noexcept {
   Kokkos::parallel_for(
       "computeDissipationMatrix", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
         int pId(pNodes);
@@ -248,7 +248,7 @@ void EucclhydRemap::computeGradients() noexcept {
  * In variables: rho_n, v
  * Out variables: m
  */
-void EucclhydRemap::computeMass() noexcept {
+void Eucclhyd::computeMass() noexcept {
   int nbmat = options->nbmat;
   Kokkos::parallel_for(
       "computeMass", nbCells, KOKKOS_LAMBDA(const int& cCells) {
@@ -263,7 +263,7 @@ void EucclhydRemap::computeMass() noexcept {
  * In variables: c, lminus, lplus, nminus, nplus, rho_n
  * Out variables: M
  */
-void EucclhydRemap::computeDissipationMatrix() noexcept {
+void Eucclhyd::computeDissipationMatrix() noexcept {
   Kokkos::parallel_for(
       "computeDissipationMatrix", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
         int pId(pNodes);
@@ -296,7 +296,7 @@ void EucclhydRemap::computeDissipationMatrix() noexcept {
  * In variables: V_n, c, perim, v
  * Out variables: deltatc
  */
-void EucclhydRemap::computedeltatc() noexcept {
+void Eucclhyd::computedeltatc() noexcept {
   Kokkos::parallel_for(
       "computedeltatc", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         if (options->AvecProjection == 1) {
@@ -315,7 +315,7 @@ void EucclhydRemap::computedeltatc() noexcept {
  * In variables: V_n, X, Xc, gradV, gradp, p, spaceOrder
  * Out variables: V_extrap, p_extrap, pp_extrap
  */
-void EucclhydRemap::extrapolateValue() noexcept {
+void Eucclhyd::extrapolateValue() noexcept {
   if (options->spaceOrder == 1) {
     Kokkos::parallel_for(
         "extrapolateValue", nbCells, KOKKOS_LAMBDA(const int& cCells) {
@@ -475,7 +475,7 @@ void EucclhydRemap::extrapolateValue() noexcept {
  * In variables: M, V_extrap, lpc_n, p_extrap
  * Out variables: G
  */
-void EucclhydRemap::computeG() noexcept {
+void Eucclhyd::computeG() noexcept {
   Kokkos::parallel_for("computeG", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
     size_t pId(pNodes);
     RealArray1D<dim> reduction1 = zeroVect;
@@ -503,7 +503,7 @@ void EucclhydRemap::computeG() noexcept {
  * In variables: M
  * Out variables: Mnode
  */
-void EucclhydRemap::computeNodeDissipationMatrixAndG() noexcept {
+void Eucclhyd::computeNodeDissipationMatrixAndG() noexcept {
   Kokkos::parallel_for(
       "computeNodeDissipationMatrixAndG", nbNodes,
       KOKKOS_LAMBDA(const int& pNodes) {
@@ -524,7 +524,7 @@ void EucclhydRemap::computeNodeDissipationMatrixAndG() noexcept {
  * In variables: G, Mnode
  * Out variables: Vnode_nplus1
  */
-void EucclhydRemap::computeNodeVelocity() noexcept {
+void Eucclhyd::computeNodeVelocity() noexcept {
   auto innerNodes(mesh->getInnerNodes());
   int nbInnerNodes(mesh->getNbInnerNodes());
   Kokkos::parallel_for("computeNodeVelocity", nbInnerNodes,
@@ -540,7 +540,7 @@ void EucclhydRemap::computeNodeVelocity() noexcept {
  * In variables: Vnode_nplus1, faceNormal
  * Out variables: faceNormalVelocity
  */
-void EucclhydRemap::computeFaceVelocity() noexcept {
+void Eucclhyd::computeFaceVelocity() noexcept {
   auto faces(mesh->getFaces());
   Kokkos::parallel_for(
       "computeFaceVelocity", nbFaces, KOKKOS_LAMBDA(const int& fFaces) {
@@ -564,7 +564,7 @@ void EucclhydRemap::computeFaceVelocity() noexcept {
  * In variables: Vnode_nplus1, X, deltat_n
  * Out variables: XLagrange
  */
-void EucclhydRemap::computeLagrangePosition() noexcept {
+void Eucclhyd::computeLagrangePosition() noexcept {
   Kokkos::parallel_for(
       "computeLagrangePosition", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
         varlp->XLagrange(pNodes) = 
@@ -613,7 +613,7 @@ void EucclhydRemap::computeLagrangePosition() noexcept {
  * In variables: M, V_extrap, Vnode_nplus1, lpc_n, p_extrap
  * Out variables: F_nplus1
  */
-void EucclhydRemap::computeSubCellForce() noexcept {
+void Eucclhyd::computeSubCellForce() noexcept {
   Kokkos::parallel_for(
       "computeSubCellForce", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
         size_t pId(pNodes);
@@ -658,7 +658,7 @@ void EucclhydRemap::computeSubCellForce() noexcept {
  * Job computeLagrangeVolumeAndCenterOfGravity called @6.0 in executeTimeLoopN
  * method. In variables: XLagrange Out variables: XcLagrange, vLagrange
  */
-void EucclhydRemap::computeLagrangeVolumeAndCenterOfGravity() noexcept {
+void Eucclhyd::computeLagrangeVolumeAndCenterOfGravity() noexcept {
   Kokkos::parallel_for(
       "computeLagrangeVolumeAndCenterOfGravity", nbCells,
       KOKKOS_LAMBDA(const int& cCells) {
@@ -707,7 +707,7 @@ void EucclhydRemap::computeLagrangeVolumeAndCenterOfGravity() noexcept {
  * In variables: XcLagrange, faceNormal
  * Out variables: deltaxLagrange
  */
-void EucclhydRemap::computeFacedeltaxLagrange() noexcept {
+void Eucclhyd::computeFacedeltaxLagrange() noexcept {
   auto faces(mesh->getInnerFaces());
   int nbInnerFaces(mesh->getNbInnerFaces());
   //auto faces(mesh->getFaces());
@@ -730,7 +730,7 @@ void EucclhydRemap::computeFacedeltaxLagrange() noexcept {
  * method. In variables: F_nplus1, V_n, Vnode_nplus1, deltat_n, eps_n, lpc_n, m,
  * rho_n, vLagrange Out variables: ULagrange
  */
-void EucclhydRemap::updateCellCenteredLagrangeVariables() noexcept {
+void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
   Kokkos::parallel_for(
       "updateCellCenteredLagrangeVariables", nbCells,
       KOKKOS_LAMBDA(const int& cCells) {

@@ -3,7 +3,7 @@
 #define UTILES_IMPL_H
 
 template <size_t N, size_t K>
-RealArray2D<N, K> EucclhydRemap::tensProduct(RealArray1D<N> a,
+RealArray2D<N, K> Eucclhyd::tensProduct(RealArray1D<N> a,
                                              RealArray1D<K> b) {
   RealArray2D<N, K> res;
   for (size_t i = 0; i < N; i++)

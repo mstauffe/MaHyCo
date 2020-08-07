@@ -6,13 +6,13 @@
 #include <iostream>         // for operator<<, basic_ostream::ope...
 #include <vector>           // for allocator, vector
 
-#include "EucclhydRemap.h"          // for EucclhydRemap, EucclhydRemap::...
+#include "Eucclhyd.h"          // for Eucclhyd, Eucclhyd::...
 #include "mesh/CartesianMesh2D.h"   // for CartesianMesh2D
 #include "types/MathFunctions.h"    // for max, norm, dot
 #include "types/MultiArray.h"       // for operator<<
 #include "utils/Utils.h"            // for indexOf
 
-void EucclhydRemap::initBoundaryConditions() noexcept {
+void Eucclhyd::initBoundaryConditions() noexcept {
   if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY ||
       test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
     // maillage 200 5 0.005 0.02
@@ -103,7 +103,7 @@ void EucclhydRemap::initBoundaryConditions() noexcept {
  * In variables: X
  * Out variables: Xc, Xc_x, Xc_y, perim, v
  */
-void EucclhydRemap::initMeshGeometryForCells() noexcept {
+void Eucclhyd::initMeshGeometryForCells() noexcept {
   Kokkos::parallel_for(
       "initMeshGeometryForCells", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         int cId(cCells);
@@ -164,7 +164,7 @@ void EucclhydRemap::initMeshGeometryForCells() noexcept {
  * In variables: zeroVect
  * Out variables: F_n0, Vnode_n0
  */
-void EucclhydRemap::initVpAndFpc() noexcept {
+void Eucclhyd::initVpAndFpc() noexcept {
   Kokkos::parallel_for(
       "initVpAndFpc", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
         int pId(pNodes);
@@ -185,7 +185,7 @@ void EucclhydRemap::initVpAndFpc() noexcept {
  * X_EDGE_LENGTH, Xc, Y_EDGE_LENGTH, testCase, threshold Out
  * variables: eps_n0
  */
-void EucclhydRemap::initCellInternalEnergy() noexcept {
+void Eucclhyd::initCellInternalEnergy() noexcept {
   Kokkos::parallel_for("initCellInternalEnergy", nbCells,
                        KOKKOS_LAMBDA(const int& cCells) {
                          for (int imat = 0; imat < nbmatmax; imat++) {
@@ -372,7 +372,7 @@ void EucclhydRemap::initCellInternalEnergy() noexcept {
  * In variables: NohTestCase, SedovTestCase, SodCase, Xc, testCase
  * Out variables: V_n0
  */
-void EucclhydRemap::initCellVelocity() noexcept {
+void Eucclhyd::initCellVelocity() noexcept {
   Kokkos::parallel_for(
       "initCellVelocity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         if (test->Nom == test->NohTestCase ||
@@ -410,7 +410,7 @@ void EucclhydRemap::initCellVelocity() noexcept {
  * In variables: SodCase, Xc, testCase
  * Out variables: rho_n0, fracvol, fracmass
  */
-void EucclhydRemap::initDensity() noexcept {
+void Eucclhyd::initDensity() noexcept {
   Kokkos::parallel_for("initDensity", nbCells,
                        KOKKOS_LAMBDA(const int& cCells) {
                          for (int imat = 0; imat < nbmatmax; imat++) {
@@ -650,7 +650,7 @@ void EucclhydRemap::initDensity() noexcept {
  * In variables: X, Xc, ex, ey, threshold
  * Out variables: Xf, faceLength, faceNormal, outerFaceNormal
  */
-void EucclhydRemap::initMeshGeometryForFaces() noexcept {
+void Eucclhyd::initMeshGeometryForFaces() noexcept {
   auto faces(mesh->getFaces());
   Kokkos::parallel_for(
       "initMeshGeometryForFaces", nbFaces, KOKKOS_LAMBDA(const int& fFaces) {
@@ -688,7 +688,7 @@ void EucclhydRemap::initMeshGeometryForFaces() noexcept {
       });
 }
 
-void EucclhydRemap::initPart() noexcept {
+void Eucclhyd::initPart() noexcept {
   Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
     Vpart_n0(ipart) = zeroVect;
 
@@ -753,7 +753,7 @@ void EucclhydRemap::initPart() noexcept {
  * In variables: F_n0, V_n0, Vnode_n0, eps_n0, rho_n0
  * Out variables: F_n, V_n, Vnode_n, eps_n, rho_n
  */
-void EucclhydRemap::setUpTimeLoopN() noexcept {
+void Eucclhyd::setUpTimeLoopN() noexcept {
   deep_copy(Vnode_n, Vnode_n0);
   deep_copy(rho_n, rho_n0);
   deep_copy(rhop_n, rhop_n0);

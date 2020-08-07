@@ -7,11 +7,11 @@
 #include <iostream>   // for operator<<, basic_ostream, basic_...
 #include <vector>     // for allocator, vector
 
-#include "EucclhydRemap.h"  // for EucclhydRemap, EucclhydRemap::Opt...
+#include "Eucclhyd.h"  // for Eucclhyd, Eucclhyd::Opt...
 #include "../includes/SchemaParticules.h"  // for SchemaParticules, SchemaParticules::Particules
 #include "types/MathFunctions.h"    // for max
 
-void EucclhydRemap::updateParticlePosition() noexcept {
+void Eucclhyd::updateParticlePosition() noexcept {
   Kokkos::parallel_for(
       "updateParticleCoefficient", mesh->getNbCells(),
       KOKKOS_LAMBDA(const int& cCells) { listpart(cCells).clear(); });
@@ -73,7 +73,7 @@ void EucclhydRemap::updateParticlePosition() noexcept {
   });
 }
 
-void EucclhydRemap::updateParticleCoefficients() noexcept {
+void Eucclhyd::updateParticleCoefficients() noexcept {
   Kokkos::parallel_for(
       "updateParticleCoefficient", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         fracpart(cCells) = 1.;
@@ -132,7 +132,7 @@ void EucclhydRemap::updateParticleCoefficients() noexcept {
       });
 }
 
-void EucclhydRemap::updateParticleVelocity() noexcept {
+void Eucclhyd::updateParticleVelocity() noexcept {
   Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
     int icells = ICellp(ipart);
     Vpart_nplus1(ipart) = 
@@ -165,7 +165,7 @@ void EucclhydRemap::updateParticleVelocity() noexcept {
   });
 }
 
-void EucclhydRemap::updateParticleRetroaction() noexcept {
+void Eucclhyd::updateParticleRetroaction() noexcept {
   Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
     int icells = ICellp(ipart);
     RealArray1D<dim> AccelerationP = Vpart_n(ipart) - Vpart_nplus1(ipart);
@@ -174,7 +174,7 @@ void EucclhydRemap::updateParticleRetroaction() noexcept {
   });
 }
 
-void EucclhydRemap::switchalpharho_rho() noexcept {
+void Eucclhyd::switchalpharho_rho() noexcept {
   Kokkos::parallel_for("updateParticleCoefficient", nbCells,
                        KOKKOS_LAMBDA(const int& cCells) {
                          rho_n(cCells) /= fracpart(cCells);
@@ -183,7 +183,7 @@ void EucclhydRemap::switchalpharho_rho() noexcept {
                        });
 }
 
-void EucclhydRemap::switchrho_alpharho() noexcept {
+void Eucclhyd::switchrho_alpharho() noexcept {
   Kokkos::parallel_for("updateParticleCoefficient", nbCells,
                        KOKKOS_LAMBDA(const int& cCells) {
                          rho_n(cCells) *= fracpart(cCells);

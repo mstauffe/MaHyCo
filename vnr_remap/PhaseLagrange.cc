@@ -1,4 +1,4 @@
-#include "VnrRemap.h"
+#include "Vnr.h"
 
 using namespace nablalib;
 
@@ -10,7 +10,7 @@ using namespace nablalib;
  * In variables: X_EDGE_LENGTH, Y_EDGE_LENGTH, rho_n0
  * Out variables: cellMass
  */
-void VnrRemap::computeCellMass() noexcept
+void Vnr::computeCellMass() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
@@ -23,7 +23,7 @@ void VnrRemap::computeCellMass() noexcept
  * In variables: cellMass
  * Out variables: m
  */
-void VnrRemap::computeNodeMass() noexcept
+void Vnr::computeNodeMass() noexcept
 {
 	Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes)
 	{
@@ -48,7 +48,7 @@ void VnrRemap::computeNodeMass() noexcept
  * In variables: SubVol_n, c_n, divU_n, gamma, tau_n
  * Out variables: Q_nplus1
  */
-void VnrRemap::computeArtificialViscosity() noexcept
+void Vnr::computeArtificialViscosity() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
@@ -85,7 +85,7 @@ void VnrRemap::computeArtificialViscosity() noexcept
  * In variables: X_n
  * Out variables: C
  */
-void VnrRemap::computeCornerNormal() noexcept
+void Vnr::computeCornerNormal() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
@@ -111,7 +111,7 @@ void VnrRemap::computeCornerNormal() noexcept
  * In variables: SubVol_n
  * Out variables: V
  */
-void VnrRemap::computeNodeVolume() noexcept
+void Vnr::computeNodeVolume() noexcept
 {
 	Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes)
 	{
@@ -136,7 +136,7 @@ void VnrRemap::computeNodeVolume() noexcept
  * In variables: C, Q_nplus1, deltat_n, deltat_nplus1, m, p_n, u_n
  * Out variables: u_nplus1
  */
-void VnrRemap::updateVelocity() noexcept
+void Vnr::updateVelocity() noexcept
 {
   const double dt(0.5 * (gt->deltat_nplus1 + gt->deltat_n));
   {
@@ -167,7 +167,7 @@ void VnrRemap::updateVelocity() noexcept
  * In variables: X_n, deltat_nplus1, u_nplus1
  * Out variables: X_nplus1
  */
-void VnrRemap::updatePosition() noexcept
+void Vnr::updatePosition() noexcept
 {
 	Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes)
 	{
@@ -179,7 +179,7 @@ void VnrRemap::updatePosition() noexcept
  * In variables: X_nplus1, cellPos_nplus1
  * Out variables: SubVol_nplus1
  */
-void VnrRemap::computeSubVol() noexcept
+void Vnr::computeSubVol() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
@@ -209,7 +209,7 @@ void VnrRemap::computeSubVol() noexcept
  * In variables: SubVol_nplus1, cellMass
  * Out variables: rho_nplus1
  */
-void VnrRemap::updateRho() noexcept
+void Vnr::updateRho() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
@@ -232,7 +232,7 @@ void VnrRemap::updateRho() noexcept
  * In variables: rho_n, rho_nplus1
  * Out variables: tau_nplus1
  */
-void VnrRemap::computeTau() noexcept
+void Vnr::computeTau() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
@@ -245,7 +245,7 @@ void VnrRemap::computeTau() noexcept
  * In variables: Q_nplus1, e_n, gamma, p_n, rho_n, rho_nplus1
  * Out variables: e_nplus1
  */
-void VnrRemap::updateEnergy() noexcept
+void Vnr::updateEnergy() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
@@ -269,7 +269,7 @@ void VnrRemap::updateEnergy() noexcept
  * In variables: deltat_nplus1, rho_n, rho_nplus1, tau_nplus1
  * Out variables: divU_nplus1
  */
-void VnrRemap::computeDivU() noexcept
+void Vnr::computeDivU() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
@@ -281,7 +281,7 @@ void VnrRemap::computeDivU() noexcept
  * In variables: e_nplus1, gamma, rho_nplus1
  * Out variables: c_nplus1, p_nplus1
  */
-void VnrRemap::computeEos() noexcept
+void Vnr::computeEos() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{

@@ -1,10 +1,10 @@
-#include "VnrRemap.h"
+#include "Vnr.h"
 
 using namespace nablalib;
 
 #include "../includes/Freefunctions.h"
 
-void VnrRemap::initBoundaryConditions() noexcept {
+void Vnr::initBoundaryConditions() noexcept {
   if (test->Nom == test->SodCaseX || test->Nom == test->BiSodCaseX) {
     // maillage 200 5 0.005 0.02
     cdl->leftBC = cdl->symmetry;
@@ -40,7 +40,7 @@ void VnrRemap::initBoundaryConditions() noexcept {
  * In variables: cellPos_n0, gamma
  * Out variables: c_n0, p_n0, rho_n0, u_n0
  */
-void VnrRemap::init() noexcept
+void Vnr::init() noexcept
 {
   if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY) {
     Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
@@ -75,7 +75,7 @@ void VnrRemap::init() noexcept
  * In variables: X_n0, cellPos_n0
  * Out variables: SubVol_n0
  */
-void VnrRemap::initSubVol() noexcept
+void Vnr::initSubVol() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
@@ -105,7 +105,7 @@ void VnrRemap::initSubVol() noexcept
  * In variables: SubVol_n0, c_n0
  * Out variables: deltat_init
  */
-void VnrRemap::initDeltaT() noexcept
+void Vnr::initDeltaT() noexcept
 {
 	double reduction0;
 	Kokkos::parallel_reduce(nbCells, KOKKOS_LAMBDA(const size_t& cCells, double& accu)
@@ -129,7 +129,7 @@ void VnrRemap::initDeltaT() noexcept
  * In variables: gamma, p_n0, rho_n0
  * Out variables: e_n0
  */
-void VnrRemap::initInternalEnergy() noexcept
+void Vnr::initInternalEnergy() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
@@ -142,7 +142,7 @@ void VnrRemap::initInternalEnergy() noexcept
  * In variables: rho_n0
  * Out variables: divU_n0, tau_n0
  */
-void VnrRemap::initPseudo() noexcept
+void Vnr::initPseudo() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
@@ -156,7 +156,7 @@ void VnrRemap::initPseudo() noexcept
  * In variables: X_n0
  * Out variables: cellPos_n0
  */
-void VnrRemap::initCellPos() noexcept
+void Vnr::initCellPos() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
