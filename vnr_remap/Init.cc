@@ -42,6 +42,14 @@ void VnrRemap::initBoundaryConditions() noexcept {
  */
 void VnrRemap::init() noexcept
 {
+  Kokkos::parallel_for("initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+    for (int imat = 0; imat < nbmatmax; imat++) {
+      fracvol(cCells)[imat] = 0.0;
+      fracmass(cCells)[imat] = 0.0;
+      rhop_n0(cCells)[imat] = 0.0;
+      pp_n0(cCells)[imat] = 0.0;
+    }
+  });
   if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY) {
     Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
@@ -50,15 +58,62 @@ void VnrRemap::init() noexcept
 	  if (test->Nom == test->SodCaseY) r = cellPos_n0(cCells)[1];
 	  if (r < 0.5) 
 	    {
+	      fracvol(cCells)[0] = 1.;
+	      fracmass(cCells)[0] = 1.;
 	      rho_n0(cCells) = 1.0;
 	      p_n0(cCells) = 1.0;
 	      c_n0(cCells) = std::sqrt(eos->gamma);
+	      rhop_n0(cCells)[0] = 1.0;
+	      pp_n0(cCells)[0] = 1.0;
+	      cp_n0(cCells)[0] = std::sqrt(eos->gamma);
 	    }
 	  else
 	    {
+	      fracvol(cCells)[0] = 1.;
+	      fracmass(cCells)[0] = 1.;
 	      rho_n0(cCells) = 0.1;
 	      p_n0(cCells) = 0.125;
 	      c_n0(cCells) = std::sqrt(eos->gamma * 0.125 / 0.1);
+	      rhop_n0(cCells)[0] = 0.1;
+	      pp_n0(cCells)[0] = 0.125;
+	      cp_n0(cCells)[0] = std::sqrt(eos->gamma * 0.125 / 0.1);
+	    }
+	  for (size_t pNodes=0; pNodes<nbNodes; pNodes++)
+	    {
+	      u_n0(pNodes) = {0.0, 0.0};
+	    }
+	});
+  } else if (test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
+    Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
+	{
+	  double r(0.);
+	  if (test->Nom == test->BiSodCaseX) r = cellPos_n0(cCells)[0];
+	  if (test->Nom == test->BiSodCaseY) r = cellPos_n0(cCells)[1];
+	  if (r < 0.5) 
+	    {
+	      fracvol(cCells)[0] = 1.;
+	      fracvol(cCells)[1] = 0.;
+	      fracmass(cCells)[0] = 1.;
+	      fracmass(cCells)[1] = 0.;
+	      rho_n0(cCells) = 1.0;
+	      p_n0(cCells) = 1.0;
+	      c_n0(cCells) = std::sqrt(eos->gamma);
+	      rhop_n0(cCells)[0] = 1.0;
+	      pp_n0(cCells)[0] = 1.0;
+	      cp_n0(cCells)[0] = std::sqrt(eos->gamma);
+	    }
+	  else
+	    {
+	      fracvol(cCells)[0] = 0.;
+	      fracvol(cCells)[1] = 1.;
+	      fracmass(cCells)[0] = 0.;
+	      fracmass(cCells)[1] = 1.;
+	      rho_n0(cCells) = 0.1;
+	      p_n0(cCells) = 0.125;
+	      c_n0(cCells) = std::sqrt(eos->gamma * 0.125 / 0.1);
+	      rhop_n0(cCells)[1] = 0.1;
+	      pp_n0(cCells)[1] = 0.125;
+	      cp_n0(cCells)[1] = std::sqrt(eos->gamma * 0.125 / 0.1);
 	    }
 	  for (size_t pNodes=0; pNodes<nbNodes; pNodes++)
 	    {
@@ -133,7 +188,9 @@ void VnrRemap::initInternalEnergy() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
-		e_n0(cCells) = p_n0(cCells) / ((eos->gamma - 1.0) * rho_n0(cCells));
+	  for (int imat = 0; imat < nbmatmax; imat++)
+		ep_n0(cCells)[imat] = pp_n0(cCells)[imat] / ((eos->gammap[imat] - 1.0) * rhop_n0(cCells)[imat]);
+	  e_n0(cCells) = p_n0(cCells) / ((eos->gamma - 1.0) * rho_n0(cCells));
 	});
 }
 
@@ -149,6 +206,10 @@ void VnrRemap::initPseudo() noexcept
 		tau_n0(cCells) = 1 / rho_n0(cCells);
 		divU_n0(cCells) = 0.0;
 		Q_n0(cCells) = 0.0;
+		for (int imat = 0; imat < nbmatmax; imat++) {
+		  taup_n0(cCells)[imat] = 1 / rhop_n0(cCells)[imat];
+		  Qp_n0(cCells)[imat] = 0.0;
+		}
 	});
 }
 /**
