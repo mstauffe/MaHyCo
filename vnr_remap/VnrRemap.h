@@ -103,33 +103,55 @@ private:
 	Kokkos::View<double*> rho_n;
 	Kokkos::View<double*> rho_nplus1;
 	Kokkos::View<double*> rho_n0;
+	Kokkos::View<RealArray1D<nbmatmax>*> rhop_n;
+	Kokkos::View<RealArray1D<nbmatmax>*> rhop_nplus1;
+	Kokkos::View<RealArray1D<nbmatmax>*> rhop_n0;
 	Kokkos::View<double*> p_n;
 	Kokkos::View<double*> p_nplus1;
 	Kokkos::View<double*> p_n0;
+	Kokkos::View<RealArray1D<nbmatmax>*> pp_n;
+	Kokkos::View<RealArray1D<nbmatmax>*> pp_nplus1;
+	Kokkos::View<RealArray1D<nbmatmax>*> pp_n0;
 	Kokkos::View<double*> Q_n0;
 	Kokkos::View<double*> Q_n;
 	Kokkos::View<double*> Q_nplus1;
+	Kokkos::View<RealArray1D<nbmatmax>*> Qp_n0;
+	Kokkos::View<RealArray1D<nbmatmax>*> Qp_n;
+	Kokkos::View<RealArray1D<nbmatmax>*> Qp_nplus1;
 	Kokkos::View<double*> tau_n;
 	Kokkos::View<double*> tau_nplus1;
 	Kokkos::View<double*> tau_n0;
+	Kokkos::View<RealArray1D<nbmatmax>*> taup_n;
+	Kokkos::View<RealArray1D<nbmatmax>*> taup_nplus1;
+	Kokkos::View<RealArray1D<nbmatmax>*> taup_n0;
 	Kokkos::View<double*> divU_n;
 	Kokkos::View<double*> divU_nplus1;
 	Kokkos::View<double*> divU_n0;
 	Kokkos::View<double*> c_n;
 	Kokkos::View<double*> c_nplus1;
 	Kokkos::View<double*> c_n0;
+	Kokkos::View<RealArray1D<nbmatmax>*> cp_n;
+	Kokkos::View<RealArray1D<nbmatmax>*> cp_nplus1;
+	Kokkos::View<RealArray1D<nbmatmax>*> cp_n0;
 	Kokkos::View<double*> e_n;
 	Kokkos::View<double*> e_nplus1;
 	Kokkos::View<double*> e_n0;
+	Kokkos::View<RealArray1D<nbmatmax>*> ep_n;
+	Kokkos::View<RealArray1D<nbmatmax>*> ep_nplus1;
+	Kokkos::View<RealArray1D<nbmatmax>*> ep_n0;
 	Kokkos::View<RealArray1D<dim>*> u_n;
 	Kokkos::View<RealArray1D<dim>*> u_nplus1;
 	Kokkos::View<RealArray1D<dim>*> u_n0;
 	Kokkos::View<double*> m;
 	Kokkos::View<double*> cellMass;
+	Kokkos::View<RealArray1D<nbmatmax>*> cellMassp;
 	Kokkos::View<RealArray1D<dim>*> cellPos_n;
 	Kokkos::View<RealArray1D<dim>*> cellPos_nplus1;
 	Kokkos::View<RealArray1D<dim>*> cellPos_n0;
 	Kokkos::View<RealArray1D<dim>**> C;
+	Kokkos::View<RealArray1D<nbmatmax>*> fracmass;
+	Kokkos::View<RealArray1D<nbmatmax>*> fracvol;
+	Kokkos::View<RealArray1D<nbmatmax>*> fracvolnode;
 	
 	utils::Timer global_timer;
 	utils::Timer cpu_timer;
@@ -175,32 +197,54 @@ private:
     rho_n("rho_n", nbCells),
     rho_nplus1("rho_nplus1", nbCells),
     rho_n0("rho_n0", nbCells),
+    rhop_n("rhop_n", nbCells),
+    rhop_nplus1("rhop_nplus1", nbCells),
+    rhop_n0("rhop_n0", nbCells),
     p_n("p_n", nbCells),
     p_nplus1("p_nplus1", nbCells),
     p_n0("p_n0", nbCells),
+    pp_n("pp_n", nbCells),
+    pp_nplus1("pp_nplus1", nbCells),
+    pp_n0("pp_n0", nbCells),
     Q_n0("Q_n", nbCells),
     Q_n("Q_n", nbCells),
     Q_nplus1("Q_nplus1", nbCells),
+    Qp_n0("Qp_n", nbCells),
+    Qp_n("Qp_n", nbCells),
+    Qp_nplus1("Qp_nplus1", nbCells),
     tau_n("tau_n", nbCells),
     tau_nplus1("tau_nplus1", nbCells),
     tau_n0("tau_n0", nbCells),
+    taup_n("taup_n", nbCells),
+    taup_nplus1("taup_nplus1", nbCells),
+    taup_n0("taup_n0", nbCells),
     divU_n("divU_n", nbCells),
     divU_nplus1("divU_nplus1", nbCells),
     divU_n0("divU_n0", nbCells),
     c_n("c_n", nbCells),
     c_nplus1("c_nplus1", nbCells),
     c_n0("c_n0", nbCells),
+    cp_n("c_n", nbCells),
+    cp_nplus1("c_nplus1", nbCells),
+    cp_n0("c_n0", nbCells),
     e_n("e_n", nbCells),
     e_nplus1("e_nplus1", nbCells),
     e_n0("e_n0", nbCells),
+    ep_n("epsp_n", nbCells),
+    ep_nplus1("epsp_nplus1", nbCells),
+    ep_n0("epsp_n0", nbCells),	  
     u_n("u_n", nbNodes),
     u_nplus1("u_nplus1", nbNodes),
     u_n0("u_n0", nbNodes),
     m("m", nbNodes),
     cellMass("cellMass", nbCells),
+    cellMassp("cellMassp", nbCells),
     cellPos_n("cellPos_n", nbCells),
     cellPos_nplus1("cellPos_nplus1", nbCells),
     cellPos_n0("cellPos_n0", nbCells),
+    fracmass("fracmass", nbCells),
+    fracvol("fracvol", nbCells),
+    fracvolnode("fracvolnode", nbNodes),
     C("C", nbCells, nbNodesOfCell) {
   // Copy node coordinates
   const auto& gNodes = mesh->getGeometry()->getNodes();
@@ -266,7 +310,13 @@ private:
 	
 	void computeDivU() noexcept;
 	
-	void computeEos() noexcept;
+	void computeEOS();
+	void computeEOSGP(int imat);
+	void computeEOSVoid(int imat);
+	void computeEOSSTIFG(int imat);
+	void computeEOSMur(int imat);
+	void computeEOSSL(int imat);
+	void computePressionMoyenne() noexcept;
 
 	void updateVelocityBoundaryConditions() noexcept;
 
