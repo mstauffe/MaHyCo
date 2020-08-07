@@ -84,7 +84,7 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
         for (int imat = 0; imat < nbmat; imat++) {
           if (fracvol(cCells)[imat] > options->threshold)
             rhop_np1[imat] = varlp->Uremap2(cCells)[nbmat + imat] / vol_np1[imat];
-          // rho_np1 += fracmass(cCells)[imat] / rhop_np1[imat];
+          // 1/rho_np1 += fracmass(cCells)[imat] / rhop_np1[imat];
           rho_np1 += fracvol(cCells)[imat] * rhop_np1[imat];
         }
 

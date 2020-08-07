@@ -3,6 +3,7 @@
 using namespace nablalib;
 
 #include "../includes/Freefunctions.h"
+#include "types/MathFunctions.h"    // for max, min, dot, matVectProduct
 #include "utils/Utils.h"  // for Indexof
 
 /**
@@ -14,7 +15,11 @@ void Vnr::computeCellMass() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
-		cellMass(cCells) = cstmesh->X_EDGE_LENGTH * cstmesh->Y_EDGE_LENGTH * rho_n0(cCells);
+	  int nbmat = options->nbmat;
+	  cellMass(cCells) = cstmesh->X_EDGE_LENGTH * cstmesh->Y_EDGE_LENGTH * rho_n0(cCells);
+	  for (int imat = 0; imat < nbmat; ++imat) {
+	    cellMassp(cCells)[imat] = fracmass(cCells)[imat] * cellMass(cCells);
+	  }
 	});
 }
 
@@ -73,10 +78,17 @@ void Vnr::computeArtificialViscosity() noexcept
 					reduction1 = sumR0(reduction1, SubVol_n(cCells,pNodesOfCellC));
 				}
 			}
-			Q_nplus1(cCells) = 1.0 / tau_nplus1(cCells) * (-0.5 * std::sqrt(reduction0) * c_n(cCells) * divU_nplus1(cCells) + (eos->gamma + 1) / 2.0 * reduction1 * divU_nplus1(cCells) * divU_nplus1(cCells));
+			Q_nplus1(cCells) = 1.0 / tau_nplus1(cCells) *
+			  (-0.5 * std::sqrt(reduction0) * c_n(cCells) * divU_nplus1(cCells)
+			   + (eos->gamma + 1) / 2.0 * reduction1 * divU_nplus1(cCells) * divU_nplus1(cCells));
 		}
 		else
 			Q_nplus1(cCells) = 0.0;
+		//
+		// pour chaque matériau
+		for (int imat = 0; imat < options->nbmat; ++imat)
+		  Qp_nplus1(cCells)[imat] = fracvol(cCells)[imat] * Q_nplus1(cCells);		  
+		
 	});
 }
 
@@ -223,7 +235,14 @@ void Vnr::updateRho() noexcept
 				reduction0 = sumR0(reduction0, SubVol_nplus1(cCells,pNodesOfCellC));
 			}
 		}
-		rho_nplus1(cCells) = cellMass(cCells) / reduction0;
+		rho_nplus1(cCells) = 0.;
+		for (int imat = 0; imat < options->nbmat; ++imat) {
+		  if (fracvol(cCells)[imat] > options->threshold) 
+		    rhop_nplus1(cCells)[imat] = cellMassp(cCells)[imat] / (fracvol(cCells)[imat] * reduction0);
+		  // ou 1/rhon_nplus1 += fracmass(cCells)[imat] / rhop_nplus1[imat];
+		  rho_nplus1(cCells) += fracvol(cCells)[imat] * rhop_nplus1(cCells)[imat];
+		  std::cout << "rho" << imat << " " << cCells << " " << rhop_nplus1(cCells)[imat] << std::endl;
+		}
 	});
 }
 
@@ -236,7 +255,12 @@ void Vnr::computeTau() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
-		tau_nplus1(cCells) = 0.5 * (1.0 / rho_nplus1(cCells) + 1.0 / rho_n(cCells));
+	  tau_nplus1(cCells) = 0.5 * (1.0 / rho_nplus1(cCells) + 1.0 / rho_n(cCells));
+	  for (int imat = 0; imat < options->nbmat; ++imat) {
+	    taup_nplus1(cCells)[imat] = 0.;
+	    if ((rhop_nplus1(cCells)[imat] > options->threshold) && (rhop_n(cCells)[imat] > options->threshold))
+	    taup_nplus1(cCells)[imat] = 0.5 * (1.0 / rhop_nplus1(cCells)[imat] + 1.0 / rhop_n(cCells)[imat]);
+	  }
 	});
 }
 
@@ -249,18 +273,29 @@ void Vnr::updateEnergy() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
-	  const double den(1 + 0.5 * (eos->gamma - 1.0) * rho_nplus1(cCells) * (1.0 / rho_nplus1(cCells) - 1.0 / rho_n(cCells)));
-	  double pseudo(0.);
-	  if ( (options->pseudo_centree == 1) &&
-	       ( (Q_nplus1(cCells) + Q_n(cCells)) * (1.0 / rho_nplus1(cCells) - 1.0 / rho_n(cCells)) > 0.) )
-	    {
-	      pseudo = 0.5 * (Q_nplus1(cCells) + Q_n(cCells));
+	  e_nplus1(cCells) = 0.;
+	  for (int imat = 0; imat < options->nbmat; ++imat) {
+	    ep_nplus1(cCells)[imat] =0.;
+	    if ((rhop_nplus1(cCells)[imat] > options->threshold) && (rhop_n(cCells)[imat] > options->threshold)) {
+	      // calcul du DV a changer utiliser divU
+	      double pseudo(0.);
+	      if ( (options->pseudo_centree == 1) &&
+		   ( (Qp_nplus1(cCells)[imat] + Qp_n(cCells)[imat]) *
+		     (1.0 / rhop_nplus1(cCells)[imat] - 1.0 / rhop_n(cCells)[imat]) > 0.) )
+		{
+		  pseudo = 0.5 * (Qp_nplus1(cCells)[imat] + Qp_n(cCells)[imat]);
+		}
+	      if (options->pseudo_centree == 0 ) { // test sur la positivité du travail dans le calcul de Q_nplus1(cCells)
+		pseudo = Qp_nplus1(cCells)[imat];
+	      }
+	      const double den(1 + 0.5 * (eos->gammap[imat] - 1.0) * rhop_nplus1(cCells)[imat] *
+			       (1.0 / rhop_nplus1(cCells)[imat] - 1.0 / rhop_n(cCells)[imat]));
+	      const double num(ep_n(cCells)[imat] - (0.5 * pp_n(cCells)[imat] + pseudo) *
+			       (1.0 / rhop_nplus1(cCells)[imat] - 1.0 / rhop_n(cCells)[imat]));
+	      ep_nplus1(cCells)[imat] = num / den;
+	      e_nplus1(cCells) += fracmass(cCells)[imat] * ep_nplus1(cCells)[imat];
 	    }
-	  if (options->pseudo_centree == 0 ) { // test sur la positivité du travail dans le calcul de Q_nplus1(cCells)
-	    pseudo = Q_nplus1(cCells);
 	  }
-	  const double num(e_n(cCells) - (0.5 * p_n(cCells) + pseudo) * (1.0 / rho_nplus1(cCells) - 1.0 / rho_n(cCells)));
-	  e_nplus1(cCells) = num / den;
 	});
 }
 
@@ -273,19 +308,90 @@ void Vnr::computeDivU() noexcept
 {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
-		divU_nplus1(cCells) = 1.0 / gt->deltat_nplus1 * (1.0 / rho_nplus1(cCells) - 1.0 / rho_n(cCells)) / tau_nplus1(cCells);
+	  divU_nplus1(cCells) = 1.0 / gt->deltat_nplus1 * (1.0 / rho_nplus1(cCells) - 1.0 / rho_n(cCells)) / tau_nplus1(cCells);
+	  // a changer comme le calcul du DV, utiliser les C(cCells,pNodesOfCellC)
 	});
 }
 /**
- * Job computeEos called @7.0 in executeTimeLoopN method.
- * In variables: e_nplus1, gamma, rho_nplus1
- * Out variables: c_nplus1, p_nplus1
+ * Job computeEOS called in executeTimeLoopN method.
  */
-void Vnr::computeEos() noexcept
-{
+void Vnr::computeEOS() {
+  for (int imat = 0; imat < options->nbmat; ++imat) {
+    if (eos->Nom[imat] == eos->PerfectGas) computeEOSGP(imat);
+    if (eos->Nom[imat] == eos->Void) computeEOSVoid(imat);
+    if (eos->Nom[imat] == eos->StiffenedGas) computeEOSSTIFG(imat);
+    if (eos->Nom[imat] == eos->Murnhagan) computeEOSMur(imat);
+    if (eos->Nom[imat] == eos->SolidLinear) computeEOSSL(imat);
+  }
+}
+/**
+ * Job computeEOSGP called @1.0 in executeTimeLoopN method.
+ * In variables: eos, eosPerfectGas, eps_n, gammap, rho_n
+ * Out variables: c, p
+ */
+void Vnr::computeEOSGP(int imat)  {
 	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
-		p_nplus1(cCells) = (eos->gamma - 1.0) * rho_nplus1(cCells) * e_nplus1(cCells);
-		c_nplus1(cCells) = std::sqrt(eos->gamma * (eos->gamma - 1.0) * e_nplus1(cCells));
+	 pp_nplus1(cCells)[imat] = (eos->gammap[imat] - 1.0) * rhop_nplus1(cCells)[imat] * ep_nplus1(cCells)[imat];
+	 cp_nplus1(cCells)[imat] = std::sqrt(eos->gammap[imat] * (eos->gammap[imat] - 1.0) * ep_nplus1(cCells)[imat]);
 	});
+}
+/**
+ * Job computeEOSVoid called in executeTimeLoopN method.
+ * In variables: eos, eosPerfectGas, eps_n, gammap, rho_n
+ * Out variables: c, p
+ */
+void Vnr::computeEOSVoid(int imat) {
+  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+    pp_nplus1(cCells)[imat] = 0.;
+    cp_nplus1(cCells)[imat] = 1.e-20;
+  });
+}
+/**
+ * Job computeEOSSTIFG
+ * In variables: eps_n, rho_n
+ * Out variables: c, p
+ */
+void Vnr::computeEOSSTIFG(int imat) {
+  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+    std::cout << " Pas encore programmée" << std::endl;
+  });
+}
+/**
+ * Job computeEOSMur called @1.0 in executeTimeLoopN method.
+ * In variables: eps_n, rho_n
+ * Out variables: c, p
+ */
+void Vnr::computeEOSMur(int imat) {
+  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+    std::cout << " Pas encore programmée" << std::endl;
+  });
+}
+/**
+ * Job computeEOSSL called @1.0 in executeTimeLoopN method.
+ * In variables: eps_n, rho_n
+ * Out variables: c, p
+ */
+void Vnr::computeEOSSL(int imat) {
+  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+    std::cout << " Pas encore programmée" << std::endl;
+  });
+}
+/**
+ * Job computeEOS called in executeTimeLoopN method.
+ */
+void Vnr::computePressionMoyenne() noexcept {
+  for (int cCells = 0; cCells < nbCells; cCells++) {
+    p_nplus1(cCells) = 0.;
+    for (int imat = 0; imat < options->nbmat; ++imat) {
+      p_nplus1(cCells) += fracvol(cCells)[imat] * pp_nplus1(cCells)[imat];
+      c_nplus1(cCells) =
+          MathFunctions::max(c_nplus1(cCells), cp_nplus1(cCells)[imat]);
+    }
+    // NONREG GP A SUPPRIMER
+    if (rho_nplus1(cCells) > 0.) {
+      c_nplus1(cCells) =
+	std::sqrt(eos->gammap[0] * (eos->gammap[0] - 1.0) * e_nplus1(cCells));
+    }
+  }
 }

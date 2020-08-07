@@ -92,8 +92,6 @@ class Eucclhyd {
   Kokkos::View<double*> m;
   Kokkos::View<RealArray1D<nbmatmax>*> mp;
   Kokkos::View<double*> v;
-  Kokkos::View<double*> LfLagrange;
-  Kokkos::View<double*> HvLagrange;
   Kokkos::View<RealArray1D<nbmatmax>*> vpLagrange;
   Kokkos::View<double*> perim;
   Kokkos::View<double*> vitson;
@@ -126,15 +124,6 @@ class Eucclhyd {
   Kokkos::View<RealArray1D<nbmatmax>*> epsp_n;
   Kokkos::View<RealArray1D<nbmatmax>*> epsp_nplus1;
   Kokkos::View<RealArray1D<nbmatmax>*> epsp_n0;
-  Kokkos::View<RealArray1D<nbequamax>*> Uremap1;
-  Kokkos::View<RealArray1D<nbequamax>*> gradPhiFace1;
-  Kokkos::View<RealArray1D<nbequamax>*> gradPhiFace2;
-  Kokkos::View<RealArray1D<nbequamax>*> gradPhi1;
-  Kokkos::View<RealArray1D<nbequamax>*> gradPhi2;
-  Kokkos::View<RealArray1D<nbequamax>*> phiFace1;
-  Kokkos::View<RealArray1D<nbequamax>*> phiFace2;
-  Kokkos::View<RealArray1D<nbequamax>*> deltaPhiFaceAv;
-  Kokkos::View<RealArray1D<nbequamax>*> deltaPhiFaceAr;
   Kokkos::View<double**> p_extrap;
   Kokkos::View<RealArray1D<nbmatmax>**> pp_extrap;
   Kokkos::View<RealArray1D<dim>**> V_extrap;
@@ -254,8 +243,6 @@ class Eucclhyd {
         IMatp("Imatp", nbPartMax),
         X("X", nbNodes),
         Xc("Xc", nbCells),
-        LfLagrange("LfLagrange", nbFaces),
-        HvLagrange("HvLagrange", nbCells),
         Xc_x("Xc_x", nbCells),
         Xc_y("Xc_y", nbCells),
         lpc_n("lpc_n", nbNodes, nbCellsOfNode),
@@ -309,15 +296,6 @@ class Eucclhyd {
         epsp_nplus1("epsp_nplus1", nbCells),
         epsp_n0("epsp_n0", nbCells),
         delta_ec("delta_ec", nbCells),
-        Uremap1("Uremap1", nbCells),
-        gradPhiFace1("gradPhiFace1", nbFaces),
-        gradPhiFace2("gradPhiFace2", nbFaces),
-        gradPhi1("gradPhi1", nbCells),
-        gradPhi2("gradPhi2", nbCells),
-        phiFace1("phiFace1", nbFaces),
-        phiFace2("phiFace2", nbFaces),
-        deltaPhiFaceAv("deltaPhiFaceAv", nbCells),
-        deltaPhiFaceAr("deltaPhiFaceAr", nbCells),
         p_extrap("p_extrap", nbCells, nbNodesOfCell),
         pp_extrap("pp_extrap", nbCells, nbNodesOfCell),
         V_extrap("V_extrap", nbCells, nbNodesOfCell),

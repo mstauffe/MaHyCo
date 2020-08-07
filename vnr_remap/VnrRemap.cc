@@ -55,18 +55,49 @@ void Vnr::computeTime() noexcept
  */
 void Vnr::setUpTimeLoopN() noexcept
 {
-	gt->deltat_n = gt->deltat_init;
-	deep_copy(X_n, X_n0);
-	deep_copy(SubVol_n, SubVol_n0);
-	deep_copy(rho_n, rho_n0);
-	deep_copy(p_n, p_n0);
-	deep_copy(Q_n, Q_n0);
-	deep_copy(tau_n, tau_n0);
-	deep_copy(divU_n, divU_n0);
-	deep_copy(c_n, c_n0);
-	deep_copy(e_n, e_n0);
-	deep_copy(u_n, u_n0);
-	deep_copy(cellPos_n, cellPos_n0);
+  gt->deltat_n = gt->deltat_init;
+  deep_copy(X_n, X_n0);
+  deep_copy(SubVol_n, SubVol_n0);
+  deep_copy(rho_n, rho_n0);
+  deep_copy(rhop_n, rhop_n0);
+  deep_copy(p_n, p_n0);
+  deep_copy(pp_n, pp_n0);
+  deep_copy(Q_n, Q_n0);
+  deep_copy(Qp_n, Qp_n0);
+  deep_copy(tau_n, tau_n0);
+  deep_copy(taup_n, taup_n0);
+  deep_copy(divU_n, divU_n0);
+  deep_copy(c_n, c_n0);
+  deep_copy(cp_n, cp_n0);
+  deep_copy(e_n, e_n0);
+  deep_copy(ep_n, ep_n0);
+  deep_copy(u_n, u_n0);
+  deep_copy(cellPos_n, cellPos_n0);
+	
+  // if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY ||
+  //     test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
+  //   // const ℝ δt_init = 1.0e-4;
+  //   gt->deltat_init = 1.0e-4;
+  //   gt->deltat_n = gt->deltat_init;
+  // } else if (test->Nom == test->BiShockBubble) {
+  //   gt->deltat_init = 1.e-7;
+  //   gt->deltat_n = 1.0e-7;
+  // } else if (test->Nom == test->SedovTestCase ||
+  //            test->Nom == test->BiSedovTestCase) {
+  //   // const ℝ δt_init = 1.0e-4;
+  //   gt->deltat_init = 1.0e-4;
+  //   gt->deltat_n = 1.0e-4;
+  // } else if (test->Nom == test->NohTestCase ||
+  //            test->Nom == test->BiNohTestCase) {
+  //   // const ℝ δt_init = 1.0e-4;
+  //   gt->deltat_init = 1.0e-4;
+  //   gt->deltat_n = 1.0e-4;
+  // } else if (test->Nom == test->TriplePoint ||
+  //            test->Nom == test->BiTriplePoint) {
+  //   // const ℝ δt_init = 1.0e-5; avec donnees adimensionnées
+  //   gt->deltat_init = 1.0e-5;  // avec pression de 1.e5 / 1.e-8
+  //   gt->deltat_n = 1.0e-5;
+  // }
 }
 
 /**
@@ -101,7 +132,8 @@ void Vnr::executeTimeLoopN() noexcept
 		computeDivU(); // @7.0
 		computeArtificialViscosity(); // @1.0
 		updateEnergy(); // @6.0
-		computeEos(); // @7.0
+		computeEOS(); // @7.0
+		computePressionMoyenne(); // @7.0
 		
 	
 		// Evaluate loop condition with variables at time n
@@ -115,12 +147,18 @@ void Vnr::executeTimeLoopN() noexcept
 			std::swap(X_nplus1, X_n);
 			std::swap(SubVol_nplus1, SubVol_n);
 			std::swap(rho_nplus1, rho_n);
+			std::swap(rhop_nplus1, rhop_n);
 			std::swap(p_nplus1, p_n);
+			std::swap(pp_nplus1, pp_n);
 			std::swap(Q_nplus1, Q_n);
+			std::swap(Qp_nplus1, Qp_n);
 			std::swap(tau_nplus1, tau_n);
+			std::swap(taup_nplus1, taup_n);
 			std::swap(divU_nplus1, divU_n);
 			std::swap(c_nplus1, c_n);
+			std::swap(cp_nplus1, cp_n);
 			std::swap(e_nplus1, e_n);
+			std::swap(ep_nplus1, ep_n);
 			std::swap(u_nplus1, u_n);
 			std::swap(cellPos_nplus1, cellPos_n);
 		}
