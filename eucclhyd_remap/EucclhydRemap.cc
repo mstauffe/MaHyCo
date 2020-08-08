@@ -17,7 +17,7 @@ using namespace nablalib;
 
 /**
  * Job dumpVariables called @2.0 in executeTimeLoopN method.
- * In variables: Xc_x, Xc_y, eps_n, m, p, rho_n, t_n, v
+ * In variables: Xc_x, Xc_y, e_n, m, p, rho_n, t_n, v
  * Out variables:
  */
 KOKKOS_INLINE_FUNCTION
@@ -46,7 +46,7 @@ void Eucclhyd::dumpVariables() noexcept {
     cellVariables.insert(pair<string, double*>("F3", fracvol3.data()));
     cellVariables.insert(pair<string, double*>("VelocityX", Vxc.data()));
     cellVariables.insert(pair<string, double*>("VelocityY", Vyc.data()));
-    cellVariables.insert(pair<string, double*>("Energy", eps_n.data()));
+    cellVariables.insert(pair<string, double*>("Energy", e_n.data()));
     partVariables.insert(pair<string, double*>("VolumePart", vpart.data()));
     partVariables.insert(pair<string, double*>("VxPart", Vpart_n[0].data()));
     partVariables.insert(pair<string, double*>("VyPart", Vpart_n[1].data()));
@@ -67,7 +67,7 @@ void Eucclhyd::dumpVariables() noexcept {
  * In variables: F_n, F_nplus1, G, M, Mnode, ULagrange, Uremap1, Uremap2,
  * V_extrap, V_n, Vnode_n, Vnode_nplus1, X, XLagrange, Xc, XcLagrange, Xc_x,
  * Xc_y, Xf, bottomBC, bottomBCValue, c, cfl, deltat_n, deltat_nplus1,
- * deltatc, deltaxLagrange, eos, eosPerfectGas, eps_n, faceLength, faceNormal,
+ * deltatc, deltaxLagrange, eos, eosPerfectGas, e_n, faceLength, faceNormal,
  * faceNormalVelocity, gamma, gradPhi1, gradPhi2, gradPhiFace1, gradPhiFace2,
  * gradV, gradp, leftBC, leftBCValue, lminus, lpc_n, lplus, m, nminus, nplus,
  * outerFaceNormal, p, p_extrap, perim, phiFace1, phiFace2,
@@ -75,7 +75,7 @@ void Eucclhyd::dumpVariables() noexcept {
  * spaceOrder, t_n, topBC, topBCValue, v, vLagrange, x_then_y_n Out variables:
  * F_nplus1, G, M, Mnode, ULagrange, Uremap1, Uremap2, V_extrap, V_nplus1,
  * Vnode_nplus1, XLagrange, XcLagrange, c, deltat_nplus1, deltatc,
- * deltaxLagrange, eps_nplus1, faceNormalVelocity, gradPhi1, gradPhi2,
+ * deltaxLagrange, e_nplus1, faceNormalVelocity, gradPhi1, gradPhi2,
  * gradPhiFace1, gradPhiFace2, gradV, gradp, m, p, p_extrap, phiFace1,
  * phiFace2, rho_nplus1, t_nplus1, vLagrange, x_then_y_nplus1
  */
@@ -147,8 +147,8 @@ void Eucclhyd::executeTimeLoopN() noexcept {
       std::swap(rho_nplus1, rho_n);
       std::swap(rhop_nplus1, rhop_n);
       std::swap(V_nplus1, V_n);
-      std::swap(eps_nplus1, eps_n);
-      std::swap(epsp_nplus1, epsp_n);
+      std::swap(e_nplus1, e_n);
+      std::swap(ep_nplus1, ep_n);
       std::swap(F_nplus1, F_n);
       std::swap(F1_nplus1, F1_n);
       std::swap(F2_nplus1, F2_n);
@@ -158,7 +158,7 @@ void Eucclhyd::executeTimeLoopN() noexcept {
         std::swap(Xpart_nplus1, Xpart_n);
       }
       if (options->AvecProjection == 0) {
-        std::swap(varlp->vLagrange, v);
+        std::swap(varlp->vLagrange, volE);
         std::swap(varlp->XLagrange, X);
         std::swap(varlp->XfLagrange, varlp->Xf);
         std::swap(varlp->faceLengthLagrange, varlp->faceLength);

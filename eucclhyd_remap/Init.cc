@@ -140,7 +140,7 @@ void Eucclhyd::initMeshGeometryForCells() noexcept {
         Xc(cCells) = xc;
         Xc_x(cCells) = xc[0];
         Xc_y(cCells) = xc[1];
-        v(cCells) = vol;
+        volE(cCells) = vol;
         double reduction13 = 0.0;
         {
           auto nodesOfCellC(mesh->getNodesOfCell(cId));
@@ -183,13 +183,13 @@ void Eucclhyd::initVpAndFpc() noexcept {
  * Job initCellInternalEnergy called @2.0 in simulate method.
  * In variables: NohTestCase, SedovTestCase, SodCase, TriplePoint, X,
  * X_EDGE_LENGTH, Xc, Y_EDGE_LENGTH, testCase, threshold Out
- * variables: eps_n0
+ * variables: e_n0
  */
 void Eucclhyd::initCellInternalEnergy() noexcept {
   Kokkos::parallel_for("initCellInternalEnergy", nbCells,
                        KOKKOS_LAMBDA(const int& cCells) {
                          for (int imat = 0; imat < nbmatmax; imat++) {
-                           epsp_n0(cCells)[imat] = 0.0;
+                           ep_n0(cCells)[imat] = 0.0;
                          }
                        });
 
@@ -198,19 +198,19 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
     double p0(1.);
     double rho0(1.);
     double gamma(1.4);
-    double eps0 = p0 / ((gamma - 1.0) * rho0);
+    double e0 = p0 / ((gamma - 1.0) * rho0);
     Kokkos::parallel_for("initCellInternalEnergy", nbCells,
                          KOKKOS_LAMBDA(const int& cCells) {
-                           eps_n0(cCells) = eps0;
+                           e_n0(cCells) = e0;
                            for (int imat = 0; imat < nbmatmax; imat++)
-                             epsp_n0(cCells)[imat] = eps0;
+                             ep_n0(cCells)[imat] = e0;
                          });
   } else if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY) {
     Kokkos::parallel_for("initCellInternalEnergy", nbCells,
                          KOKKOS_LAMBDA(const int& cCells) {
                            double pInit;
                            double rhoInit;
-                           double epsInit;
+                           double eInit;
                            double r(0.);
                            if (test->Nom == test->SodCaseX) r = Xc(cCells)[0];
                            if (test->Nom == test->SodCaseY) r = Xc(cCells)[1];
@@ -221,16 +221,16 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
                              pInit = 0.1;
                              rhoInit = 0.125;
                            }
-                           epsInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-                           eps_n0(cCells) = epsInit;
-                           epsp_n0(cCells)[0] = epsInit;
+                           eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+                           e_n0(cCells) = eInit;
+                           ep_n0(cCells)[0] = eInit;
                          });
   } else if (test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
     Kokkos::parallel_for(
         "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           double pInit;
           double rhoInit;
-          double epsInit;
+          double eInit;
           double r = 0.;
           // r= sqrt(Xc(cCells)[0]*Xc(cCells)[0]+Xc(cCells)[1]*Xc(cCells)[1]);
           // en rayon
@@ -239,21 +239,21 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
           if (r <= 0.5) {
             pInit = 1.0;
             rhoInit = 1.0;
-            epsInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-            epsp_n0(cCells)[0] = epsInit;
-            epsp_n0(cCells)[1] = 0.;
-            eps_n0(cCells) = epsInit;
-            // std::cout << " cell " << cCells << "  e1= " << epsp_n0(cCells)[0]
-            // << "  e2= " << epsp_n0(cCells)[0] << std::endl;
+            eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+            ep_n0(cCells)[0] = eInit;
+            ep_n0(cCells)[1] = 0.;
+            e_n0(cCells) = eInit;
+            // std::cout << " cell " << cCells << "  e1= " << ep_n0(cCells)[0]
+            // << "  e2= " << ep_n0(cCells)[0] << std::endl;
           } else {
             pInit = 0.1;
             rhoInit = 0.125;
-            epsInit = pInit / ((eos->gammap[1] - 1.0) * rhoInit);
-            epsp_n0(cCells)[0] = 0.;
-            epsp_n0(cCells)[1] = epsInit;
-            eps_n0(cCells) = epsInit;
-            // std::cout << " cell " << cCells << "  e1= " << epsp_n0(cCells)[0]
-            // << "  e2= " << epsp_n0(cCells)[0] << std::endl;
+            eInit = pInit / ((eos->gammap[1] - 1.0) * rhoInit);
+            ep_n0(cCells)[0] = 0.;
+            ep_n0(cCells)[1] = eInit;
+            e_n0(cCells) = eInit;
+            // std::cout << " cell " << cCells << "  e1= " << ep_n0(cCells)[0]
+            // << "  e2= " << ep_n0(cCells)[0] << std::endl;
           }
         });
   } else if (test->Nom == test->BiShockBubble) {
@@ -261,14 +261,14 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
         "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           double pInit;
           double rhoInit;
-          double epsInit;
+          double eInit;
           // Air partout
           rhoInit = 1.0;
           pInit = 1.e5;
-          epsInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-          epsp_n0(cCells)[0] = epsInit;
-          epsp_n0(cCells)[1] = 0.;
-          eps_n0(cCells) = epsInit;
+          eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+          ep_n0(cCells)[0] = eInit;
+          ep_n0(cCells)[1] = 0.;
+          e_n0(cCells) = eInit;
           // bulle surchargera l'aire
           // centre de la bulle
           RealArray1D<dim> Xb = {{0.320, 0.04}};
@@ -279,10 +279,10 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
           if (r <= rb) {
             pInit = 1.e5;
             rhoInit = 0.182;
-            epsInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-            epsp_n0(cCells)[0] = 0.;
-            epsp_n0(cCells)[1] = epsInit;
-            eps_n0(cCells) = epsInit;
+            eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+            ep_n0(cCells)[0] = 0.;
+            ep_n0(cCells)[1] = eInit;
+            e_n0(cCells) = eInit;
           }
         });
   } else if (test->Nom == test->SedovTestCase ||
@@ -294,7 +294,7 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
           double pInit = 1.e-6;
           double rhoInit = 1.;
           double rmin = options->threshold;  // depot sur 1 maille
-          double eps1 = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+          double e1 = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
           {
             auto nodesOfCellC(mesh->getNodesOfCell(cId));
             for (int pNodesOfCellC = 0; pNodesOfCellC < nodesOfCellC.size();
@@ -308,18 +308,18 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
             double total_energy_deposit = 0.244816;
             double dx = cstmesh->X_EDGE_LENGTH;
             double dy = cstmesh->Y_EDGE_LENGTH;
-            eps_n0(cCells) = eps1 + total_energy_deposit / (dx * dy);
+            e_n0(cCells) = e1 + total_energy_deposit / (dx * dy);
           } else {
-            eps_n0(cCells) = eps1;
+            e_n0(cCells) = e1;
           }
-          epsp_n0(cCells)[0] = eps_n0(cCells);
+          ep_n0(cCells)[0] = e_n0(cCells);
         });
   } else if (test->Nom == test->TriplePoint) {
     Kokkos::parallel_for("initCellInternalEnergy", nbCells,
                          KOKKOS_LAMBDA(const int& cCells) {
                            double pInit;
                            double rhoInit;
-                           double epsInit;
+                           double eInit;
                            if (Xc(cCells)[0] <= 0.01) {
                              pInit = 1.0;
                              rhoInit = 1.0;
@@ -332,35 +332,35 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
                                rhoInit = 0.1;
                              }
                            }
-                           epsInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-                           eps_n0(cCells) = epsInit;
-                           epsp_n0(cCells)[0] = epsInit;
+                           eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+                           e_n0(cCells) = eInit;
+                           ep_n0(cCells)[0] = eInit;
                          });
   } else if (test->Nom == test->BiTriplePoint) {
     Kokkos::parallel_for(
         "initCellInternalEnergy", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           double pInit;
           double rhoInit;
-          double epsInit;
+          double eInit;
           if (Xc(cCells)[0] <= 0.01) {
             pInit = 1.0;  // 1.e5; // 1.0;
             rhoInit = 1.0;
-            epsInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-            eps_n0(cCells) = epsInit;
-            epsp_n0(cCells)[0] = epsInit;
+            eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+            e_n0(cCells) = eInit;
+            ep_n0(cCells)[0] = eInit;
           } else {
             if (Xc(cCells)[1] <= 0.015) {
               pInit = 0.1;  // 1.e4; // 0.1;
               rhoInit = 1.;
-              epsInit = pInit / ((eos->gammap[1] - 1.0) * rhoInit);
-              eps_n0(cCells) = epsInit;
-              epsp_n0(cCells)[1] = epsInit;
+              eInit = pInit / ((eos->gammap[1] - 1.0) * rhoInit);
+              e_n0(cCells) = eInit;
+              ep_n0(cCells)[1] = eInit;
             } else {
               pInit = 0.1;  // 1.e4; // 0.1;
               rhoInit = 0.1;
-              epsInit = pInit / ((eos->gammap[2] - 1.0) * rhoInit);
-              eps_n0(cCells) = epsInit;
-              epsp_n0(cCells)[2] = epsInit;
+              eInit = pInit / ((eos->gammap[2] - 1.0) * rhoInit);
+              e_n0(cCells) = eInit;
+              ep_n0(cCells)[2] = eInit;
             }
           }
         });
@@ -510,7 +510,7 @@ void Eucclhyd::initDensity() noexcept {
         "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
           double pInit;
           double rhoInit;
-          double epsInit;
+          double eInit;
           // Air partout
           rhop_n0(cCells)[0] = 1.0;
           rho_n0(cCells) = 1.0;
@@ -750,16 +750,16 @@ void Eucclhyd::initPart() noexcept {
 }
 /**
  * Job setUpTimeLoopN called @3.0 in simulate method.
- * In variables: F_n0, V_n0, Vnode_n0, eps_n0, rho_n0
- * Out variables: F_n, V_n, Vnode_n, eps_n, rho_n
+ * In variables: F_n0, V_n0, Vnode_n0, e_n0, rho_n0
+ * Out variables: F_n, V_n, Vnode_n, e_n, rho_n
  */
 void Eucclhyd::setUpTimeLoopN() noexcept {
   deep_copy(Vnode_n, Vnode_n0);
   deep_copy(rho_n, rho_n0);
   deep_copy(rhop_n, rhop_n0);
   deep_copy(V_n, V_n0);
-  deep_copy(eps_n, eps_n0);
-  deep_copy(epsp_n, epsp_n0);
+  deep_copy(e_n, e_n0);
+  deep_copy(ep_n, ep_n0);
   deep_copy(F_n, F_n0);
   deep_copy(Xpart_n, Xpart_n0);
 
@@ -791,10 +791,10 @@ void Eucclhyd::setUpTimeLoopN() noexcept {
   Kokkos::parallel_for(
       "initETOTALE", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         ETOT_0(cCells) =
-            (rho_n0(cCells) * v(cCells)) *
-            (eps_n0(cCells) + 0.5 * (V_n0(cCells)[0] * V_n0(cCells)[0] +
+            (rho_n0(cCells) * volE(cCells)) *
+            (e_n0(cCells) + 0.5 * (V_n0(cCells)[0] * V_n0(cCells)[0] +
                                      V_n0(cCells)[1] * V_n0(cCells)[1]));
-        MTOT_0(cCells) = (rho_n0(cCells) * v(cCells));
+        MTOT_0(cCells) = (rho_n0(cCells) * volE(cCells));
       });
   double reductionE(0.), reductionM(0.);
   {

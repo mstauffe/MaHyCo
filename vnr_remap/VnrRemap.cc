@@ -135,13 +135,28 @@ void Vnr::executeTimeLoopN() noexcept
 		computeEOS(); // @7.0
 		computePressionMoyenne(); // @7.0
 		
-	
+		if (options->AvecProjection == 1) {
+		  computeVariablesForRemap();
+		  computeCellQuantitesForRemap();
+		  computeFaceQuantitesForRemap();
+		  remap->computeGradPhiFace1();                        
+		  remap->computeGradPhi1();                            
+		  remap->computeUpwindFaceQuantitiesForProjection1();  
+		  remap->computeUremap1();                             
+		  remap->computeGradPhiFace2();                        
+		  remap->computeGradPhi2();                            
+		  remap->computeUpwindFaceQuantitiesForProjection2();  
+		  remap->computeUremap2();                             
+		  remapVariables();                  
+		}
+			
 		// Evaluate loop condition with variables at time n
 		continueLoop = (n + 1 < gt->max_time_iterations && gt->t_nplus1 < gt->final_time);
 	
 		if (continueLoop)
 		{
 			// Switch variables to prepare next iteration
+			std::swap(varlp->x_then_y_nplus1, varlp->x_then_y_n);
 			std::swap(gt->t_nplus1, gt->t_n);
 			std::swap(gt->deltat_nplus1, gt->deltat_n);
 			std::swap(X_nplus1, X_n);
@@ -235,6 +250,7 @@ void Vnr::simulate()
 	initCellPos(); // @1.0
 	init(); // @2.0
 	initSubVol(); // @2.0
+	initMeshGeometryForFaces();
 	computeCellMass(); // @3.0
 	initDeltaT(); // @3.0
 	initInternalEnergy(); // @3.0

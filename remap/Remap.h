@@ -77,6 +77,9 @@ class Remap {
   Kokkos::View<RealArray1D<nbequamax>*> phiFace2;
   Kokkos::View<RealArray1D<nbequamax>*> deltaPhiFaceAv;
   Kokkos::View<RealArray1D<nbequamax>*> deltaPhiFaceAr;
+  Kokkos::View<RealArray1D<nbequamax>*> FluxFace1;
+  Kokkos::View<RealArray1D<nbequamax>*> FluxFace2;
+  
  public:
   Remap(
       optionschemalib::OptionsSchema::Options* aOptions,
@@ -109,6 +112,8 @@ class Remap {
         gradPhi2("gradPhi2", nbCells),
         phiFace1("phiFace1", nbFaces),
         phiFace2("phiFace2", nbFaces),
+        FluxFace1("FluxFace1", nbFaces),
+        FluxFace2("FluxFace2", nbFaces),
         deltaPhiFaceAv("deltaPhiFaceAv", nbCells),
         deltaPhiFaceAr("deltaPhiFaceAr", nbCells){}
   

@@ -77,13 +77,13 @@ void Eucclhyd::computeEOS() {
 }
 /**
  * Job computeEOSGP called @1.0 in executeTimeLoopN method.
- * In variables: eos, eosPerfectGas, eps_n, gammap, rho_n
+ * In variables: eos, eosPerfectGas, e_n, gammap, rho_n
  * Out variables: c, p
  */
 void Eucclhyd::computeEOSGP(int imat) {
   Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
     pp(cCells)[imat] =
-        (eos->gammap[imat] - 1.0) * rhop_n(cCells)[imat] * epsp_n(cCells)[imat];
+        (eos->gammap[imat] - 1.0) * rhop_n(cCells)[imat] * ep_n(cCells)[imat];
     if (rhop_n(cCells)[imat] > 0.) {
       vitsonp(cCells)[imat] = MathFunctions::sqrt(
           eos->gammap[imat] * pp(cCells)[imat] / rhop_n(cCells)[imat]);
@@ -93,7 +93,7 @@ void Eucclhyd::computeEOSGP(int imat) {
 }
 /**
  * Job computeEOSVoid called in executeTimeLoopN method.
- * In variables: eos, eosPerfectGas, eps_n, gammap, rho_n
+ * In variables: eos, eosPerfectGas, e_n, gammap, rho_n
  * Out variables: c, p
  */
 void Eucclhyd::computeEOSVoid(int imat) {
@@ -104,7 +104,7 @@ void Eucclhyd::computeEOSVoid(int imat) {
 }
 /**
  * Job computeEOSSTIFG
- * In variables: eps_n, rho_n
+ * In variables: e_n, rho_n
  * Out variables: c, p
  */
 void Eucclhyd::computeEOSSTIFG(int imat) {
@@ -114,7 +114,7 @@ void Eucclhyd::computeEOSSTIFG(int imat) {
 }
 /**
  * Job computeEOSMur called @1.0 in executeTimeLoopN method.
- * In variables: eps_n, rho_n
+ * In variables: e_n, rho_n
  * Out variables: c, p
  */
 void Eucclhyd::computeEOSMur(int imat) {
@@ -124,7 +124,7 @@ void Eucclhyd::computeEOSMur(int imat) {
 }
 /**
  * Job computeEOSSL called @1.0 in executeTimeLoopN method.
- * In variables: eps_n, rho_n
+ * In variables: e_n, rho_n
  * Out variables: c, p
  */
 void Eucclhyd::computeEOSSL(int imat) {
@@ -195,9 +195,9 @@ void Eucclhyd::computeGradients() noexcept {
                 reductionF3 +(fracvolnode(pNodes)[2] * lpc_n(pNodes, cCellsOfNodeP));
           }
         }
-        gradf1(cCells) = reductionF1 / v(cCells);
-        gradf2(cCells) = reductionF2 / v(cCells);
-        gradf3(cCells) = reductionF3 / v(cCells);
+        gradf1(cCells) = reductionF1 / volE(cCells);
+        gradf2(cCells) = reductionF2 / volE(cCells);
+        gradf3(cCells) = reductionF3 / volE(cCells);
       });
   if (options->spaceOrder == 2)
     Kokkos::parallel_for(
@@ -216,7 +216,7 @@ void Eucclhyd::computeGradients() noexcept {
                   (tensProduct(Vnode_n(pNodes), lpc_n(pNodes, cCellsOfNodeP)));
             }
           }
-          gradV(cCells) = reduction14 / v(cCells);
+          gradV(cCells) = reduction14 / volE(cCells);
           RealArray1D<dim> reduction15 = zeroVect;
           RealArray1D<dim> reduction15a = zeroVect;
           RealArray1D<dim> reduction15b = zeroVect;
@@ -236,10 +236,10 @@ void Eucclhyd::computeGradients() noexcept {
               reduction15c = reduction15c + F3_n(pNodes, cCellsOfNodeP);
             }
           }
-          gradp(cCells)  = reduction15  / v(cCells);
-          gradp1(cCells) = reduction15a / v(cCells);
-          gradp2(cCells) = reduction15b / v(cCells);
-          gradp3(cCells) = reduction15c / v(cCells);
+          gradp(cCells)  = reduction15  / volE(cCells);
+          gradp1(cCells) = reduction15a / volE(cCells);
+          gradp2(cCells) = reduction15b / volE(cCells);
+          gradp3(cCells) = reduction15c / volE(cCells);
         });
 }
 
@@ -253,7 +253,7 @@ void Eucclhyd::computeMass() noexcept {
   Kokkos::parallel_for(
       "computeMass", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         int nbmat = options->nbmat;
-        m(cCells) = rho_n(cCells) * v(cCells);
+        m(cCells) = rho_n(cCells) * volE(cCells);
         for (int imat = 0; imat < nbmat; imat++)
           mp(cCells)[imat] = fracmass(cCells)[imat] * m(cCells);
       });
@@ -302,11 +302,11 @@ void Eucclhyd::computedeltatc() noexcept {
         if (options->AvecProjection == 1) {
           // cfl euler
           deltatc(cCells) =
-              v(cCells) / (perim(cCells) *
+              volE(cCells) / (perim(cCells) *
                            (MathFunctions::norm(V_n(cCells)) + vitson(cCells)));
         } else {
           // cfl lagrange
-          deltatc(cCells) = v(cCells) / (perim(cCells) * vitson(cCells));
+          deltatc(cCells) = volE(cCells) / (perim(cCells) * vitson(cCells));
         }
       });
 }
@@ -727,7 +727,7 @@ void Eucclhyd::computeFacedeltaxLagrange() noexcept {
 
 /**
  * Job updateCellCenteredLagrangeVariables called @7.0 in executeTimeLoopN
- * method. In variables: F_nplus1, V_n, Vnode_nplus1, deltat_n, eps_n, lpc_n, m,
+ * method. In variables: F_nplus1, V_n, Vnode_nplus1, deltat_n, e_n, lpc_n, m,
  * rho_n, vLagrange Out variables: ULagrange
  */
 void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
@@ -762,7 +762,7 @@ void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
             reduction3 = reduction3 + F_nplus1(pNodes, cCellsOfNodeP);
           }
         }
-        ForceGradp(cCells) = reduction3 / v(cCells);
+        ForceGradp(cCells) = reduction3 / volE(cCells);
         RealArray1D<dim> VLagrange =
             V_n(cCells) + reduction3 * gt->deltat_n / m(cCells);
 
@@ -820,18 +820,18 @@ void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
         }
 
         int nbmat = options->nbmat;
-        double epsLagrange =
-            eps_n(cCells) + gt->deltat_n / m(cCells) * reduction4;
+        double eLagrange =
+            e_n(cCells) + gt->deltat_n / m(cCells) * reduction4;
 
-        RealArray1D<nbmatmax> pepsLagrange;
-        RealArray1D<nbmatmax> pepsLagrangec;
+        RealArray1D<nbmatmax> peLagrange;
+        RealArray1D<nbmatmax> peLagrangec;
         for (int imat = 0; imat < nbmat; imat++) {
-          pepsLagrange[imat] = 0.;
-          pepsLagrangec[imat] = 0.;
+          peLagrange[imat] = 0.;
+          peLagrangec[imat] = 0.;
           if (fracvol(cCells)[imat] > options->threshold &&
               mp(cCells)[imat] != 0.)
-            pepsLagrange[imat] =
-                epsp_n(cCells)[imat] + fracvol(cCells)[imat] * gt->deltat_n /
+            peLagrange[imat] =
+                ep_n(cCells)[imat] + fracvol(cCells)[imat] * gt->deltat_n /
                                            mp(cCells)[imat] * preduction4[imat];
         }
         for (int imat = 0; imat < nbmat; imat++) {
@@ -842,7 +842,7 @@ void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
 
           varlp->ULagrange(cCells)[2 * nbmat + imat] =
               fracmass(cCells)[imat] * varlp->vLagrange(cCells) * rhoLagrange *
-              pepsLagrange[imat];
+              peLagrange[imat];
         }
 
         varlp->ULagrange(cCells)[3 * nbmat] =
@@ -861,7 +861,7 @@ void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
           V_nplus1(cCells) = VLagrange;
           // densites et energies
           rho_nplus1(cCells) = 0.;
-          eps_nplus1(cCells) = 0.;
+          e_nplus1(cCells) = 0.;
           for (int imat = 0; imat < nbmat; imat++) {
             // densités
             rho_nplus1(cCells) += fracmass(cCells)[imat] * rhoLagrange;
@@ -872,11 +872,11 @@ void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
               rhop_nplus1(cCells)[imat] = 0.;
             }
             // energies
-            eps_nplus1(cCells) += fracmass(cCells)[imat] * pepsLagrange[imat];
+            e_nplus1(cCells) += fracmass(cCells)[imat] * peLagrange[imat];
             if (fracvol(cCells)[imat] > options->threshold) {
-              epsp_nplus1(cCells)[imat] = pepsLagrange[imat];
+              ep_nplus1(cCells)[imat] = peLagrange[imat];
             } else {
-              epsp_nplus1(cCells)[imat] = 0.;
+              ep_nplus1(cCells)[imat] = 0.;
             }
           }
           // variables pour les sorties du code
@@ -972,29 +972,29 @@ void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
                     << fracmass(cCells)[2] << std::endl;
           std::cout << " cell   " << cCells << " m1 " << mp(cCells)[0] << " m2 "
                     << mp(cCells)[1] << " m3 " << mp(cCells)[2] << std::endl;
-          std::cout << " cell   " << cCells << " pepsLagrange[0] "
-                    << pepsLagrange[0] << " preduction4[0] " << preduction4[0]
-                    << " epsp_n[0] " << epsp_n(cCells)[0] << std::endl;
-          std::cout << " cell   " << cCells << " pepsLagrange[1] "
-                    << pepsLagrange[1] << " preduction4[1] " << preduction4[1]
-                    << " epsp_n[1] " << epsp_n(cCells)[1] << std::endl;
-          std::cout << " cell   " << cCells << " pepsLagrange[2] "
-                    << pepsLagrange[2] << " preduction4[2] " << preduction4[2]
-                    << " epsp_n[2] " << epsp_n(cCells)[2] << std::endl;
+          std::cout << " cell   " << cCells << " peLagrange[0] "
+                    << peLagrange[0] << " preduction4[0] " << preduction4[0]
+                    << " ep_n[0] " << ep_n(cCells)[0] << std::endl;
+          std::cout << " cell   " << cCells << " peLagrange[1] "
+                    << peLagrange[1] << " preduction4[1] " << preduction4[1]
+                    << " ep_n[1] " << ep_n(cCells)[1] << std::endl;
+          std::cout << " cell   " << cCells << " peLagrange[2] "
+                    << peLagrange[2] << " preduction4[2] " << preduction4[2]
+                    << " ep_n[2] " << ep_n(cCells)[2] << std::endl;
           std::cout << " densites  1 " << rhop_n(cCells)[0] << " 2 "
                     << rhop_n(cCells)[1] << " 3 " << rhop_n(cCells)[2]
                     << std::endl;
           exit(1);
         }
 
-        // ETOT_L(cCells) = (rhoLagrange * vLagrange(cCells)) * (epsLagrange +
+        // ETOT_L(cCells) = (rhoLagrange * vLagrange(cCells)) * (eLagrange +
         // 0.5 * (VLagrange[0] * VLagrange[0] + VLagrange[1] * VLagrange[1]));
         MTOT_L(cCells) = 0.;
         ETOT_L(cCells) =
             (rhoLagrange * varlp->vLagrange(cCells)) *
-            (fracmass(cCells)[0] * pepsLagrange[0] +
-             fracmass(cCells)[1] * pepsLagrange[1] +
-             fracmass(cCells)[2] * pepsLagrange[2] +
+            (fracmass(cCells)[0] * peLagrange[0] +
+             fracmass(cCells)[1] * peLagrange[1] +
+             fracmass(cCells)[2] * peLagrange[2] +
              0.5 * (VLagrange[0] * VLagrange[0] + VLagrange[1] * VLagrange[1]));
         for (int imat = 0; imat < nbmat; imat++) {
           MTOT_L(cCells) +=

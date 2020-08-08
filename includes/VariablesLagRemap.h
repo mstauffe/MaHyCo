@@ -28,6 +28,7 @@ class VariablesLagRemap {
   
  public: 
   Kokkos::View<RealArray1D<nbequamax>*> Phi;
+  Kokkos::View<RealArray1D<nbequamax>*> PhiDual;
   Kokkos::View<double*> deltaxLagrange;
   Kokkos::View<RealArray1D<dim>*> XLagrange;
   Kokkos::View<RealArray1D<dim>*> XfLagrange;
@@ -39,7 +40,9 @@ class VariablesLagRemap {
   Kokkos::View<double*> faceLengthLagrange;
   Kokkos::View<double*> faceNormalVelocity;
   Kokkos::View<RealArray1D<nbequamax>*> ULagrange;
+  Kokkos::View<RealArray1D<nbequamax>*> UDualLagrange;
   Kokkos::View<RealArray1D<nbequamax>*> Uremap2;
+  Kokkos::View<RealArray1D<nbequamax>*> UDualremap2;
   Kokkos::View<double*> vLagrange;
   Kokkos::View<int*> mixte;
   Kokkos::View<int*> pure;
@@ -52,6 +55,7 @@ class VariablesLagRemap {
     nbFaces(mesh->getNbFaces()),
     nbFacesOfCell(CartesianMesh2D::MaxNbFacesOfCell),
     Phi("Phi", nbCells),
+    PhiDual("PhiDual", nbNodes),
     deltaxLagrange("deltaxLagrange", nbFaces),
     XLagrange("XLagrange", nbNodes),
     XfLagrange("XfLagrange", nbFaces),
@@ -64,6 +68,8 @@ class VariablesLagRemap {
     faceNormalVelocity("faceNormalVelocity", nbFaces),
     ULagrange("ULagrange", nbCells),
     Uremap2("Uremap2", nbCells),
+    UDualLagrange("UDualLagrange", nbNodes),
+    UDualremap2("UDualremap2", nbNodes),
     vLagrange("vLagrange", nbCells),
     mixte("mixte", nbCells),
     pure("pure", nbCells),

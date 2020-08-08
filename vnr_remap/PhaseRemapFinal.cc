@@ -5,7 +5,7 @@
 #include <iostream>         // for operator<<, basic_ostream, endl
 #include <memory>           // for allocator
 
-#include "Eucclhyd.h"        // for Eucclhyd, Eucclhyd::...
+#include "Vnr.h"        // for Eucclhyd, Eucclhyd::...
 #include "types/MathFunctions.h"  // for max, min
 #include "types/MultiArray.h"     // for operator<<
 
@@ -14,7 +14,7 @@
  * In variables: Uremap2, v, x_then_y_n
  * Out variables: V_nplus1, e_nplus1, rho_nplus1, x_then_y_nplus1
  */
-void Eucclhyd::remapCellcenteredVariable() noexcept {
+void Vnr::remapVariables() noexcept {
   ETOTALE_T = 0.;
   varlp->x_then_y_nplus1 = !(varlp->x_then_y_n);
   int nbmat = options->nbmat;
@@ -88,11 +88,11 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
           rho_np1 += fracvol(cCells)[imat] * rhop_np1[imat];
         }
 
-        RealArray1D<dim> V_np1 = {
-            {varlp->Uremap2(cCells)[3 * nbmat] / (rho_np1 * vol),
-             varlp->Uremap2(cCells)[3 * nbmat + 1] / (rho_np1 * vol)}};
+        // Vitesse aux noeuds
+	// RealArray1D<dim> V_np1 = {
+        //    {varlp->Uremap2(cCells)[3 * nbmat] / (rho_np1 * vol),
+        //     varlp->Uremap2(cCells)[3 * nbmat + 1] / (rho_np1 * vol)}};
 
-        // double e_np1 = Uremap2(cCells)[6] / (rho_np1 * vol);
         RealArray1D<nbmatmax> pesp_np1 = zeroVectmat;
         for (int imat = 0; imat < nbmat; imat++) {
           if ((fracvol(cCells)[imat] > options->threshold) &&
@@ -102,16 +102,16 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
         }
         rho_nplus1(cCells) = rho_np1;
         // vitesse
-        V_nplus1(cCells) = V_np1;
+        //V_nplus1(cCells) = V_np1;
         // energie
         e_nplus1(cCells) = 0.;
 
         // conservation energie totale avec (rho_np1 * vol) au lieu de masset
         // idem
-        double delta_ec(0.);
-        if (options->projectionConservative == 1)
-          delta_ec = varlp->Uremap2(cCells)[3 * nbmat + 2] / masset -
-                             0.5 * (V_np1[0] * V_np1[0] + V_np1[1] * V_np1[1]);
+        // double delta_ec(0.);
+        //if (options->projectionConservative == 1)
+        //  delta_ec = varlp->Uremap2(cCells)[3 * nbmat + 2] / masset -
+        //                     0.5 * (V_np1[0] * V_np1[0] + V_np1[1] * V_np1[1]);
 
         for (int imat = 0; imat < nbmat; imat++) {
           // densité
@@ -120,15 +120,15 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
           ep_nplus1(cCells)[imat] = pesp_np1[imat];
           // conservation energie totale
           // delta_ec : energie specifique
-          ep_nplus1(cCells)[imat] += delta_ec;
+          //ep_nplus1(cCells)[imat] += delta_ec(cCells);
           // energie interne totale
           e_nplus1(cCells) +=
               fracmass(cCells)[imat] * ep_nplus1(cCells)[imat];
         }
 
-        ETOT_T(cCells) =
-            (rho_np1 * vol) * e_nplus1(cCells) +
-            0.5 * (rho_np1 * vol) * (V_np1[0] * V_np1[0] + V_np1[1] * V_np1[1]);
+	// ETOT_T(cCells) =
+        //    (rho_np1 * vol) * e_nplus1(cCells) +
+        //    0.5 * (rho_np1 * vol) * (V_np1[0] * V_np1[0] + V_np1[1] * V_np1[1]);
         MTOT_T(cCells) = 0.;
         for (int imat = 0; imat < nbmat; imat++)
           MTOT_T(cCells) +=
@@ -185,23 +185,10 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
         fracvol2(cCells) = fracvol(cCells)[1];
         fracvol3(cCells) = fracvol(cCells)[2];
         // pression
-        p1(cCells) = pp(cCells)[0];
-        p2(cCells) = pp(cCells)[1];
-        p3(cCells) = pp(cCells)[2];
-        // sorties paraview limitées
-        if (V_nplus1(cCells)[0] > 0.)
-          Vxc(cCells) =
-              MathFunctions::max(V_nplus1(cCells)[0], options->threshold);
-        if (V_nplus1(cCells)[0] < 0.)
-          Vxc(cCells) =
-              MathFunctions::min(V_nplus1(cCells)[0], -options->threshold);
-
-        if (V_nplus1(cCells)[1] > 0.)
-          Vyc(cCells) =
-              MathFunctions::max(V_nplus1(cCells)[1], options->threshold);
-        if (V_nplus1(cCells)[1] < 0.)
-          Vyc(cCells) =
-              MathFunctions::min(V_nplus1(cCells)[1], -options->threshold);
+        p1(cCells) = pp_nplus1(cCells)[0];
+        p2(cCells) = pp_nplus1(cCells)[1];
+        p3(cCells) = pp_nplus1(cCells)[2];
+        
       });
   double reductionE(0.), reductionM(0.);
   {

@@ -50,9 +50,12 @@ int main(int argc, char* argv[]) {
     //delete c;
   
   } else if (scheme->schema == scheme->VNR) {
-    auto c = new Vnr(o, cstmesh, gt, test, cl, lim, part, eos, nm, output);
+    auto varlp = new variableslagremaplib::VariablesLagRemap(nm);
+    auto proj =  new Remap(o, cstmesh, gt, cl, lim, nm, varlp);
+    auto c = new Vnr(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, output);
     c->simulate();
-    delete c;
+    delete varlp;
+    //delete c;
   }
   delete o;
   // delete nm;

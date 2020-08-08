@@ -7,6 +7,8 @@ target_sources( ${LIBRARY_NAME}
        Init.cc
        ConditionsLimites.cc
        PhaseLagrange.cc
+       PrepareRemap.cc
+       PhaseRemapFinal.cc
 )
 target_include_directories( ${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} )
 if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )

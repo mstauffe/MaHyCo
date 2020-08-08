@@ -430,6 +430,14 @@ void Remap::computeUremap1() noexcept {
             size_t fId(fCommonFaceCD);
             int fFaces(utils::indexOf(mesh->getFaces(), fId));
             int fFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), fId));
+	    // stockage des flux aux faces pour la quantite de mouvement de Vnr
+	    FluxFace1(fFaces) = computeRemapFlux(
+                                options->projectionOrder,
+                                limiteurs->projectionAvecPlateauPente,
+                                varlp->faceNormalVelocity(fFaces), varlp->faceNormal(fFaces),
+                                varlp->faceLength(fFaces), phiFace1(fFaces),
+                                varlp->outerFaceNormal(cCells, fFacesOfCellC), exy,
+                                gt->deltat_n);
             reduction8 =  reduction8 + (computeRemapFlux(
                                 options->projectionOrder,
                                 limiteurs->projectionAvecPlateauPente,
@@ -437,7 +445,6 @@ void Remap::computeUremap1() noexcept {
                                 varlp->faceLength(fFaces), phiFace1(fFaces),
                                 varlp->outerFaceNormal(cCells, fFacesOfCellC), exy,
                                 gt->deltat_n));
-	    
           }
           if (cdl->FluxBC > 0) {
             // flux exterieur eventuel

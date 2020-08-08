@@ -91,7 +91,7 @@ class Eucclhyd {
   Kokkos::View<RealArray1D<nbmatmax>*> pp;
   Kokkos::View<double*> m;
   Kokkos::View<RealArray1D<nbmatmax>*> mp;
-  Kokkos::View<double*> v;
+  Kokkos::View<double*> volE;
   Kokkos::View<RealArray1D<nbmatmax>*> vpLagrange;
   Kokkos::View<double*> perim;
   Kokkos::View<double*> vitson;
@@ -117,13 +117,12 @@ class Eucclhyd {
   Kokkos::View<RealArray1D<dim>*> V_n0;
   Kokkos::View<double*> Vxc;
   Kokkos::View<double*> Vyc;
-  Kokkos::View<double*> eps_n;
-  Kokkos::View<double*> eps_nplus1;
-  Kokkos::View<double*> eps_n0;
-  Kokkos::View<double*> delta_ec;
-  Kokkos::View<RealArray1D<nbmatmax>*> epsp_n;
-  Kokkos::View<RealArray1D<nbmatmax>*> epsp_nplus1;
-  Kokkos::View<RealArray1D<nbmatmax>*> epsp_n0;
+  Kokkos::View<double*> e_n;
+  Kokkos::View<double*> e_nplus1;
+  Kokkos::View<double*> e_n0;
+  Kokkos::View<RealArray1D<nbmatmax>*> ep_n;
+  Kokkos::View<RealArray1D<nbmatmax>*> ep_nplus1;
+  Kokkos::View<RealArray1D<nbmatmax>*> ep_n0;
   Kokkos::View<double**> p_extrap;
   Kokkos::View<RealArray1D<nbmatmax>**> pp_extrap;
   Kokkos::View<RealArray1D<dim>**> V_extrap;
@@ -257,7 +256,7 @@ class Eucclhyd {
         pp("pp", nbCells),
         m("m", nbCells),
         mp("mp", nbCells),
-        v("v", nbCells),
+        volE("volE", nbCells),
         fracmass("fracmass", nbCells),
         fracvol("fracvol", nbCells),
         fracvolnode("fracvolnode", nbNodes),
@@ -289,13 +288,12 @@ class Eucclhyd {
         V_n0("V_n0", nbCells),
         Vxc("Vxc", nbCells),
         Vyc("Vyc", nbCells),
-        eps_n("eps_n", nbCells),
-        eps_nplus1("eps_nplus1", nbCells),
-        eps_n0("eps_n0", nbCells),
-        epsp_n("epsp_n", nbCells),
-        epsp_nplus1("epsp_nplus1", nbCells),
-        epsp_n0("epsp_n0", nbCells),
-        delta_ec("delta_ec", nbCells),
+        e_n("e_n", nbCells),
+        e_nplus1("e_nplus1", nbCells),
+        e_n0("e_n0", nbCells),
+        ep_n("ep_n", nbCells),
+        ep_nplus1("ep_nplus1", nbCells),
+        ep_n0("ep_n0", nbCells),
         p_extrap("p_extrap", nbCells, nbNodesOfCell),
         pp_extrap("pp_extrap", nbCells, nbNodesOfCell),
         V_extrap("V_extrap", nbCells, nbNodesOfCell),
@@ -389,7 +387,7 @@ class Eucclhyd {
   
   /**
    * Job dumpVariables called @2.0 in executeTimeLoopN method.
-   * In variables: Xc_x, Xc_y, eps_n, m, p, rho_n, t_n, v
+   * In variables: Xc_x, Xc_y, e_n, m, p, rho_n, t_n, v
    * Out variables:
    */
   void dumpVariables() noexcept;
@@ -399,7 +397,7 @@ class Eucclhyd {
    * In variables: F_n, F_nplus1, G, M, Mnode, ULagrange, Uremap1, Uremap2,
    * V_extrap, V_n, Vnode_n, Vnode_nplus1, X, XLagrange, Xc, XcLagrange, Xc_x,
    * Xc_y, Xf, bottomBC, bottomBCValue, c, cfl, deltat_n, deltat_nplus1,
-   * deltatc, deltaxLagrange, eos, eosPerfectGas, eps_n, faceLength, faceNormal,
+   * deltatc, deltaxLagrange, eos, eosPerfectGas, e_n, faceLength, faceNormal,
    * faceNormalVelocity, gamma, gradPhi1, gradPhi2, gradPhiFace1, gradPhiFace2,
    * gradV, gradp, leftBC, leftBCValue, lminus, lpc_n, lplus, m, nminus, nplus,
    * outerFaceNormal, p, p_extrap, perim, phiFace1, phiFace2,
@@ -407,7 +405,7 @@ class Eucclhyd {
    * spaceOrder, t_n, topBC, topBCValue, v, vLagrange, x_then_y_n Out variables:
    * F_nplus1, G, M, Mnode, ULagrange, Uremap1, Uremap2, V_extrap, V_nplus1,
    * Vnode_nplus1, XLagrange, XcLagrange, c, deltat_nplus1, deltatc,
-   * deltaxLagrange, eps_nplus1, faceNormalVelocity, gradPhi1, gradPhi2,
+   * deltaxLagrange, e_nplus1, faceNormalVelocity, gradPhi1, gradPhi2,
    * gradPhiFace1, gradPhiFace2, gradV, gradp, m, p, p_extrap, phiFace1,
    * phiFace2, rho_nplus1, t_nplus1, vLagrange, x_then_y_nplus1
    */

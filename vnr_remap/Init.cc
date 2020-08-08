@@ -3,6 +3,8 @@
 using namespace nablalib;
 
 #include "../includes/Freefunctions.h"
+#include "types/MathFunctions.h"    // for max, norm, dot
+#include "utils/Utils.h"            // for indexOf
 
 void Vnr::initBoundaryConditions() noexcept {
   if (test->Nom == test->SodCaseX || test->Nom == test->BiSodCaseX) {
@@ -123,7 +125,30 @@ void Vnr::init() noexcept
   } else {
     std::cout << "Pas d'autres cas test que SODX ou SODY" << std::endl;
     exit(1);
-  }							     
+  }
+   Kokkos::parallel_for("init", nbCells, KOKKOS_LAMBDA(const int& cCells)
+       {
+         // pour les sorties au temps 0:
+	 fracvol1(cCells) = fracvol(cCells)[0];
+	 fracvol2(cCells) = fracvol(cCells)[1];
+	 fracvol3(cCells) = fracvol(cCells)[2];
+	 // indicateur mailles mixtes
+	 int matcell(0);
+	 int imatpure(-1);
+	 for (int imat = 0; imat < nbmatmax; imat++)
+	   if (fracvol(cCells)[imat] > options->threshold) {
+	     matcell++;
+	     imatpure = imat;
+	   }
+	 
+	 if (matcell > 1) {
+	   varlp->mixte(cCells) = 1;
+	   varlp->pure(cCells) = -1;
+	 } else {
+	   varlp->mixte(cCells) = 0;
+	   varlp->pure(cCells) = imatpure;
+	 }
+       });
 }
 /**
  * Job initSubVol called @2.0 in simulate method.
@@ -235,4 +260,46 @@ void Vnr::initCellPos() noexcept
 		}
 		cellPos_n0(cCells) = 0.25 * reduction0;
 	});
+}
+/**
+ * Job initMeshGeometryForFaces called @2.0 in simulate method.
+ * In variables: X, Xc, ex, ey, threshold
+ * Out variables: Xf, faceLength, faceNormal, outerFaceNormal
+ */
+void Vnr::initMeshGeometryForFaces() noexcept {
+  auto faces(mesh->getFaces());
+  Kokkos::parallel_for(
+      "initMeshGeometryForFaces", nbFaces, KOKKOS_LAMBDA(const int& fFaces) {
+        size_t fId(faces[fFaces]);
+        int n1FirstNodeOfFaceF(mesh->getFirstNodeOfFace(fId));
+        int n1Id(n1FirstNodeOfFaceF);
+        int n1Nodes(n1Id);
+        int n2SecondNodeOfFaceF(mesh->getSecondNodeOfFace(fId));
+        int n2Id(n2SecondNodeOfFaceF);
+        int n2Nodes(n2Id);
+        RealArray1D<dim> X_face = (0.5 * ((X_n0(n1Nodes) + X_n0(n2Nodes))));
+        RealArray1D<dim> face_vec = (X_n0(n2Nodes) - X_n0(n1Nodes));
+        varlp->Xf(fFaces) = X_face;
+        varlp->faceLength(fFaces) = MathFunctions::norm(face_vec);
+        {
+          auto cellsOfFaceF(mesh->getCellsOfFace(fId));
+          for (int cCellsOfFaceF = 0; cCellsOfFaceF < cellsOfFaceF.size();
+               cCellsOfFaceF++) {
+            int cId(cellsOfFaceF[cCellsOfFaceF]);
+            int cCells(cId);
+            int fFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), fId));
+            varlp->outerFaceNormal(cCells, fFacesOfCellC) = (
+                ((X_face - cellPos_n0(cCells))) / MathFunctions::norm((X_face - cellPos_n0(cCells))));
+          }
+        }
+        RealArray1D<dim> face_normal;
+        if (MathFunctions::fabs(dot(face_vec, ex)) <
+            options->threshold)
+          face_normal = ex;
+        else
+          face_normal = ey;
+        varlp->faceNormal(fFaces) = face_normal;
+	//std::cout << nbFaces << " "
+	//	  <<  varlp->faceNormal(fFaces) << std::endl;
+      });
 }

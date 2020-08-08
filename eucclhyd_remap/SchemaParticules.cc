@@ -78,18 +78,18 @@ void Eucclhyd::updateParticleCoefficients() noexcept {
       "updateParticleCoefficient", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         fracpart(cCells) = 1.;
         for (int ipart = 0; ipart < listpart(cCells).size(); ipart++) {
-          fracpart(cCells) -= wpart(ipart) * vpart(ipart) / v(cCells);
+          fracpart(cCells) -= wpart(ipart) * vpart(ipart) / volE(cCells);
           fracpart(cCells) = max(fracpart(cCells), 0.);
           if (fracpart(cCells) == 0.) {
             std::cout << cCells << "  " << listpart(cCells).size() << " v "
-                      << v(cCells) << " " << fracpart(cCells) << std::endl;
+                      << volE(cCells) << " " << fracpart(cCells) << std::endl;
             std::cout << " Plus de gaz dans la maille -> fin du calcul "
                       << std::endl;
             exit(1);
           }
         }
         // if (listpart(cCells).size() > 0) std::cout << cCells << "  " <<
-        // listpart(cCells).size() << " v " << v(cCells) << " " <<
+        // listpart(cCells).size() << " v " << volE(cCells) << " " <<
         // fracpart(cCells) << std::endl;
       });
 

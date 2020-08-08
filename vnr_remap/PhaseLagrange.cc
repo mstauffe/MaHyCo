@@ -235,6 +235,7 @@ void Vnr::updateRho() noexcept
 				reduction0 = sumR0(reduction0, SubVol_nplus1(cCells,pNodesOfCellC));
 			}
 		}
+		varlp->vLagrange(cCells) = reduction0;
 		rho_nplus1(cCells) = 0.;
 		for (int imat = 0; imat < options->nbmat; ++imat) {
 		  if (fracvol(cCells)[imat] > options->threshold) 
@@ -326,7 +327,7 @@ void Vnr::computeEOS() {
 }
 /**
  * Job computeEOSGP called @1.0 in executeTimeLoopN method.
- * In variables: eos, eosPerfectGas, eps_n, gammap, rho_n
+ * In variables: eos, eosPerfectGas, e_n, gammap, rho_n
  * Out variables: c, p
  */
 void Vnr::computeEOSGP(int imat)  {
@@ -338,7 +339,7 @@ void Vnr::computeEOSGP(int imat)  {
 }
 /**
  * Job computeEOSVoid called in executeTimeLoopN method.
- * In variables: eos, eosPerfectGas, eps_n, gammap, rho_n
+ * In variables: eos, eosPerfectGas, e_n, gammap, rho_n
  * Out variables: c, p
  */
 void Vnr::computeEOSVoid(int imat) {
@@ -349,7 +350,7 @@ void Vnr::computeEOSVoid(int imat) {
 }
 /**
  * Job computeEOSSTIFG
- * In variables: eps_n, rho_n
+ * In variables: e_n, rho_n
  * Out variables: c, p
  */
 void Vnr::computeEOSSTIFG(int imat) {
@@ -359,7 +360,7 @@ void Vnr::computeEOSSTIFG(int imat) {
 }
 /**
  * Job computeEOSMur called @1.0 in executeTimeLoopN method.
- * In variables: eps_n, rho_n
+ * In variables: e_n, rho_n
  * Out variables: c, p
  */
 void Vnr::computeEOSMur(int imat) {
@@ -369,7 +370,7 @@ void Vnr::computeEOSMur(int imat) {
 }
 /**
  * Job computeEOSSL called @1.0 in executeTimeLoopN method.
- * In variables: eps_n, rho_n
+ * In variables: e_n, rho_n
  * Out variables: c, p
  */
 void Vnr::computeEOSSL(int imat) {

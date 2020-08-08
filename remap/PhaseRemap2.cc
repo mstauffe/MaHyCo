@@ -420,6 +420,14 @@ void Remap::computeUremap2() noexcept {
             size_t fId(fCommonFaceCD);
             int fFaces(utils::indexOf(mesh->getFaces(), fId));
             int fFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), fId));
+	    // stockage des flux aux faces pour la quantite de mouvement de Vnr
+	    FluxFace2(fFaces) = (computeRemapFlux(
+                                options->projectionOrder,
+                                limiteurs->projectionAvecPlateauPente,
+                                varlp->faceNormalVelocity(fFaces), varlp->faceNormal(fFaces),
+                                varlp->faceLength(fFaces), phiFace2(fFaces),
+                                varlp->outerFaceNormal(cCells, fFacesOfCellC), exy,
+                                gt->deltat_n));
             reduction9 = 
                 reduction9 + (computeRemapFlux(
                                 options->projectionOrder,
@@ -427,7 +435,7 @@ void Remap::computeUremap2() noexcept {
                                 varlp->faceNormalVelocity(fFaces), varlp->faceNormal(fFaces),
                                 varlp->faceLength(fFaces), phiFace2(fFaces),
                                 varlp->outerFaceNormal(cCells, fFacesOfCellC), exy,
-                                gt->deltat_n));
+                                gt->deltat_n));	    
             //
 
             //

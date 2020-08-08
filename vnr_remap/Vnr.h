@@ -26,6 +26,7 @@
 #include "../includes/GestionTemps.h"
 #include "../includes/Limiteurs.h"
 #include "../includes/SchemaParticules.h"
+#include "../includes/VariablesLagRemap.h"
 
 #include "mesh/CartesianMesh2D.h" // for CartesianMesh2D, CartesianM...
 #include "mesh/PvdFileWriter2D.h" // for PvdFileWriter2D
@@ -33,6 +34,9 @@
 
 #include "types/Types.h"  // for RealArray1D, RealArray2D
 #include "utils/Timer.h"  // for Timer
+
+#include "../remap/Remap.h"
+
 using namespace nablalib;
 
 /******************** Free functions declarations ********************/
@@ -81,6 +85,8 @@ private:
 	eoslib::EquationDetat::Eos* eos;
 	cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh;
 	gesttempslib::GestionTempsClass::GestTemps* gt;
+	variableslagremaplib::VariablesLagRemap* varlp;
+	Remap* remap;
 	PvdFileWriter2D writer;
         int nbPartMax;
         int nbPart = 0;
@@ -88,10 +94,9 @@ private:
 	
 	// Global declarations	
 	int n, nbCalls;
-	//bool x_then_y_n, x_then_y_nplus1;
 	double lastDump;
-	//double ETOTALE_L, ETOTALE_T, ETOTALE_0;
-	//double MASSET_L, MASSET_T, MASSET_0;
+	double ETOTALE_L, ETOTALE_T, ETOTALE_0;
+	double MASSET_L, MASSET_T, MASSET_0;
 	
 	Kokkos::View<RealArray1D<dim>*> X_n;
 	Kokkos::View<RealArray1D<dim>*> X_nplus1;
@@ -100,6 +105,13 @@ private:
 	Kokkos::View<double**> SubVol_nplus1;
 	Kokkos::View<double**> SubVol_n0;
 	Kokkos::View<double*> V;
+        Kokkos::View<double*> volE;
+	Kokkos::View<double*> ETOT_0;
+	Kokkos::View<double*> ETOT_T;
+	Kokkos::View<double*> ETOT_L;
+	Kokkos::View<double*> MTOT_0;
+	Kokkos::View<double*> MTOT_T;
+	Kokkos::View<double*> MTOT_L;
 	Kokkos::View<double*> rho_n;
 	Kokkos::View<double*> rho_nplus1;
 	Kokkos::View<double*> rho_n0;
@@ -152,6 +164,12 @@ private:
 	Kokkos::View<RealArray1D<nbmatmax>*> fracmass;
 	Kokkos::View<RealArray1D<nbmatmax>*> fracvol;
 	Kokkos::View<RealArray1D<nbmatmax>*> fracvolnode;
+	Kokkos::View<double*> fracvol1;
+	Kokkos::View<double*> fracvol2;
+	Kokkos::View<double*> fracvol3;
+	Kokkos::View<double*> p1;
+	Kokkos::View<double*> p2;
+	Kokkos::View<double*> p3;
 	
 	utils::Timer global_timer;
 	utils::Timer cpu_timer;
@@ -170,6 +188,8 @@ private:
       limiteurslib::LimiteursClass::Limiteurs* aLimiteurs,
       particulelib::SchemaParticules::Particules* aParticules,
       eoslib::EquationDetat::Eos* aEos, CartesianMesh2D* aCartesianMesh2D,
+      variableslagremaplib::VariablesLagRemap* avarlp,
+      Remap* aremap,
       string output)
   : options(aOptions),
     cstmesh(acstmesh),
@@ -180,6 +200,8 @@ private:
     particules(aParticules),
     eos(aEos),
     mesh(aCartesianMesh2D),
+    varlp(avarlp),
+    remap(aremap),
     nbCalls(0),
     lastDump(0.0),
     writer("VnrRemap", output),
@@ -194,6 +216,12 @@ private:
     SubVol_nplus1("SubVol_nplus1", nbCells, nbNodesOfCell),
     SubVol_n0("SubVol_n0", nbCells, nbNodesOfCell),
     V("V", nbNodes),
+    ETOT_0("ETOT_0", nbCells),
+    ETOT_T("ETOT_T", nbCells),
+    ETOT_L("ETOT_L", nbCells),
+    MTOT_0("MTOT_0", nbCells),
+    MTOT_T("MTOT_T", nbCells),
+    MTOT_L("MTOT_L", nbCells),
     rho_n("rho_n", nbCells),
     rho_nplus1("rho_nplus1", nbCells),
     rho_n0("rho_n0", nbCells),
@@ -203,6 +231,9 @@ private:
     p_n("p_n", nbCells),
     p_nplus1("p_nplus1", nbCells),
     p_n0("p_n0", nbCells),
+    p1("p1", nbCells),
+    p2("p2", nbCells),
+    p3("p3", nbCells),
     pp_n("pp_n", nbCells),
     pp_nplus1("pp_nplus1", nbCells),
     pp_n0("pp_n0", nbCells),
@@ -242,9 +273,13 @@ private:
     cellPos_n("cellPos_n", nbCells),
     cellPos_nplus1("cellPos_nplus1", nbCells),
     cellPos_n0("cellPos_n0", nbCells),
+    volE("volE", nbCells),
     fracmass("fracmass", nbCells),
     fracvol("fracvol", nbCells),
     fracvolnode("fracvolnode", nbNodes),
+    fracvol1("fracvol1", nbCells),
+    fracvol2("fracvol2", nbCells),
+    fracvol3("fracvol3", nbCells),
     C("C", nbCells, nbNodesOfCell) {
   // Copy node coordinates
   const auto& gNodes = mesh->getGeometry()->getNodes();
@@ -283,6 +318,8 @@ private:
 	void initInternalEnergy() noexcept;
 	
 	void initPseudo() noexcept;
+	
+	void initMeshGeometryForFaces() noexcept;
 
 	// dans PhaseLagrange.cc
 	
@@ -319,8 +356,12 @@ private:
 	void computePressionMoyenne() noexcept;
 
 	void updateVelocityBoundaryConditions() noexcept;
+	void computeVariablesForRemap() noexcept;
+	void computeFaceQuantitesForRemap() noexcept;
+	void computeCellQuantitesForRemap() noexcept;
+	void remapVariables() noexcept;
 
-public:
+public: 
 	void simulate();
 };
 
