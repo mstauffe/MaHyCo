@@ -347,5 +347,40 @@ CartesianMesh2D::cellsOfNodeCollection(const vector<Id>& nodes)
   cells.erase(std::unique(cells.begin(), cells.end()), cells.end());
   return cells;
 }
+Id CartesianMesh2D::getLeftNode(const int node) const noexcept
+{
+   size_t i,j;
+   tie(i,j) = id2IndexNode(node);
+   if (j!=0)
+      return index2IdNode(i,j-1);
+   else return -1;
+}
+Id CartesianMesh2D::getRightNode(const int node) const noexcept
+{
+   size_t i,j;
+   tie(i,j) = id2IndexNode(node); 
+   if (j!=(m_nb_x_quads)) {
+     return index2IdNode(i,j+1);
+   } else return -1;
+   
+}
+Id
+CartesianMesh2D::getBottomNode(const int node) const noexcept
+{
+   size_t i,j;
+   tie(i,j) = id2IndexNode(node);
+   if (i!=0)
+     return index2IdNode(i-1,j);
+   else return -1;
+}
+Id CartesianMesh2D::getTopNode(const int node) const noexcept
+{
+   size_t i,j;
+   tie(i,j) = id2IndexNode(node);
+   if (i!=(m_nb_y_quads))
+     return index2IdNode(i+1,j);
+   else return -1;
+   
+}
 
 }

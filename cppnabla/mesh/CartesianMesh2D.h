@@ -130,6 +130,11 @@ public:
 	Id getLeftFaceOfCell(const Id& cellId) const noexcept;
 	Id getRightFaceOfCell(const Id& cellId) const noexcept;
 	Id getTopFaceOfCell(const Id& cellId) const noexcept;
+
+	Id getLeftNode(const int node) const noexcept;
+	Id getRightNode(const int node) const noexcept;
+	Id getBottomNode(const int node) const noexcept;
+	Id getTopNode(const int node) const noexcept;
   
 private:
 	inline Id index2IdCell(const size_t& i, const size_t& j) const noexcept;

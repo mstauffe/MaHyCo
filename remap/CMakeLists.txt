@@ -5,6 +5,8 @@ target_sources( ${LIBRARY_NAME}
     PRIVATE
         PhaseRemap1.cc
         PhaseRemap2.cc
+        DualPhaseRemap1.cc
+        DualPhaseRemap2.cc
         UtilesRemap.cc
 	UtilesMesh.cc
 	BoundaryFluxes.cc

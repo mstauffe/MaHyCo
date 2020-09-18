@@ -41,8 +41,8 @@ class LectureDonneesClass {
   {
     {"Eucclhyd", 2000},
       {"VNR", 2001},
-       {"CSTS", 2002},
-	 {"MYR", 2003}
+	{"CSTS", 2002},
+	  {"MYR", 2003}	   
   };
 
   std::unordered_map<string, int> limiteur{

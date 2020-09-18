@@ -154,6 +154,8 @@ private:
 	Kokkos::View<RealArray1D<dim>*> u_n;
 	Kokkos::View<RealArray1D<dim>*> u_nplus1;
 	Kokkos::View<RealArray1D<dim>*> u_n0;
+	Kokkos::View<double*> ux;
+	Kokkos::View<double*> uy;
 	Kokkos::View<double*> m;
 	Kokkos::View<double*> cellMass;
 	Kokkos::View<RealArray1D<nbmatmax>*> cellMassp;
@@ -207,6 +209,7 @@ private:
     writer("VnrRemap", output),
     nbNodes(mesh->getNbNodes()),
     nbCells(mesh->getNbCells()),
+    nbFaces(mesh->getNbFaces()),
     nbNodesOfCell(CartesianMesh2D::MaxNbNodesOfCell),
     nbCellsOfNode(CartesianMesh2D::MaxNbCellsOfNode),
     X_n("X_n", nbNodes),
@@ -267,6 +270,8 @@ private:
     u_n("u_n", nbNodes),
     u_nplus1("u_nplus1", nbNodes),
     u_n0("u_n0", nbNodes),
+    ux("ux", nbNodes),
+    uy("uy", nbNodes),
     m("m", nbNodes),
     cellMass("cellMass", nbCells),
     cellMassp("cellMassp", nbCells),
@@ -332,6 +337,8 @@ private:
 	void computeCellMass() noexcept;
 		
 	void updatePosition() noexcept;
+
+	void updateCellPos() noexcept;
 		
 	void computeNodeMass() noexcept;
 	

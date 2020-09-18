@@ -7,7 +7,7 @@ using namespace nablalib;
 #include "utils/Utils.h"            // for indexOf
 
 void Vnr::initBoundaryConditions() noexcept {
-  if (test->Nom == test->SodCaseX || test->Nom == test->BiSodCaseX) {
+  if (test->Nom == test->SodCaseX || test->Nom == test->BiSodCaseX){
     // maillage 200 5 0.005 0.02
     cdl->leftBC = cdl->symmetry;
     cdl->leftBCValue = ey;
@@ -35,6 +35,36 @@ void Vnr::initBoundaryConditions() noexcept {
     cdl->bottomBC = cdl->symmetry;
     cdl->bottomBCValue = ex;
   }
+  if (test->Nom == test->UnitTestCase  || test->Nom == test->BiUnitTestCase) {
+    cdl->rightBC = cdl->imposedVelocity;
+    cdl->rightBCValue = {{1.0, 0.0}};
+    
+    cdl->leftBC = cdl->imposedVelocity;
+    cdl->leftBCValue = {{1.0, 0.0}};
+    cdl->leftFluxBC = 1;
+    cdl->leftFluxBCValue = {
+        {1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
+    
+    cdl->bottomBC = cdl->imposedVelocity;
+    cdl->bottomBCValue = {{1.0, 0.0}};
+    
+    cdl->topBC = cdl->imposedVelocity;
+    cdl->topBCValue = {{1.0, 0.0}};
+    
+    //cdl->leftBC = cdl->symmetry;
+    //cdl->leftBCValue = ey;
+
+    //cdl->rightBC = cdl->symmetry;
+    //cdl->rightBCValue = ey;
+
+    //cdl->topBC = cdl->symmetry;
+    //cdl->topBCValue = ex;
+
+    //cdl->bottomBC = cdl->symmetry;
+    //cdl->bottomBCValue = ex;
+  }
+   cdl->FluxBC =
+      cdl->leftFluxBC + cdl->rightFluxBC + cdl->bottomFluxBC + cdl->topFluxBC;
 }
 
 /**
@@ -64,27 +94,28 @@ void Vnr::init() noexcept
 	      fracmass(cCells)[0] = 1.;
 	      rho_n0(cCells) = 1.0;
 	      p_n0(cCells) = 1.0;
-	      c_n0(cCells) = std::sqrt(eos->gamma);
 	      rhop_n0(cCells)[0] = 1.0;
 	      pp_n0(cCells)[0] = 1.0;
-	      cp_n0(cCells)[0] = std::sqrt(eos->gamma);
 	    }
 	  else
 	    {
 	      fracvol(cCells)[0] = 1.;
 	      fracmass(cCells)[0] = 1.;
-	      rho_n0(cCells) = 0.1;
-	      p_n0(cCells) = 0.125;
-	      c_n0(cCells) = std::sqrt(eos->gamma * 0.125 / 0.1);
-	      rhop_n0(cCells)[0] = 0.1;
-	      pp_n0(cCells)[0] = 0.125;
-	      cp_n0(cCells)[0] = std::sqrt(eos->gamma * 0.125 / 0.1);
-	    }
-	  for (size_t pNodes=0; pNodes<nbNodes; pNodes++)
-	    {
-	      u_n0(pNodes) = {0.0, 0.0};
-	    }
+	      rho_n0(cCells) = 0.125;
+	      p_n0(cCells) = 0.1;
+	      rhop_n0(cCells)[0] = 0.125;
+	      pp_n0(cCells)[0] = 0.1;
+	    }	  
+	  cp_n0(cCells)[0] = std::sqrt(eos->gamma * rhop_n0(cCells)[0] / pp_n0(cCells)[0]);
+	  c_n0(cCells) = cp_n0(cCells)[0];
 	});
+    for (size_t pNodes=0; pNodes<nbNodes; pNodes++)
+      {
+	u_n0(pNodes) = {0.0, 0.0};
+	
+	ux(pNodes) = u_n0(pNodes)[0];
+	uy(pNodes) = u_n0(pNodes)[1];
+      }
   } else if (test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
     Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
 	{
@@ -99,10 +130,8 @@ void Vnr::init() noexcept
 	      fracmass(cCells)[1] = 0.;
 	      rho_n0(cCells) = 1.0;
 	      p_n0(cCells) = 1.0;
-	      c_n0(cCells) = std::sqrt(eos->gamma);
 	      rhop_n0(cCells)[0] = 1.0;
 	      pp_n0(cCells)[0] = 1.0;
-	      cp_n0(cCells)[0] = std::sqrt(eos->gamma);
 	    }
 	  else
 	    {
@@ -110,23 +139,68 @@ void Vnr::init() noexcept
 	      fracvol(cCells)[1] = 1.;
 	      fracmass(cCells)[0] = 0.;
 	      fracmass(cCells)[1] = 1.;
-	      rho_n0(cCells) = 0.1;
-	      p_n0(cCells) = 0.125;
-	      c_n0(cCells) = std::sqrt(eos->gamma * 0.125 / 0.1);
-	      rhop_n0(cCells)[1] = 0.1;
-	      pp_n0(cCells)[1] = 0.125;
-	      cp_n0(cCells)[1] = std::sqrt(eos->gamma * 0.125 / 0.1);
+	      rho_n0(cCells) = 0.125;
+	      p_n0(cCells) = 0.1;
+	      rhop_n0(cCells)[1] = 0.125;
+	      pp_n0(cCells)[1] = 0.1;
 	    }
-	  for (size_t pNodes=0; pNodes<nbNodes; pNodes++)
+	  cp_n0(cCells)[0] = std::sqrt(eos->gamma * rhop_n0(cCells)[0] / pp_n0(cCells)[0]);
+	  cp_n0(cCells)[1] = std::sqrt(eos->gamma * rhop_n0(cCells)[1] / pp_n0(cCells)[1]);
+	  c_n0(cCells) = min(cp_n0(cCells)[0], cp_n0(cCells)[1]);
+	});
+        for (size_t pNodes=0; pNodes<nbNodes; pNodes++)
 	    {
 	      u_n0(pNodes) = {0.0, 0.0};
+	
+	      ux(pNodes) = u_n0(pNodes)[0];
+	      uy(pNodes) = u_n0(pNodes)[1];
 	    }
+  } else if (test->Nom == test->UnitTestCase  || test->Nom == test->BiUnitTestCase) {
+    Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
+	{	 
+	  fracvol(cCells)[0] = 1.;
+	  fracvol(cCells)[1] = 0.;
+	  fracmass(cCells)[0] = 1.;
+	  fracmass(cCells)[1] = 0.;
+	  p_n0(cCells) = 1.0;
+	  pp_n0(cCells)[0] = 1.0;
+	  pp_n0(cCells)[1] = 0.0;
+	  c_n0(cCells) = std::sqrt(eos->gamma);
+	  cp_n0(cCells)[0] = std::sqrt(eos->gamma);
+	  cp_n0(cCells)[1] = std::sqrt(eos->gamma);
+	  rhop_n0(cCells)[1] = 0.;
+	  double r(0.);
+	  r = cellPos_n0(cCells)[0];
+	  if (r < 0.4) 
+	    {
+	      rho_n0(cCells) = 1.;
+	      rhop_n0(cCells)[0] = 1.;
+	    } else if (r > 0.4) {
+	    rho_n0(cCells) = 0.1;
+	    rhop_n0(cCells)[0] = 0.1;
+	  }
+	  if (r > 0.6) {
+	    rho_n0(cCells) = 0.1;
+	    rhop_n0(cCells)[0] = 0.1;
+	  }
+	    
+	      
 	});
+    for (size_t pNodes=0; pNodes<nbNodes; pNodes++)
+      {
+	if (X_n0(pNodes)[0] < 0.5) 
+	  u_n0(pNodes) = {1.0, 0.0};
+	else
+	  u_n0(pNodes) = {1.0, 0.0};
+	
+	ux(pNodes) = u_n0(pNodes)[0];
+	uy(pNodes) = u_n0(pNodes)[1];
+      }
   } else {
-    std::cout << "Pas d'autres cas test que SODX ou SODY" << std::endl;
+    std::cout << "Cas test inconnu " << std::endl;
     exit(1);
   }
-   Kokkos::parallel_for("init", nbCells, KOKKOS_LAMBDA(const int& cCells)
+  Kokkos::parallel_for("init", nbCells, KOKKOS_LAMBDA(const int& cCells)
        {
          // pour les sorties au temps 0:
 	 fracvol1(cCells) = fracvol(cCells)[0];
@@ -178,6 +252,7 @@ void Vnr::initSubVol() noexcept
 				SubVol_n0(cCells,pNodesOfCellC) = 0.5 * (crossProduct2d(x1, x2) + crossProduct2d(x2, x3) + crossProduct2d(x3, x4) + crossProduct2d(x4, x1));
 			}
 		}
+		volE(cCells) = cstmesh->X_EDGE_LENGTH * cstmesh->Y_EDGE_LENGTH;
 	});
 }
 /**
@@ -202,7 +277,8 @@ void Vnr::initDeltaT() noexcept
 		}
 		accu = minR0(accu, 0.1 * std::sqrt(reduction1) / c_n0(cCells));
 	}, KokkosJoiner<double>(reduction0, numeric_limits<double>::max(), &minR0));
-	gt->deltat_init = reduction0 * 1.0E-6;
+	  gt->deltat_init = reduction0 * 1.0E-6;
+;
 }
 /**
  * Job initInternalEnergy called @3.0 in simulate method.
@@ -298,8 +374,7 @@ void Vnr::initMeshGeometryForFaces() noexcept {
           face_normal = ex;
         else
           face_normal = ey;
+	
         varlp->faceNormal(fFaces) = face_normal;
-	//std::cout << nbFaces << " "
-	//	  <<  varlp->faceNormal(fFaces) << std::endl;
       });
 }

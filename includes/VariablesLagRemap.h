@@ -28,7 +28,7 @@ class VariablesLagRemap {
   
  public: 
   Kokkos::View<RealArray1D<nbequamax>*> Phi;
-  Kokkos::View<RealArray1D<nbequamax>*> PhiDual;
+  Kokkos::View<RealArray1D<nbequamax>*> DualPhi;
   Kokkos::View<double*> deltaxLagrange;
   Kokkos::View<RealArray1D<dim>*> XLagrange;
   Kokkos::View<RealArray1D<dim>*> XfLagrange;
@@ -55,7 +55,7 @@ class VariablesLagRemap {
     nbFaces(mesh->getNbFaces()),
     nbFacesOfCell(CartesianMesh2D::MaxNbFacesOfCell),
     Phi("Phi", nbCells),
-    PhiDual("PhiDual", nbNodes),
+    DualPhi("DualPhi", nbNodes),
     deltaxLagrange("deltaxLagrange", nbFaces),
     XLagrange("XLagrange", nbNodes),
     XfLagrange("XfLagrange", nbFaces),

@@ -297,7 +297,7 @@ void Remap::computeUpwindFaceQuantitiesForProjection2() noexcept {
           // à la valeur de phi(x) à la face pour l'ordre 2 sans plateau pente
           // ou l'ordre 3 à la valeur du flux (integration de phi(x)) pour
           // l'ordre 2 avec Plateau-Pente
-          if (options->projectionOrder == 2) {
+          if (options->projectionOrder <= 2) {
             if (limiteurs->projectionAvecPlateauPente == 0) {
               phiFace2(fFaces) = computeUpwindFaceQuantities(
                   varlp->faceNormal(fFaces), varlp->faceNormalVelocity(fFaces),
@@ -357,7 +357,7 @@ void Remap::computeUpwindFaceQuantitiesForProjection2() noexcept {
           // à la valeur de phi(x) à la face pour l'ordre 2 sans plateau pente
           // ou l'ordre 3 à la valeur du flux (integration de phi(x)) pour
           // l'ordre 2 avec Plateau-Pente
-          if (options->projectionOrder == 2) {
+          if (options->projectionOrder <= 2) {
             if (limiteurs->projectionAvecPlateauPente == 0) {
               phiFace2(fFaces) = computeUpwindFaceQuantities(
                   varlp->faceNormal(fFaces), varlp->faceNormalVelocity(fFaces),
@@ -421,7 +421,7 @@ void Remap::computeUremap2() noexcept {
             int fFaces(utils::indexOf(mesh->getFaces(), fId));
             int fFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), fId));
 	    // stockage des flux aux faces pour la quantite de mouvement de Vnr
-	    FluxFace2(fFaces) = (computeRemapFlux(
+	    FluxFace2(cCells, fFacesOfCellC) = (computeRemapFlux(
                                 options->projectionOrder,
                                 limiteurs->projectionAvecPlateauPente,
                                 varlp->faceNormalVelocity(fFaces), varlp->faceNormal(fFaces),

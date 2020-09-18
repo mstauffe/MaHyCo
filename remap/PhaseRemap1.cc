@@ -305,7 +305,7 @@ void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
           // à la valeur du flux (integration de phi(x)) pour l'ordre 2 avec
           // Plateau-Pente à la valeur du flux (integration de phi(x)) pour
           // l'ordre 3
-          if (options->projectionOrder == 2) {
+          if (options->projectionOrder <= 2) {
             if (limiteurs->projectionAvecPlateauPente == 0) {
               phiFace1(fFaces) = computeUpwindFaceQuantities(
                   varlp->faceNormal(fFaces), varlp->faceNormalVelocity(fFaces),
@@ -364,7 +364,7 @@ void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
           // à la valeur du flux (integration de phi(x)) pour l'ordre 2 avec
           // Plateau-Pente à la valeur du flux (integration de phi(x)) pour
           // l'ordre 3
-          if (options->projectionOrder == 2) {
+          if (options->projectionOrder <= 2) {
             if (limiteurs->projectionAvecPlateauPente == 0) {
               phiFace1(fFaces) = computeUpwindFaceQuantities(
                   varlp->faceNormal(fFaces), varlp->faceNormalVelocity(fFaces),
@@ -431,7 +431,7 @@ void Remap::computeUremap1() noexcept {
             int fFaces(utils::indexOf(mesh->getFaces(), fId));
             int fFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), fId));
 	    // stockage des flux aux faces pour la quantite de mouvement de Vnr
-	    FluxFace1(fFaces) = computeRemapFlux(
+	    FluxFace1(cCells, fFacesOfCellC) = computeRemapFlux(
                                 options->projectionOrder,
                                 limiteurs->projectionAvecPlateauPente,
                                 varlp->faceNormalVelocity(fFaces), varlp->faceNormal(fFaces),
@@ -445,10 +445,11 @@ void Remap::computeUremap1() noexcept {
                                 varlp->faceLength(fFaces), phiFace1(fFaces),
                                 varlp->outerFaceNormal(cCells, fFacesOfCellC), exy,
                                 gt->deltat_n));
+	   
           }
           if (cdl->FluxBC > 0) {
             // flux exterieur eventuel
-            if ((cCells == dbgcell3 || cCells == dbgcell2 ||
+            if ((cCells == dbgcell1 || cCells == dbgcell2 ||
                  cCells == dbgcell1)) {
               std::cout << " --------- flux face exterieur "
                            "----------------------------------"
@@ -459,7 +460,7 @@ void Remap::computeUremap1() noexcept {
             //
             reduction8 = reduction8 + (computeBoundaryFluxes(1, cCells, exy));
             //
-            if ((cCells == dbgcell3 || cCells == dbgcell2 ||
+            if ((cCells == dbgcell1 || cCells == dbgcell2 ||
                  cCells == dbgcell1)) {
               std::cout << exy << " AP cell   " << cCells << "reduction8 "
                         << reduction8 << std::endl;
@@ -536,3 +537,5 @@ void Remap::computeUremap1() noexcept {
         }
       });
 }
+
+			     

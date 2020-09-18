@@ -88,26 +88,28 @@ void Vnr::computeCellQuantitesForRemap() noexcept {
  * Out variables: c, p
  */
 void Vnr::computeVariablesForRemap() noexcept {
-  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+  Kokkos::parallel_for("computeVariablesForRemap", nbCells, KOKKOS_LAMBDA(const int& cCells) {
       int nbmat = options->nbmat;
       for (int imat = 0; imat < nbmat; imat++) {
-          varlp->ULagrange(cCells)[imat] = fracvol(cCells)[imat] * varlp->vLagrange(cCells);
+	// volumes matériels (partiels)
+	varlp->ULagrange(cCells)[imat] = fracvol(cCells)[imat] * varlp->vLagrange(cCells);
+	
+	// masses matériels (partiels)
+	varlp->ULagrange(cCells)[nbmat + imat] =
+	  fracmass(cCells)[imat] * varlp->vLagrange(cCells) * rho_nplus1(cCells);
 
-          varlp->ULagrange(cCells)[nbmat + imat] =
-              fracmass(cCells)[imat] * varlp->vLagrange(cCells) * rho_nplus1(cCells);
-
-          varlp->ULagrange(cCells)[2 * nbmat + imat] =
-              fracmass(cCells)[imat] * varlp->vLagrange(cCells) * rho_nplus1(cCells) *
-              e_nplus1(cCells);
+	// energies matériels (partiels)
+	varlp->ULagrange(cCells)[2 * nbmat + imat] =
+	  fracmass(cCells)[imat] * varlp->vLagrange(cCells) * rho_nplus1(cCells) *
+	  e_nplus1(cCells);
       }
 
       if (limiteurs->projectionAvecPlateauPente == 1) {
 	// option ou on ne regarde pas la variation de rho, V et e
-	// phi = (f1, f2, rho1, rho2, Vx, Vy, e1, e2
+	// phi = (f1, f2, ..., rho1, rho2, ... e1, e2, ... Vx, Vy,
 	// ce qui permet d'ecrire le flux telque
-	// Flux = (dv1 = f1dv, dv2=f2*dv, dm1=rho1*df1, dm2=rho2*df2, d(mV) =
-	// V*(dm1+dm2), d(m1e1) = e1*dm1,  d(m2e2) = e2*dm2 dans
-	// computeFluxPP
+	// Flux = (dv1 = f1dv, dv2=f2*dv, dm1=rho1*df1, dm2=rho2*df2, d(m1e1) = e1*dm1,  d(m2e2) = e2*dm2
+	// d(mV) = V*(dm1+dm2) dans computeFluxPP
 	
 	double somme_volume = 0.;
 	for (int imat = 0; imat < nbmat; imat++) {
@@ -148,19 +150,28 @@ void Vnr::computeVariablesForRemap() noexcept {
 	// quantité de mouvement
 	varlp->UDualLagrange(pNodes)[0] = m(pNodes) * u_nplus1(pNodes)[0];
 	varlp->UDualLagrange(pNodes)[1] = m(pNodes) * u_nplus1(pNodes)[1];
+	
+	// masse nodale
+	varlp->UDualLagrange(pNodes)[2] = m(pNodes);
         // projection de l'energie cinétique
         if (options->projectionConservative == 1)
-	  varlp->UDualLagrange(pNodes)[2] = m(pNodes) *
+	  varlp->UDualLagrange(pNodes)[3] = m(pNodes) *
 	    (u_nplus1(pNodes)[0] * u_nplus1(pNodes)[0]
 	     + u_nplus1(pNodes)[1] * u_nplus1(pNodes)[1]);
 
-	if (limiteurs->projectionAvecPlateauPente == 1) {
-	  varlp->Phi(pNodes)[0] = u_nplus1(pNodes)[0];
-	  varlp->Phi(pNodes)[1] = u_nplus1(pNodes)[1];
+	  varlp->DualPhi(pNodes)[0] = u_nplus1(pNodes)[0];
+	  varlp->DualPhi(pNodes)[1] = u_nplus1(pNodes)[1];
+	  // masse nodale
+	  varlp->DualPhi(pNodes)[2] = m(pNodes);
 	  // Phi energie cinétique
 	  if (options->projectionConservative == 1)
-	    varlp->Phi(pNodes)[0] = (u_nplus1(pNodes)[0] * u_nplus1(pNodes)[0]
+	    varlp->DualPhi(pNodes)[3] = (u_nplus1(pNodes)[0] * u_nplus1(pNodes)[0]
 	     + u_nplus1(pNodes)[1] * u_nplus1(pNodes)[1]);
-	}
+
+	// if ((pNodes == 30) || (pNodes == 31) || (pNodes == 32))
+	//   std::cout << " pNodes " <<  pNodes << " sortie Lagrange "
+	// 	    << varlp->UDualLagrange(pNodes)[0]/varlp->UDualLagrange(pNodes)[2]
+	// 	    << "  " << varlp->UDualLagrange(pNodes)[1]/varlp->UDualLagrange(pNodes)[2]
+	// 	    << "  " << varlp->UDualLagrange(pNodes)[2] << std::endl;
       });
 }

@@ -6,7 +6,6 @@ using namespace nablalib;
 #include <iomanip>          // for operator<<, setw, setiosflags
 #include "utils/Utils.h"          // for __RESET__, __BOLD__, __GREEN__
 
-
 /**
  * Job computeDeltaT called @1.0 in executeTimeLoopN method.
  * In variables: SubVol_n, c_n, deltat_n
@@ -15,19 +14,28 @@ using namespace nablalib;
 void Vnr::computeDeltaT() noexcept
 {
 	double reduction0;
+	double cfleuler(0.);
+	if (options->AvecProjection == 1) {
+          // cfl euler
+	  cfleuler = 1;
+	}
 	Kokkos::parallel_reduce(nbCells, KOKKOS_LAMBDA(const size_t& cCells, double& accu)
 	{
 		const Id cId(cCells);
+		double uc(0.0);
 		double reduction1(0.0);
 		{
 			const auto nodesOfCellC(mesh->getNodesOfCell(cId));
 			const size_t nbNodesOfCellC(nodesOfCellC.size());
 			for (size_t pNodesOfCellC=0; pNodesOfCellC<nbNodesOfCellC; pNodesOfCellC++)
 			{
-				reduction1 = sumR0(reduction1, SubVol_n(cCells,pNodesOfCellC));
+			  int pId(nodesOfCellC[pNodesOfCellC]);
+			   int pNodes(pId);
+			   reduction1 = sumR0(reduction1, SubVol_n(cCells,pNodesOfCellC));
+			   uc += std::sqrt(u_n(pNodes)[0]*u_n(pNodes)[0]+u_n(pNodes)[1]*u_n(pNodes)[1])*0.25;
 			}
 		}
-		accu = minR0(accu, 0.1 * std::sqrt(reduction1) / c_n(cCells));
+		accu = minR0(accu, 0.1 * std::sqrt(reduction1) / (cfleuler * uc + c_n(cCells)));
 	}, KokkosJoiner<double>(reduction0, numeric_limits<double>::max(), &minR0));
 	gt->deltat_nplus1 = std::min(reduction0, 1.05 * gt->deltat_n);
 }
@@ -117,7 +125,7 @@ void Vnr::executeTimeLoopN() noexcept
 		if (n!=1)
 			std::cout << "[" << __CYAN__ << __BOLD__ << setw(3) << n << __RESET__ "] t = " << __BOLD__
 				<< setiosflags(std::ios::scientific) << setprecision(8) << setw(16) << gt->t_n << __RESET__;
-	
+		  	
 		computeCornerNormal(); // @1.0
 		computeDeltaT(); // @1.0
 		computeNodeVolume(); // @1.0
@@ -126,6 +134,7 @@ void Vnr::executeTimeLoopN() noexcept
 		updateVelocity(); // @2.0
 		updateVelocityBoundaryConditions(); // @2.0
 		updatePosition(); // @3.0
+		updateCellPos();
 		computeSubVol(); // @4.0
 		updateRho(); // @5.0
 		computeTau(); // @6.0
@@ -143,10 +152,12 @@ void Vnr::executeTimeLoopN() noexcept
 		  remap->computeGradPhi1();                            
 		  remap->computeUpwindFaceQuantitiesForProjection1();  
 		  remap->computeUremap1();                             
+		  remap->computeDualUremap1();                             
 		  remap->computeGradPhiFace2();                        
 		  remap->computeGradPhi2();                            
 		  remap->computeUpwindFaceQuantitiesForProjection2();  
-		  remap->computeUremap2();                             
+		  remap->computeUremap2();
+		  remap->computeDualUremap2();
 		  remapVariables();                  
 		}
 			
@@ -155,29 +166,31 @@ void Vnr::executeTimeLoopN() noexcept
 	
 		if (continueLoop)
 		{
-			// Switch variables to prepare next iteration
-			std::swap(varlp->x_then_y_nplus1, varlp->x_then_y_n);
-			std::swap(gt->t_nplus1, gt->t_n);
-			std::swap(gt->deltat_nplus1, gt->deltat_n);
-			std::swap(X_nplus1, X_n);
-			std::swap(SubVol_nplus1, SubVol_n);
-			std::swap(rho_nplus1, rho_n);
-			std::swap(rhop_nplus1, rhop_n);
-			std::swap(p_nplus1, p_n);
-			std::swap(pp_nplus1, pp_n);
-			std::swap(Q_nplus1, Q_n);
-			std::swap(Qp_nplus1, Qp_n);
-			std::swap(tau_nplus1, tau_n);
-			std::swap(taup_nplus1, taup_n);
-			std::swap(divU_nplus1, divU_n);
-			std::swap(c_nplus1, c_n);
-			std::swap(cp_nplus1, cp_n);
-			std::swap(e_nplus1, e_n);
-			std::swap(ep_nplus1, ep_n);
-			std::swap(u_nplus1, u_n);
-			std::swap(cellPos_nplus1, cellPos_n);
+		  // Switch variables to prepare next iteration
+		  std::swap(varlp->x_then_y_nplus1, varlp->x_then_y_n);
+		  std::swap(gt->t_nplus1, gt->t_n);
+		  std::swap(gt->deltat_nplus1, gt->deltat_n);
+		  std::swap(rho_nplus1, rho_n);
+		  std::swap(rhop_nplus1, rhop_n);
+		  std::swap(p_nplus1, p_n);
+		  std::swap(pp_nplus1, pp_n);
+		  std::swap(Q_nplus1, Q_n);
+		  std::swap(Qp_nplus1, Qp_n);
+		  std::swap(tau_nplus1, tau_n);
+		  std::swap(taup_nplus1, taup_n);
+		  std::swap(divU_nplus1, divU_n);
+		  std::swap(c_nplus1, c_n);
+		  std::swap(cp_nplus1, cp_n);
+		  std::swap(e_nplus1, e_n);
+		  std::swap(ep_nplus1, ep_n);
+		  std::swap(u_nplus1, u_n);
+		  if (options->AvecProjection == 0) {
+		    std::swap(cellPos_nplus1, cellPos_n);
+		    std::swap(SubVol_nplus1, SubVol_n);
+		    std::swap(X_nplus1, X_n);		  
+		  }		  
 		}
-	
+		  
 		cpu_timer.stop();
 		global_timer.stop();
 	
@@ -212,6 +225,9 @@ void Vnr::dumpVariables() noexcept {
     std::map<string, double*> partVariables;
     cellVariables.insert(pair<string, double*>("Pressure", p_n.data()));
     cellVariables.insert(pair<string, double*>("Density", rho_n.data()));
+    cellVariables.insert(pair<string, double*>("Energy", e_n.data()));
+    nodeVariables.insert(pair<string, double*>("VitesseX", ux.data()));
+    nodeVariables.insert(pair<string, double*>("VitesseY", uy.data()));
     auto quads = mesh->getGeometry()->getQuads();
     writer.writeFile(nbCalls, gt->t_n, nbNodes, X_n.data(), nbCells, quads.data(),
                      cellVariables, nodeVariables);
@@ -246,11 +262,13 @@ void Vnr::simulate()
 		std::cout << "[" << __GREEN__ << "OUTPUT" << __RESET__ << "]    VTK files stored in " << __BOLD__ << writer.outputDirectory() << __RESET__ << " directory" << std::endl;
 	else
 		std::cout << "[" << __GREEN__ << "OUTPUT" << __RESET__ << "]    " << __BOLD__ << "Disabled" << __RESET__ << std::endl;
+	
 	initBoundaryConditions();
 	initCellPos(); // @1.0
 	init(); // @2.0
 	initSubVol(); // @2.0
 	initMeshGeometryForFaces();
+	remap->FacesOfNode(); // pour la conectivité Noeud-face
 	computeCellMass(); // @3.0
 	initDeltaT(); // @3.0
 	initInternalEnergy(); // @3.0

@@ -36,7 +36,7 @@ void Eucclhyd::initBoundaryConditions() noexcept {
     cdl->rightBCValue = {{-124.824, 0.0}};
     cdl->rightFluxBC = 1;
     cdl->rightFluxBCValue = {
-        {1.0, 0.0, 0.0, 1.0, 0.0, 0.0, -124.824, 0.0, 250000, 0.0, 0.0, 0.0}};
+      {1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, -124.824, 0.0, 250000}};
 
     cdl->topBC = cdl->symmetry;
     cdl->topBCValue = ex;

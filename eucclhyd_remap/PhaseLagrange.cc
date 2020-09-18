@@ -905,11 +905,10 @@ void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
 
         if (limiteurs->projectionAvecPlateauPente == 1) {
           // option ou on ne regarde pas la variation de rho, V et e
-          // phi = (f1, f2, rho1, rho2, Vx, Vy, e1, e2
+          // phi = (f1, f2, rho1, rho2,  e1, e2, Vx, Vy,
           // ce qui permet d'ecrire le flux telque
-          // Flux = (dv1 = f1dv, dv2=f2*dv, dm1=rho1*df1, dm2=rho2*df2, d(mV) =
-          // V*(dm1+dm2), d(m1e1) = e1*dm1,  d(m2e2) = e2*dm2 dans
-          // computeFluxPP
+          // Flux = (dv1 = f1dv, dv2=f2*dv, dm1=rho1*df1, dm2=rho2*df2d(m1e1) = e1*dm1,  d(m2e2) = e2*dm2,
+	  // d(mV) = V*(dm1+dm2), dans computeFluxPP
 
           double somme_volume = 0.;
           for (int imat = 0; imat < nbmat; imat++) {

@@ -171,6 +171,8 @@ void Vnr::updateVelocity() noexcept
 		}
 	    }
 	    u_nplus1(pNodes) = u_n(pNodes) + dt / m(pNodes) * reduction0;
+	    ux(pNodes) = u_nplus1(pNodes)[0];
+	    uy(pNodes) = u_nplus1(pNodes)[1];
 	  });
   }
 }
@@ -184,6 +186,30 @@ void Vnr::updatePosition() noexcept
 	Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes)
 	{
 		X_nplus1(pNodes) = X_n(pNodes) + gt->deltat_nplus1 * u_nplus1(pNodes);
+	});
+}
+/**
+ * Job initCellPos called @1.0 in simulate method.
+ * In variables: X_nplus1
+ * Out variables: cellPos_nplus1
+ */
+void Vnr::updateCellPos() noexcept
+{
+	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
+	{
+		const Id cId(cCells);
+		RealArray1D<2> reduction0({0.0, 0.0});
+		{
+			const auto nodesOfCellC(mesh->getNodesOfCell(cId));
+			const size_t nbNodesOfCellC(nodesOfCellC.size());
+			for (size_t pNodesOfCellC=0; pNodesOfCellC<nbNodesOfCellC; pNodesOfCellC++)
+			{
+				const Id pId(nodesOfCellC[pNodesOfCellC]);
+				const size_t pNodes(pId);
+				reduction0 = sumR1(reduction0, X_nplus1(pNodes));
+			}
+		}
+		cellPos_nplus1(cCells) = 0.25 * reduction0;
 	});
 }
 /**
@@ -242,7 +268,6 @@ void Vnr::updateRho() noexcept
 		    rhop_nplus1(cCells)[imat] = cellMassp(cCells)[imat] / (fracvol(cCells)[imat] * reduction0);
 		  // ou 1/rhon_nplus1 += fracmass(cCells)[imat] / rhop_nplus1[imat];
 		  rho_nplus1(cCells) += fracvol(cCells)[imat] * rhop_nplus1(cCells)[imat];
-		  std::cout << "rho" << imat << " " << cCells << " " << rhop_nplus1(cCells)[imat] << std::endl;
 		}
 	});
 }
@@ -344,8 +369,10 @@ void Vnr::computeEOSGP(int imat)  {
  */
 void Vnr::computeEOSVoid(int imat) {
   Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-    pp_nplus1(cCells)[imat] = 0.;
-    cp_nplus1(cCells)[imat] = 1.e-20;
+    pp_nplus1(cCells)[imat] = pp_n(cCells)[imat];
+    cp_nplus1(cCells)[imat] = cp_n(cCells)[imat];
+    ep_nplus1(cCells)[imat] = ep_n(cCells)[imat];
+    e_nplus1(cCells) = 0.;
   });
 }
 /**
@@ -393,6 +420,9 @@ void Vnr::computePressionMoyenne() noexcept {
     if (rho_nplus1(cCells) > 0.) {
       c_nplus1(cCells) =
 	std::sqrt(eos->gammap[0] * (eos->gammap[0] - 1.0) * e_nplus1(cCells));
-    }
+    }    
+    for (int imat = 0; imat < options->nbmat; ++imat) 
+    if (eos->Nom[imat] == eos->Void) 
+      e_nplus1(cCells) += fracmass(cCells)[imat] * ep_nplus1(cCells)[imat];
   }
 }

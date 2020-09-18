@@ -18,8 +18,9 @@ void Vnr::remapVariables() noexcept {
   ETOTALE_T = 0.;
   varlp->x_then_y_nplus1 = !(varlp->x_then_y_n);
   int nbmat = options->nbmat;
+  // variables aux cellulles
   Kokkos::parallel_for(
-      "remapCellcenteredVariable", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+      "remapVariables", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         double vol = volE(cCells);  // volume euler
         double volt = 0.;
         double masset = 0.;
@@ -88,11 +89,7 @@ void Vnr::remapVariables() noexcept {
           rho_np1 += fracvol(cCells)[imat] * rhop_np1[imat];
         }
 
-        // Vitesse aux noeuds
-	// RealArray1D<dim> V_np1 = {
-        //    {varlp->Uremap2(cCells)[3 * nbmat] / (rho_np1 * vol),
-        //     varlp->Uremap2(cCells)[3 * nbmat + 1] / (rho_np1 * vol)}};
-
+ 
         RealArray1D<nbmatmax> pesp_np1 = zeroVectmat;
         for (int imat = 0; imat < nbmat; imat++) {
           if ((fracvol(cCells)[imat] > options->threshold) &&
@@ -101,10 +98,12 @@ void Vnr::remapVariables() noexcept {
                              varlp->Uremap2(cCells)[nbmat + imat];
         }
         rho_nplus1(cCells) = rho_np1;
-        // vitesse
-        //V_nplus1(cCells) = V_np1;
         // energie
         e_nplus1(cCells) = 0.;
+	// recalcul de la masse
+	cellMass(cCells) =  volE(cCells) * rho_nplus1(cCells);
+	for (int imat = 0; imat < nbmat; ++imat) 
+	    cellMassp(cCells)[imat] = fracmass(cCells)[imat] * cellMass(cCells);
 
         // conservation energie totale avec (rho_np1 * vol) au lieu de masset
         // idem
@@ -125,17 +124,7 @@ void Vnr::remapVariables() noexcept {
           e_nplus1(cCells) +=
               fracmass(cCells)[imat] * ep_nplus1(cCells)[imat];
         }
-
-	// ETOT_T(cCells) =
-        //    (rho_np1 * vol) * e_nplus1(cCells) +
-        //    0.5 * (rho_np1 * vol) * (V_np1[0] * V_np1[0] + V_np1[1] * V_np1[1]);
-        MTOT_T(cCells) = 0.;
-        for (int imat = 0; imat < nbmat; imat++)
-          MTOT_T(cCells) +=
-              rhop_nplus1(cCells)[imat] *
-              vol_np1[imat];  // fracmass(cCells)[imat] * (rho_np1 * vol) ; //
-                              // rhop_nplus1(cCells)[imat] * vol_np1[imat];
-
+	
         for (int imat = 0; imat < nbmat; imat++) {
           if (pesp_np1[imat] < 0. || rhop_np1[imat] < 0.) {
             std::cout << " cell " << cCells << " --energy ou masse negative   "
@@ -189,6 +178,44 @@ void Vnr::remapVariables() noexcept {
         p2(cCells) = pp_nplus1(cCells)[1];
         p3(cCells) = pp_nplus1(cCells)[2];
         
+      });
+    // variables aux noeuds
+    Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes)
+      {
+	// Vitesse aux noeuds
+	double masse_nodale = varlp->UDualremap2(pNodes)[2];
+	u_nplus1(pNodes)[0] = varlp->UDualremap2(pNodes)[0] / masse_nodale;
+	u_nplus1(pNodes)[1] = varlp->UDualremap2(pNodes)[1] / masse_nodale;
+	// Energie cinétique
+	
+	// conservation energie totale avec (rho_np1 * vol) au lieu de masset
+        // idem
+        // double delta_ec(0.);
+        //if (options->projectionConservative == 1)
+        //  delta_ec = varlp->Uremap2(cCells)[3 * nbmat + 2] / masset -
+        //                     0.5 * (V_np1[0] * V_np1[0] + V_np1[1] * V_np1[1]);
+	// if ((pNodes == 30) || (pNodes == 31) || (pNodes == 32))
+	//   std::cout << " pNodes " <<  pNodes << " sortie 2 remaillage  "
+	// 	    << varlp->UDualremap2(pNodes)[0] / varlp->UDualremap2(pNodes)[2]
+	// 	    << "  " << varlp->UDualremap2(pNodes)[1] / varlp->UDualremap2(pNodes)[2]
+	// 	    << "  " << varlp->UDualremap2(pNodes)[2] << std::endl;
+	  
+	ux(pNodes) = u_nplus1(pNodes)[0];
+	uy(pNodes) = u_nplus1(pNodes)[1];
+      });
+
+   Kokkos::parallel_for(
+      "remapVariables", nbCells, KOKKOS_LAMBDA(const int& cCells) {	
+
+	// ETOT_T(cCells) =
+        //    (rho_np1 * vol) * e_nplus1(cCells) +
+        //    0.5 * (rho_np1 * vol) * (V_np1[0] * V_np1[0] + V_np1[1] * V_np1[1]);
+        MTOT_T(cCells) = 0.;
+        for (int imat = 0; imat < nbmat; imat++)
+          MTOT_T(cCells) += rhop_nplus1(cCells)[imat] *
+              volE(cCells) * fracvol(cCells)[imat];
+	// fracmass(cCells)[imat] * (rho_np1 * vol) ; //
+	// rhop_nplus1(cCells)[imat] * vol_np1[imat];
       });
   double reductionE(0.), reductionM(0.);
   {

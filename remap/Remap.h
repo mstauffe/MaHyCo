@@ -54,7 +54,7 @@ class Remap {
   int nbPartMax;
   int nbPart = 0;
   int nbNodes, nbCells, nbFaces, nbCellsOfNode, nbNodesOfCell,
-      nbNodesOfFace, nbCellsOfFace;
+    nbNodesOfFace, nbCellsOfFace, nbFacesOfCell;
 
 
   // cells a debuguer
@@ -69,6 +69,7 @@ class Remap {
   Kokkos::View<double*> LfLagrange;
   Kokkos::View<double*> HvLagrange;
   Kokkos::View<RealArray1D<nbequamax>*> Uremap1;
+  Kokkos::View<RealArray1D<nbequamax>*> UDualremap1;
   Kokkos::View<RealArray1D<nbequamax>*> gradPhiFace1;
   Kokkos::View<RealArray1D<nbequamax>*> gradPhiFace2;
   Kokkos::View<RealArray1D<nbequamax>*> gradPhi1;
@@ -77,8 +78,22 @@ class Remap {
   Kokkos::View<RealArray1D<nbequamax>*> phiFace2;
   Kokkos::View<RealArray1D<nbequamax>*> deltaPhiFaceAv;
   Kokkos::View<RealArray1D<nbequamax>*> deltaPhiFaceAr;
-  Kokkos::View<RealArray1D<nbequamax>*> FluxFace1;
-  Kokkos::View<RealArray1D<nbequamax>*> FluxFace2;
+  Kokkos::View<RealArray1D<nbequamax>**> FluxFace1;
+  Kokkos::View<RealArray1D<nbequamax>**> FluxFace2;
+  Kokkos::View<RealArray1D<nbmatmax>*> RightFluxMassePartielle;
+  Kokkos::View<RealArray1D<nbmatmax>*> LeftFluxMassePartielle;
+  Kokkos::View<RealArray1D<nbmatmax>*> TopFluxMassePartielle;
+  Kokkos::View<RealArray1D<nbmatmax>*> BottomFluxMassePartielle;
+  Kokkos::View<double*> RightFluxMasse;
+  Kokkos::View<double*> LeftFluxMasse;
+  Kokkos::View<double*> TopFluxMasse;
+  Kokkos::View<double*> BottomFluxMasse;
+  Kokkos::View<RealArray1D<2>*> VerticalFaceOfNode;
+  Kokkos::View<RealArray1D<2>*> HorizontalFaceOfNode;
+  Kokkos::View<RealArray1D<dim>*> TopupwindVelocity;
+  Kokkos::View<RealArray1D<dim>*> BottomupwindVelocity;
+  Kokkos::View<RealArray1D<dim>*> RightupwindVelocity;
+  Kokkos::View<RealArray1D<dim>*> LeftupwindVelocity;
   
  public:
   Remap(
@@ -103,19 +118,35 @@ class Remap {
         nbCellsOfNode(CartesianMesh2D::MaxNbCellsOfNode),
         nbNodesOfCell(CartesianMesh2D::MaxNbNodesOfCell),
         nbNodesOfFace(CartesianMesh2D::MaxNbNodesOfFace),
+        nbFacesOfCell(CartesianMesh2D::MaxNbFacesOfCell),
         LfLagrange("LfLagrange", nbFaces),
         HvLagrange("HvLagrange", nbCells),
         Uremap1("Uremap1", nbCells),
+        UDualremap1("UDualremap1", nbNodes),
         gradPhiFace1("gradPhiFace1", nbFaces),
         gradPhiFace2("gradPhiFace2", nbFaces),
         gradPhi1("gradPhi1", nbCells),
         gradPhi2("gradPhi2", nbCells),
         phiFace1("phiFace1", nbFaces),
         phiFace2("phiFace2", nbFaces),
-        FluxFace1("FluxFace1", nbFaces),
-        FluxFace2("FluxFace2", nbFaces),
+        FluxFace1("FluxFace1", nbCells, nbFacesOfCell),
+        FluxFace2("FluxFace2", nbCells, nbFacesOfCell),
         deltaPhiFaceAv("deltaPhiFaceAv", nbCells),
-        deltaPhiFaceAr("deltaPhiFaceAr", nbCells){}
+        deltaPhiFaceAr("deltaPhiFaceAr", nbCells),
+        RightFluxMassePartielle("FluxMassePartielle", nbNodes),
+        LeftFluxMassePartielle("FluxMassePartielle", nbNodes),
+        TopFluxMassePartielle("FluxMassePartielle", nbNodes),
+        BottomFluxMassePartielle("FluxMassePartielle", nbNodes),
+        RightFluxMasse("FluxMasse", nbNodes),
+        LeftFluxMasse("FluxMasse", nbNodes),
+        TopFluxMasse("FluxMasse", nbNodes),
+        BottomFluxMasse("FluxMasse", nbNodes),
+        VerticalFaceOfNode("VFaceOfNode", nbNodes),
+        HorizontalFaceOfNode("HFaceOfNode", nbNodes),
+        TopupwindVelocity("upwindVelocity", nbNodes),
+        BottomupwindVelocity("upwindVelocity", nbNodes),
+        RightupwindVelocity("upwindVelocity", nbNodes),
+        LeftupwindVelocity("upwindVelocity", nbNodes)  {}
   
  
 
@@ -123,11 +154,14 @@ class Remap {
   void computeGradPhi1() noexcept;
   void computeUpwindFaceQuantitiesForProjection1() noexcept;
   void computeUremap1() noexcept;
+  void computeDualUremap1() noexcept;
 
   void computeGradPhiFace2() noexcept;
   void computeGradPhi2() noexcept;
   void computeUpwindFaceQuantitiesForProjection2() noexcept;
   void computeUremap2() noexcept;
+  void computeDualUremap2() noexcept;
+  void FacesOfNode();
   
   template <size_t d>
   RealArray1D<d> computeRemapFlux(int projectionOrder,
@@ -147,6 +181,10 @@ class Remap {
   int getRightCells(const int cells);
   int getBottomCells(const int cells);
   int getTopCells(const int cells);
+  int getLeftNode(const int node);
+  int getRightNode(const int node);
+  int getBottomNode(const int node);
+  int getTopNode(const int node);
   
   double fluxLimiter(int projectionLimiterId, double r);
   double fluxLimiterPP(int projectionLimiterId, double gradplus,
