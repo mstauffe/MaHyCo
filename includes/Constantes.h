@@ -10,9 +10,9 @@ static const int dim = 2;
 // Nombre de matériaux maximum autorisé
 static const int nbmatmax = 3;
 // Nombre d'équation maximum autorisé
-static const int nbequamax = 3 * nbmatmax + 2 + 1;
+static const int nbequamax = 3 * nbmatmax + 2 + 1 + 1;
 // (volumes, masses, energies internes) * nbmatmax
-// + vitesses + energie cinétique
+// + vitesses + energie cinétique + pseudo
 
 const RealArray1D<dim> ex = {{1.0, 0.0}};
 const RealArray1D<dim> ey = {{0.0, 1.0}};

@@ -8,6 +8,7 @@ target_sources( ${LIBRARY_NAME}
         DualPhaseRemap1.cc
         DualPhaseRemap2.cc
         UtilesRemap.cc
+	UtilesDualRemap.cc
 	UtilesMesh.cc
 	BoundaryFluxes.cc
 )

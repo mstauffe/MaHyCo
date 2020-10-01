@@ -158,7 +158,11 @@ void Vnr::executeTimeLoopN() noexcept
 		  remap->computeUpwindFaceQuantitiesForProjection2();  
 		  remap->computeUremap2();
 		  remap->computeDualUremap2();
-		  remapVariables();                  
+		  remapVariables();
+		  computeNodeMass(); // avec la masse des mailles recalculée dans remapVariables()
+		  computeEOS(); // rappel EOS apres projection
+		  computePressionMoyenne(); // rappel Pression moyenne apres projection
+		  
 		}
 			
 		// Evaluate loop condition with variables at time n

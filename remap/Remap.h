@@ -185,6 +185,11 @@ class Remap {
   int getRightNode(const int node);
   int getBottomNode(const int node);
   int getTopNode(const int node);
+
+  void getRightAndLeftFluxMasse1(const int nbmat, const size_t pNodes);
+  void getRightAndLeftFluxMasse2(const int nbmat, const size_t pNodes);
+  void getTopAndBottomFluxMasse1(const int nbmat, const size_t pNodes);
+  void getTopAndBottomFluxMasse2(const int nbmat, const size_t pNodes);
   
   double fluxLimiter(int projectionLimiterId, double r);
   double fluxLimiterPP(int projectionLimiterId, double gradplus,

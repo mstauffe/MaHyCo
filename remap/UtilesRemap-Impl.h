@@ -198,6 +198,7 @@ RealArray1D<d> Remap::computeFluxPP(
   // les flux de masse, de quantité de mouvement et d'energie massique se
   // deduisent des flux de volumes
   double somme_flux_masse = 0.;
+  double somme_flux_volume = 0.;
   for (size_t imat = 0; imat < nbmat; imat++) {
     Flux[nbmat + imat] =
         phi[nbmat + imat] * Flux[imat];  // flux de masse de imat
@@ -205,6 +206,7 @@ RealArray1D<d> Remap::computeFluxPP(
         phi[2 * nbmat + imat] *
         Flux[nbmat + imat];  // flux de masse energy de imat
     somme_flux_masse += Flux[nbmat + imat];
+    somme_flux_volume += Flux[imat];
   }
   Flux[3 * nbmat] =
       phi[3 * nbmat] * somme_flux_masse;  // flux de quantité de mouvement x
@@ -212,6 +214,8 @@ RealArray1D<d> Remap::computeFluxPP(
       phi[3 * nbmat + 1] * somme_flux_masse;  // flux de quantité de mouvement y
   Flux[3 * nbmat + 2] =
       phi[3 * nbmat + 2] * somme_flux_masse;  // flux d'energie cinetique
+  Flux[3 * nbmat + 3] =
+    phi[3 * nbmat + 3] * somme_flux_volume; // flux pour la pseudo VNR
 
   return Flux;
 }
@@ -367,11 +371,13 @@ RealArray1D<d> Remap::computeFluxPPPure(
   // les flux de masse, de quantité de mouvement et d'energie massique se
   // deduisent des flux de volumes
   double somme_flux_masse = 0.;
+  double somme_flux_volume = 0.;
   for (size_t imat = 0; imat < nbmat; imat++) {
     Flux[2 * nbmat + imat] =
         phi[2 * nbmat + imat] *
         Flux[nbmat + imat];  // flux de masse energy de imat
     somme_flux_masse += Flux[nbmat + imat];
+    somme_flux_volume += Flux[imat];
   }
   Flux[3 * nbmat] =
       phi[3 * nbmat] * somme_flux_masse;  // flux de quantité de mouvement x
@@ -379,6 +385,8 @@ RealArray1D<d> Remap::computeFluxPPPure(
       phi[3 * nbmat + 1] * somme_flux_masse;  // flux de quantité de mouvement y
   Flux[3 * nbmat + 2] =
       phi[3 * nbmat + 2] * somme_flux_masse;  // flux d'energie cinetique
+  Flux[3 * nbmat + 3] =
+    phi[3 * nbmat + 3] * somme_flux_volume; // flux pour la pseudo VNR
 
   return Flux;
 }

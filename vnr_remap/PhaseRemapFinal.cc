@@ -104,6 +104,8 @@ void Vnr::remapVariables() noexcept {
 	cellMass(cCells) =  volE(cCells) * rho_nplus1(cCells);
 	for (int imat = 0; imat < nbmat; ++imat) 
 	    cellMassp(cCells)[imat] = fracmass(cCells)[imat] * cellMass(cCells);
+	// recuperation de la pseudo projetee
+	Q_nplus1(cCells) = varlp->Uremap2(cCells)[3 * nbmat + 3] / vol;
 
         // conservation energie totale avec (rho_np1 * vol) au lieu de masset
         // idem
@@ -183,9 +185,9 @@ void Vnr::remapVariables() noexcept {
     Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes)
       {
 	// Vitesse aux noeuds
-	double masse_nodale = varlp->UDualremap2(pNodes)[2];
-	u_nplus1(pNodes)[0] = varlp->UDualremap2(pNodes)[0] / masse_nodale;
-	u_nplus1(pNodes)[1] = varlp->UDualremap2(pNodes)[1] / masse_nodale;
+	double masse_nodale_proj = varlp->UDualremap2(pNodes)[2];
+	u_nplus1(pNodes)[0] = varlp->UDualremap2(pNodes)[0] / masse_nodale_proj;
+	u_nplus1(pNodes)[1] = varlp->UDualremap2(pNodes)[1] / masse_nodale_proj;
 	// Energie cinétique
 	
 	// conservation energie totale avec (rho_np1 * vol) au lieu de masset

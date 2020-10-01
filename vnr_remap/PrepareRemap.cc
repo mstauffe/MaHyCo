@@ -102,7 +102,20 @@ void Vnr::computeVariablesForRemap() noexcept {
 	varlp->ULagrange(cCells)[2 * nbmat + imat] =
 	  fracmass(cCells)[imat] * varlp->vLagrange(cCells) * rho_nplus1(cCells) *
 	  e_nplus1(cCells);
+
       }
+      // les vitesses et énergies cinétiques aux cCells correspondent
+      // à  varlp->ULagrange(cCells)[3 * nbmat + 0] pour VitX
+      // à  varlp->ULagrange(cCells)[3 * nbmat + 1] pour VitY
+      // à  varlp->ULagrange(cCells)[3 * nbmat + 2] pour Ec      
+      // n'existe pas en VnR --> tableau vide
+      // Ils sont aux noeuds voir à la fin de la routine
+      varlp->ULagrange(cCells)[3 * nbmat + 0] = 0.;
+      varlp->ULagrange(cCells)[3 * nbmat + 1] = 0.;
+      varlp->ULagrange(cCells)[3 * nbmat + 2] = 0.;
+      
+      // Pseudo moyenne pour la quantité de mouvement
+      varlp->ULagrange(cCells)[3 * nbmat + 3] = Q_nplus1(cCells) * varlp->vLagrange(cCells);
 
       if (limiteurs->projectionAvecPlateauPente == 1) {
 	// option ou on ne regarde pas la variation de rho, V et e
@@ -138,6 +151,12 @@ void Vnr::computeVariablesForRemap() noexcept {
 	  else
 	    varlp->Phi(cCells)[2 * nbmat + imat] = 0.;
 	}
+	// les phi sur la vitesse et energie cinétique n'existent pas en VnR
+	varlp->Phi(cCells)[3 * nbmat + 0] = 0.;
+	varlp->Phi(cCells)[3 * nbmat + 1] = 0.;
+	varlp->Phi(cCells)[3 * nbmat + 2] = 0.;
+	// Phi Pseudo
+	varlp->Phi(cCells)[3 * nbmat + 3] = Q_nplus1(cCells);
       } else {
 	varlp->Phi(cCells) = varlp->ULagrange(cCells) /
 	  varlp->vLagrange(cCells);
