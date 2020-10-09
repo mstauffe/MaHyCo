@@ -16,83 +16,99 @@
 #include "../includes/VariablesLagRemap.h"
 
 void Remap::computeDualUremap2() noexcept {
-  int nbmat = options->nbmat;
-  RealArray1D<dim> exy = xThenYToDirection(varlp->x_then_y_n);
   // calcul des flux de masses partielles  
   if (varlp->x_then_y_n) {
     // projection verticale
-    Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes)
+    if (options->projectionOrder > 1) {
+      // calcul des gradients de vitesses
+      Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNode)
+	{
+	  RealArray1D<nbequamax> grad_up = Uzero;
+	  RealArray1D<nbequamax> grad_down = Uzero;
+	  gradDualPhi2(pNode) = computeDualVerticalGradPhi(grad_up, grad_down, pNode);
+	});
+    } else {
+       Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNode)
+	{
+	  gradDualPhi2(pNode) = Uzero;
+	});
+    }
+    Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNode)
       {
-	getTopAndBottomFluxMasse2(nbmat, pNodes);
-	varlp->UDualremap2(pNodes)[2] = UDualremap1(pNodes)[2] + BottomFluxMasse(pNodes) - TopFluxMasse(pNodes);
+	int nbmat = options->nbmat;	
+	if (options->methode_flux_masse == 0)
+	  getTopAndBottomFluxMasse2(nbmat, pNode);	
+	if (options->methode_flux_masse == 1)
+	  getTopAndBottomFluxMasseViaVol2(nbmat, pNode);
+	varlp->UDualremap2(pNode)[2] = UDualremap1(pNode)[2] + BottomFluxMasse(pNode) - TopFluxMasse(pNode);
 
-	if (options->projectionOrder == 1) {
+	if (options->projectionOrder >= 1) {
 	  // recherche de la vitesse du decentrement upwind
-	  // Topvitesse = vitesse(pNodes) si TopFluxMasse(pNodes) > 0 et vitesse(voisin du haut) sinon
-	  // Bottomvitesse = vitesse(voisin du bas) si BottomFluxMasse(pNodes) > 0 et vitesse(pNodes) sinon
-	  int TopNode = mesh->getTopNode(pNodes);
-	  int BottomNode = mesh->getBottomNode(pNodes);
-	  if (TopFluxMasse(pNodes) < 0) {
-	    TopupwindVelocity(pNodes)[0] = varlp->DualPhi(TopNode)[0];
-	    TopupwindVelocity(pNodes)[1] = varlp->DualPhi(TopNode)[1];
-	  } else {
-	    TopupwindVelocity(pNodes)[0] = varlp->DualPhi(pNodes)[0];
-	    TopupwindVelocity(pNodes)[1] = varlp->DualPhi(pNodes)[1];
-	  }
-	  if (BottomFluxMasse(pNodes) > 0) {
-	    BottomupwindVelocity(pNodes)[0] = varlp->DualPhi(BottomNode)[0];
-	    BottomupwindVelocity(pNodes)[1] = varlp->DualPhi(BottomNode)[1];
-	  } else {
-	    BottomupwindVelocity(pNodes)[0] = varlp->DualPhi(pNodes)[0];
-	    BottomupwindVelocity(pNodes)[1] = varlp->DualPhi(pNodes)[1];
-	  }
+	  // Topvitesse = vitesse(pNode) si TopFluxMasse(pNode) > 0 et vitesse(voisin du haut) sinon
+	  // Bottomvitesse = vitesse(voisin du bas) si BottomFluxMasse(pNode) > 0 et vitesse(pNode) sinon
+
+	  int TopNode = mesh->getTopNode(pNode);	  
+	  int BottomNode = mesh->getBottomNode(pNode);
+	  getBottomUpwindVelocity(BottomNode, pNode, gradDualPhi2(BottomNode), gradDualPhi2(pNode));
+	  getTopUpwindVelocity(TopNode, pNode, gradDualPhi2(TopNode), gradDualPhi2(pNode));
+	
+	  varlp->UDualremap2(pNode)[0] = UDualremap1(pNode)[0]
+	    + BottomFluxMasse(pNode) * BottomupwindVelocity(pNode)[0]
+	    - TopFluxMasse(pNode) * TopupwindVelocity(pNode)[0];
+	
+	  varlp->UDualremap2(pNode)[1] = UDualremap1(pNode)[1]
+	    + BottomFluxMasse(pNode) * BottomupwindVelocity(pNode)[1]
+	    - TopFluxMasse(pNode) * TopupwindVelocity(pNode)[1];
 	}
-        varlp->UDualremap2(pNodes)[0] = UDualremap1(pNodes)[0]
-	  + BottomFluxMasse(pNodes) * BottomupwindVelocity(pNodes)[0]
-	  - TopFluxMasse(pNodes) * TopupwindVelocity(pNodes)[0];
-	
-	varlp->UDualremap2(pNodes)[1] = UDualremap1(pNodes)[1]
-	  + BottomFluxMasse(pNodes) * BottomupwindVelocity(pNodes)[1]
-	  - TopFluxMasse(pNodes) * TopupwindVelocity(pNodes)[1];
-	
 	
     });
   } else {
     // projection horizontale
-    Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes)
+    if (options->projectionOrder > 1) {
+      // calcul des gradients de vitesses
+      Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNode)
+	{
+	  RealArray1D<nbequamax> grad_right = Uzero;
+	  RealArray1D<nbequamax> grad_left = Uzero;
+	  gradDualPhi2(pNode) = computeDualHorizontalGradPhi(grad_right, grad_left, pNode);
+	});
+    } else {
+       Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNode)
+	{
+	  gradDualPhi2(pNode) = Uzero;
+	});
+    }
+    Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNode)
       {
-	getRightAndLeftFluxMasse2(nbmat, pNodes);
-	varlp->UDualremap2(pNodes)[2] = UDualremap1(pNodes)[2] + LeftFluxMasse(pNodes) - RightFluxMasse(pNodes);
-
-	if (options->projectionOrder == 1) {
+	int nbmat = options->nbmat;
+	if (options->methode_flux_masse == 0)
+	  getRightAndLeftFluxMasse2(nbmat, pNode);	
+	if (options->methode_flux_masse == 1)
+	  getRightAndLeftFluxMasseViaVol2(nbmat, pNode);
+	varlp->UDualremap2(pNode)[2] = UDualremap1(pNode)[2] + LeftFluxMasse(pNode) - RightFluxMasse(pNode);
+	
+	// if (pNode == 300 || pNode == 301 || pNode == 302) {
+	//   std::cout << " H2 pNode " <<  pNode << " U1 " << UDualremap1(pNode)[2] 
+	// 	    << " UDualremap2 " <<  varlp->UDualremap2(pNode)[2] << endl;
+	// }
+	if (options->projectionOrder >= 1) {
 	  // recherche de la vitesse du decentrement upwind
-	  // Rightvitesse = vitesse(pNodes) si RightFluxMasse(pNodes) > 0 et vitesse(voisin de droite) sinon
-	  // Leftvitesse = vitesse(voisin de gauche) si LeftFluxMasse(pNodes) > 0 et vitesse(pNodes) sinon
-	  int LeftNode = mesh->getLeftNode(pNodes);
-	  int RightNode = mesh->getRightNode(pNodes);
-	  if (RightFluxMasse(pNodes) < 0) {
-	    RightupwindVelocity(pNodes)[0] = varlp->DualPhi(RightNode)[0];
-	    RightupwindVelocity(pNodes)[1] = varlp->DualPhi(RightNode)[1];
-	  }  else {
-	    RightupwindVelocity(pNodes)[0] = varlp->DualPhi(pNodes)[0];
-	    RightupwindVelocity(pNodes)[1] = varlp->DualPhi(pNodes)[1];
-	  }	    
-	  if (LeftFluxMasse(pNodes) > 0) {
-	    LeftupwindVelocity(pNodes)[0] = varlp->DualPhi(LeftNode)[0];
-	    LeftupwindVelocity(pNodes)[1] = varlp->DualPhi(LeftNode)[1];
-	  } else {
-	    LeftupwindVelocity(pNodes)[0] = varlp->DualPhi(pNodes)[0];
-	    LeftupwindVelocity(pNodes)[1] = varlp->DualPhi(pNodes)[1];
-	  }
-	}	  
-	varlp->UDualremap2(pNodes)[0] = UDualremap1(pNodes)[0]
-	  + LeftFluxMasse(pNodes) * LeftupwindVelocity(pNodes)[0]
-	  - RightFluxMasse(pNodes) * RightupwindVelocity(pNodes)[0];
-	  
-	varlp->UDualremap2(pNodes)[1] = UDualremap1(pNodes)[1]
-	  + LeftFluxMasse(pNodes) * LeftupwindVelocity(pNodes)[1]
-	  - RightFluxMasse(pNodes) * RightupwindVelocity(pNodes)[1];
+	  // Rightvitesse = vitesse(pNode) si RightFluxMasse(pNode) > 0 et vitesse(voisin de droite) sinon
+	  // Leftvitesse = vitesse(voisin de gauche) si LeftFluxMasse(pNode) > 0 et vitesse(pNode) sinon
 
+	  int LeftNode = mesh->getLeftNode(pNode);	  
+	  int RightNode = mesh->getRightNode(pNode);
+	  getLeftUpwindVelocity(LeftNode, pNode, gradDualPhi2(LeftNode), gradDualPhi2(pNode));
+	  getRightUpwindVelocity(RightNode, pNode, gradDualPhi2(RightNode), gradDualPhi2(pNode));
+	  
+	  varlp->UDualremap2(pNode)[0] = UDualremap1(pNode)[0]
+	    + LeftFluxMasse(pNode) * LeftupwindVelocity(pNode)[0]
+	    - RightFluxMasse(pNode) * RightupwindVelocity(pNode)[0];
+	  
+	  varlp->UDualremap2(pNode)[1] = UDualremap1(pNode)[1]
+	    + LeftFluxMasse(pNode) * LeftupwindVelocity(pNode)[1]
+	    - RightFluxMasse(pNode) * RightupwindVelocity(pNode)[1];
+	}
     });
   }
 }

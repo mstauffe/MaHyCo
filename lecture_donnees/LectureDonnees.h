@@ -62,6 +62,12 @@ class LectureDonneesClass {
       {"oui", 1}
   };
 
+  std::unordered_map<string, int> A1OUA2
+  {
+    {"A1", 0},
+      {"A2", 1}
+  };
+
   std::unordered_map<string, int> liste_eos
   {
     {"Void", 100},

@@ -14,10 +14,12 @@ using namespace nablalib;
 void Vnr::computeDeltaT() noexcept
 {
 	double reduction0;
-	double cfleuler(0.);
+	double Aveccfleuler(0.);
+	double cfl(0.1);
 	if (options->AvecProjection == 1) {
           // cfl euler
-	  cfleuler = 1;
+	  Aveccfleuler = 1;
+	  cfl = 0.05; // explication à trouver, permet de passer les cas euler ?
 	}
 	Kokkos::parallel_reduce(nbCells, KOKKOS_LAMBDA(const size_t& cCells, double& accu)
 	{
@@ -35,7 +37,8 @@ void Vnr::computeDeltaT() noexcept
 			   uc += std::sqrt(u_n(pNodes)[0]*u_n(pNodes)[0]+u_n(pNodes)[1]*u_n(pNodes)[1])*0.25;
 			}
 		}
-		accu = minR0(accu, 0.1 * std::sqrt(reduction1) / (cfleuler * uc + c_n(cCells)));
+		// 0.05 a expliquer
+		accu = minR0(accu, cfl * std::sqrt(reduction1) / (Aveccfleuler * uc + c_n(cCells)));
 	}, KokkosJoiner<double>(reduction0, numeric_limits<double>::max(), &minR0));
 	gt->deltat_nplus1 = std::min(reduction0, 1.05 * gt->deltat_n);
 }
@@ -167,7 +170,8 @@ void Vnr::executeTimeLoopN() noexcept
 			
 		// Evaluate loop condition with variables at time n
 		continueLoop = (n + 1 < gt->max_time_iterations && gt->t_nplus1 < gt->final_time);
-	
+
+		// if (gt->t_nplus1 > 0.05) limiteurs->projectionAvecPlateauPente = 1;
 		if (continueLoop)
 		{
 		  // Switch variables to prepare next iteration
@@ -195,6 +199,7 @@ void Vnr::executeTimeLoopN() noexcept
 		  }		  
 		}
 		  
+		std::cout << " DT  = " <<  gt->t_nplus1 << std::endl;
 		cpu_timer.stop();
 		global_timer.stop();
 	
@@ -230,6 +235,8 @@ void Vnr::dumpVariables() noexcept {
     cellVariables.insert(pair<string, double*>("Pressure", p_n.data()));
     cellVariables.insert(pair<string, double*>("Density", rho_n.data()));
     cellVariables.insert(pair<string, double*>("Energy", e_n.data()));
+    if (options->nbmat > 1 && options->AvecProjection == 1) cellVariables.insert(pair<string, double*>("fracvol1", fracvol1.data()));
+    if (options->nbmat > 2 && options->AvecProjection == 1) cellVariables.insert(pair<string, double*>("fracvol2", fracvol2.data()));
     nodeVariables.insert(pair<string, double*>("VitesseX", ux.data()));
     nodeVariables.insert(pair<string, double*>("VitesseY", uy.data()));
     auto quads = mesh->getGeometry()->getQuads();

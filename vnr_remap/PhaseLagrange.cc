@@ -55,8 +55,15 @@ void Vnr::computeNodeMass() noexcept
  */
 void Vnr::computeArtificialViscosity() noexcept
 {
-	Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
-	{
+  double reductionP(numeric_limits<double>::min());
+  Kokkos::Max<double> reducer(reductionP);
+  Kokkos::parallel_reduce("reductionP", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducer.join(x, p_n(cCells));
+                            },
+                            reducer);
+  Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
+    {
 		const Id cId(cCells);
 		if (divU_n(cCells) < 0.0) 
 		{
@@ -85,10 +92,15 @@ void Vnr::computeArtificialViscosity() noexcept
 		else
 			Q_nplus1(cCells) = 0.0;
 		//
+		// limitation par la pression
+		// permet de limiter un exces de pseudo lié à des erreurs d'arrondis sur tau_nplus1
+		if (Q_nplus1(cCells) > reductionP) {
+		  std::cout << cCells << " pseudo " << Q_nplus1(cCells) << " pression " << p_n(cCells) << std::endl;
+		  Q_nplus1(cCells) = reductionP;
+		}
 		// pour chaque matériau
-		for (int imat = 0; imat < options->nbmat; ++imat)
-		  Qp_nplus1(cCells)[imat] = fracvol(cCells)[imat] * Q_nplus1(cCells);		  
-		
+		for (int imat = 0; imat < options->nbmat; ++imat) 
+		  Qp_nplus1(cCells)[imat] = fracvol(cCells)[imat] * Q_nplus1(cCells);		
 	});
 }
 
@@ -320,6 +332,14 @@ void Vnr::updateEnergy() noexcept
 			       (1.0 / rhop_nplus1(cCells)[imat] - 1.0 / rhop_n(cCells)[imat]));
 	      ep_nplus1(cCells)[imat] = num / den;
 	      e_nplus1(cCells) += fracmass(cCells)[imat] * ep_nplus1(cCells)[imat];
+	      if (abs(ep_nplus1(cCells)[imat]) > 5.) {
+		std::cout << cCells << " energie " << ep_nplus1(cCells)[imat] << " energien " <<
+		  ep_n(cCells)[imat] << " pseudo n+1 " << Qp_nplus1(cCells)[imat]
+			  << " n " << Qp_n(cCells)[imat] << " densite n+1 " << rhop_nplus1(cCells)[imat]
+			  << " n " << rhop_n(cCells)[imat] << " taux " << taup_nplus1(cCells)[imat]
+			  << std::endl;
+	        exit(1);
+	      }
 	    }
 	  }
 	});

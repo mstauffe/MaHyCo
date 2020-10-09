@@ -94,6 +94,8 @@ class Remap {
   Kokkos::View<RealArray1D<dim>*> BottomupwindVelocity;
   Kokkos::View<RealArray1D<dim>*> RightupwindVelocity;
   Kokkos::View<RealArray1D<dim>*> LeftupwindVelocity;
+  Kokkos::View<RealArray1D<nbequamax>*> gradDualPhi1;
+  Kokkos::View<RealArray1D<nbequamax>*> gradDualPhi2;
   
  public:
   Remap(
@@ -127,6 +129,8 @@ class Remap {
         gradPhiFace2("gradPhiFace2", nbFaces),
         gradPhi1("gradPhi1", nbCells),
         gradPhi2("gradPhi2", nbCells),
+        gradDualPhi1("gradPhi1", nbNodes),
+        gradDualPhi2("gradPhi2", nbNodes),
         phiFace1("phiFace1", nbFaces),
         phiFace2("phiFace2", nbFaces),
         FluxFace1("FluxFace1", nbCells, nbFacesOfCell),
@@ -190,6 +194,11 @@ class Remap {
   void getRightAndLeftFluxMasse2(const int nbmat, const size_t pNodes);
   void getTopAndBottomFluxMasse1(const int nbmat, const size_t pNodes);
   void getTopAndBottomFluxMasse2(const int nbmat, const size_t pNodes);
+  void getRightAndLeftFluxMasseViaVol1(const int nbmat, const size_t pNodes);
+  void getRightAndLeftFluxMasseViaVol2(const int nbmat, const size_t pNodes);
+  void getTopAndBottomFluxMasseViaVol1(const int nbmat, const size_t pNodes);
+  void getTopAndBottomFluxMasseViaVol2(const int nbmat, const size_t pNodes);
+
   
   double fluxLimiter(int projectionLimiterId, double r);
   double fluxLimiterPP(int projectionLimiterId, double gradplus,
@@ -204,11 +213,27 @@ class Remap {
                      double y0plus, double y0moins, double grady, int type);
   double INTY(double X, double x0, double y0, double x1, double y1);
   double INT2Y(double X, double x0, double y0, double x1, double y1);
+
+  void getTopUpwindVelocity(const size_t TopNode, const size_t pNode, RealArray1D<nbequamax> gradDualPhiT, RealArray1D<nbequamax> gradDualPhi);
+  
+  void getRightUpwindVelocity(const size_t RightNode, const size_t pNode, RealArray1D<nbequamax> gradDualPhiR, RealArray1D<nbequamax> gradDualPhi);
+  
+  void getBottomUpwindVelocity(const size_t BottomNode, const size_t pNode, RealArray1D<nbequamax> gradDualPhiB, RealArray1D<nbequamax> gradDualPhi);
+  
+  void getLeftUpwindVelocity(const size_t LeftNode, const size_t pNode, RealArray1D<nbequamax> gradDualPhiL, RealArray1D<nbequamax> gradDualPhi);
+  
+  template <size_t d>
+    RealArray1D<d> computeDualHorizontalGradPhi(RealArray1D<d> gradphiplus,
+				      RealArray1D<d> gradphimoins, const size_t pNode);
+  template <size_t d>
+    RealArray1D<d> computeDualVerticalGradPhi(RealArray1D<d> gradphiplus,
+				      RealArray1D<d> gradphimoins, const size_t pNode);
   template <size_t d>
   RealArray1D<d> computeAndLimitGradPhi(
       int projectionLimiterId, RealArray1D<d> gradphiplus,
       RealArray1D<d> gradphimoins, RealArray1D<d> phi, RealArray1D<d> phiplus,
       RealArray1D<d> phimoins, double h0, double hplus, double hmoins);
+
   template <size_t d>
   RealArray1D<d> computeFluxPP(RealArray1D<d> gradphi, RealArray1D<d> phi,
                                RealArray1D<d> phiplus, RealArray1D<d> phimoins,

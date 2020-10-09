@@ -161,6 +161,7 @@ void Vnr::computeVariablesForRemap() noexcept {
 	varlp->Phi(cCells) = varlp->ULagrange(cCells) /
 	  varlp->vLagrange(cCells);
       }
+      varlp->rLagrange(cCells) = rho_nplus1(cCells);
   });
   Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes)
       {
@@ -168,8 +169,7 @@ void Vnr::computeVariablesForRemap() noexcept {
 	varlp->XLagrange(pNodes) = X_nplus1(pNodes);
 	// quantité de mouvement
 	varlp->UDualLagrange(pNodes)[0] = m(pNodes) * u_nplus1(pNodes)[0];
-	varlp->UDualLagrange(pNodes)[1] = m(pNodes) * u_nplus1(pNodes)[1];
-	
+	varlp->UDualLagrange(pNodes)[1] = m(pNodes) * u_nplus1(pNodes)[1];	
 	// masse nodale
 	varlp->UDualLagrange(pNodes)[2] = m(pNodes);
         // projection de l'energie cinétique
@@ -177,15 +177,15 @@ void Vnr::computeVariablesForRemap() noexcept {
 	  varlp->UDualLagrange(pNodes)[3] = m(pNodes) *
 	    (u_nplus1(pNodes)[0] * u_nplus1(pNodes)[0]
 	     + u_nplus1(pNodes)[1] * u_nplus1(pNodes)[1]);
-
-	  varlp->DualPhi(pNodes)[0] = u_nplus1(pNodes)[0];
-	  varlp->DualPhi(pNodes)[1] = u_nplus1(pNodes)[1];
-	  // masse nodale
-	  varlp->DualPhi(pNodes)[2] = m(pNodes);
-	  // Phi energie cinétique
-	  if (options->projectionConservative == 1)
-	    varlp->DualPhi(pNodes)[3] = (u_nplus1(pNodes)[0] * u_nplus1(pNodes)[0]
-	     + u_nplus1(pNodes)[1] * u_nplus1(pNodes)[1]);
+	
+	varlp->DualPhi(pNodes)[0] = u_nplus1(pNodes)[0];
+	varlp->DualPhi(pNodes)[1] = u_nplus1(pNodes)[1];
+	// masse nodale
+	varlp->DualPhi(pNodes)[2] = m(pNodes);
+	// Phi energie cinétique
+	if (options->projectionConservative == 1)
+	  varlp->DualPhi(pNodes)[3] = (u_nplus1(pNodes)[0] * u_nplus1(pNodes)[0]
+				     + u_nplus1(pNodes)[1] * u_nplus1(pNodes)[1]);
 
 	// if ((pNodes == 30) || (pNodes == 31) || (pNodes == 32))
 	//   std::cout << " pNodes " <<  pNodes << " sortie Lagrange "

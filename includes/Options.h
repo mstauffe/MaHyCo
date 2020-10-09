@@ -17,6 +17,7 @@ class OptionsSchema {
     int Isotherme = 2;
     int AvecEquilibrage = -1;   
     int pseudo_centree = 1;
+    int methode_flux_masse = 0;
   };
   Options* options;
  private:

@@ -445,7 +445,7 @@ void Remap::computeUremap1() noexcept {
                                 varlp->faceLength(fFaces), phiFace1(fFaces),
                                 varlp->outerFaceNormal(cCells, fFacesOfCellC), exy,
                                 gt->deltat_n));
-	   
+
           }
           if (cdl->FluxBC > 0) {
             // flux exterieur eventuel

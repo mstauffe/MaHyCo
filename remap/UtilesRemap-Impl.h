@@ -6,6 +6,97 @@
 #include "types/MathFunctions.h"
 
 template <size_t d>
+RealArray1D<d> Remap::computeDualVerticalGradPhi(RealArray1D<d> grad_top, RealArray1D<d> grad_bottom, const size_t pNode) {
+  int limiter = limiteurs->projectionLimiterId;
+  int TopNode = mesh->getTopNode(pNode);
+  int BottomNode = mesh->getBottomNode(pNode);
+
+  if (TopNode == -1 || BottomNode == -1) return Uzero;
+  
+  grad_top[0] = (varlp->DualPhi(TopNode)[0] - varlp->DualPhi(pNode)[0]) /
+    (varlp->XLagrange(TopNode)[1] - varlp->XLagrange(pNode)[1]);
+  
+  grad_bottom[0] = (varlp->DualPhi(pNode)[0] - varlp->DualPhi(BottomNode)[0]) /
+    (varlp->XLagrange(pNode)[1] - varlp->XLagrange(BottomNode)[1]);
+  
+  grad_top[1] = (varlp->DualPhi(TopNode)[1] - varlp->DualPhi(pNode)[1]) /
+    (varlp->XLagrange(TopNode)[1] - varlp->XLagrange(pNode)[1]);
+  
+  grad_bottom[1] = (varlp->DualPhi(pNode)[1] - varlp->DualPhi(BottomNode)[1]) /
+    (varlp->XLagrange(pNode)[1] - varlp->XLagrange(BottomNode)[1]);
+  
+  int BottomBottomNode = mesh->getBottomNode(BottomNode);
+  int TopTopNode = mesh->getTopNode(TopNode);
+  // largeurs des mailles duales
+  double hmoins, h0, hplus;
+  h0 = 0.5 * (varlp->XLagrange(TopNode)[1] - varlp->XLagrange(BottomNode)[1]);
+  if (BottomBottomNode == -1) {
+    hmoins = 0.;
+    hplus = 0.5 * (varlp->XLagrange(TopTopNode)[1] - varlp->XLagrange(pNode)[1]);
+  } else if (TopTopNode == -1) {
+    hplus = 0.;
+    hmoins = 0.5 * (varlp->XLagrange(pNode)[1] - varlp->XLagrange(BottomBottomNode)[1]);
+  } else {	
+    hmoins = 0.5 * (varlp->XLagrange(pNode)[1] - varlp->XLagrange(BottomBottomNode)[1]);
+    hplus = 0.5 * (varlp->XLagrange(TopTopNode)[1] - varlp->XLagrange(pNode)[1]);
+  }
+  
+  RealArray1D<d> res;
+  res = computeAndLimitGradPhi(
+	  limiter, grad_top, grad_bottom,
+	  varlp->DualPhi(pNode), varlp->DualPhi(TopNode),  varlp->DualPhi(BottomNode),
+	  h0, hplus, hmoins);
+  // std::cout << " Nodes " << pNode << " gradV " << res << std::endl;
+  //std::cout << " Nodes " << BottomBottomNode << " " << BottomNode << " " <<
+  //   pNode << " " <<  TopNode << " " << TopTopNode << std::endl;
+  return res;
+}
+template <size_t d>
+RealArray1D<d> Remap::computeDualHorizontalGradPhi(RealArray1D<d> grad_right, RealArray1D<d> grad_left, const size_t pNode) {
+  int limiter = limiteurs->projectionLimiterId;
+  int LeftNode = mesh->getLeftNode(pNode);
+  int RightNode = mesh->getRightNode(pNode);
+  
+  if (LeftNode == -1 || RightNode == -1) return Uzero;
+  
+  grad_right[0] = (varlp->DualPhi(RightNode)[0] - varlp->DualPhi(pNode)[0]) /
+    (varlp->XLagrange(RightNode)[0] - varlp->XLagrange(pNode)[0]);
+  
+  grad_left[0] = (varlp->DualPhi(pNode)[0] - varlp->DualPhi(LeftNode)[0]) /
+    (varlp->XLagrange(pNode)[0] - varlp->XLagrange(LeftNode)[0]);
+  
+  grad_right[1] = (varlp->DualPhi(RightNode)[1] - varlp->DualPhi(pNode)[1]) /
+    (varlp->XLagrange(RightNode)[0] - varlp->XLagrange(pNode)[0]);
+  
+  grad_left[1] = (varlp->DualPhi(pNode)[1] - varlp->DualPhi(LeftNode)[1]) /
+    (varlp->XLagrange(pNode)[0] - varlp->XLagrange(LeftNode)[0]);
+  
+  int LeftLeftNode = mesh->getLeftNode(LeftNode);
+  int RightRightNode = mesh->getRightNode(RightNode);
+  // largeurs des mailles duales
+  double hmoins, h0, hplus;
+  h0 = 0.5 * (varlp->XLagrange(RightNode)[0] - varlp->XLagrange(LeftNode)[0]);
+  if (LeftLeftNode == -1) {
+    hmoins = 0.;
+    hplus = 0.5 * (varlp->XLagrange(RightRightNode)[0] - varlp->XLagrange(pNode)[0]);
+  } else if (RightRightNode == -1) {
+    hplus = 0.;
+    hmoins = 0.5 * (varlp->XLagrange(pNode)[0] - varlp->XLagrange(LeftLeftNode)[0]);
+  } else {	
+    hmoins = 0.5 * (varlp->XLagrange(pNode)[0] - varlp->XLagrange(LeftLeftNode)[0]);
+    hplus = 0.5 * (varlp->XLagrange(RightRightNode)[0] - varlp->XLagrange(pNode)[0]);
+  }
+  
+  RealArray1D<d> res;
+  res = computeAndLimitGradPhi(
+	  limiter, grad_right, grad_left,
+	  varlp->DualPhi(pNode), varlp->DualPhi(RightNode),  varlp->DualPhi(LeftNode),
+	  h0, hplus, hmoins);
+  // std::cout << " Nodes " << pNode << " gradH " << res << std::endl;
+  return res;
+}
+
+template <size_t d>
 RealArray1D<d> Remap::computeAndLimitGradPhi(
     int projectionLimiterId, RealArray1D<d> gradphiplus,
     RealArray1D<d> gradphimoins, RealArray1D<d> phi, RealArray1D<d> phiplus,
@@ -33,6 +124,7 @@ RealArray1D<d> Remap::computeAndLimitGradPhi(
     return res;
   }
 }
+
 template <size_t d>
 RealArray1D<d> Remap::computeVecFluxOrdre3(
     RealArray1D<d> phimmm, RealArray1D<d> phimm, RealArray1D<d> phim,

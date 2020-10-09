@@ -44,6 +44,7 @@ class VariablesLagRemap {
   Kokkos::View<RealArray1D<nbequamax>*> Uremap2;
   Kokkos::View<RealArray1D<nbequamax>*> UDualremap2;
   Kokkos::View<double*> vLagrange;
+  Kokkos::View<double*> rLagrange;
   Kokkos::View<int*> mixte;
   Kokkos::View<int*> pure;
   bool x_then_y_n, x_then_y_nplus1;
@@ -71,6 +72,7 @@ class VariablesLagRemap {
     UDualLagrange("UDualLagrange", nbNodes),
     UDualremap2("UDualremap2", nbNodes),
     vLagrange("vLagrange", nbCells),
+    rLagrange("rLagrange", nbCells),
     mixte("mixte", nbCells),
     pure("pure", nbCells),
     x_then_y_n(true),
