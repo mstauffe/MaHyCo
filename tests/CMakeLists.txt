@@ -3,7 +3,7 @@ set( TEST_DIR "${CMAKE_CURRENT_LIST_DIR}" )
 
 set( TEST_NAMES "SOD_X_bi_mat_Superbee_PenteBorne_mix"
                 "SOD_X_bi_mat_MinMod_simple"
-                "SOD_X_bi_mat_Superbee_PenteBorne_simple"
+                "SOD_X_bi_mat_Superbee_PenteBorne_pure"
                 "SOD_X_bi_mat_Superbee_simple"
                 "SOD_Y_bi_mat_MinMod_simple"
                 "SOD_Y_bi_mat_Ultrabee_simple"
