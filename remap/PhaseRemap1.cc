@@ -176,12 +176,14 @@ void Remap::computeGradPhi1() noexcept {
                 deltaPhiFaceAr(cCells) = computeFluxPPPure(gradPhi1(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
 		    HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
-		    Flux_sortant_ar, gt->deltat_n, 0, cCells, options->threshold);
+		    Flux_sortant_ar, gt->deltat_n, 0, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
               else
                 deltaPhiFaceAr(cCells) = computeFluxPP(gradPhi1(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
                     HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
-		    Flux_sortant_ar, gt->deltat_n, 0, cCells, options->threshold);
+		    Flux_sortant_ar, gt->deltat_n, 0, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
 
               double Flux_sortant_av =
                   dot(varlp->outerFaceNormal(cCells, frFacesOfCellC),
@@ -192,12 +194,14 @@ void Remap::computeGradPhi1() noexcept {
 		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
                     HvLagrange(cCells), HvLagrange(cfCells),
                     HvLagrange(cbCells), Flux_sortant_av, gt->deltat_n, 1,
-                    cCells, options->threshold);
+                    cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
               else
                 deltaPhiFaceAv(cCells) = computeFluxPP(gradPhi1(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
                     HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
-		    Flux_sortant_av, gt->deltat_n, 1, cCells, options->threshold);
+		    Flux_sortant_av, gt->deltat_n, 1, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
             }
           });
     } else {
@@ -250,12 +254,14 @@ void Remap::computeGradPhi1() noexcept {
                 deltaPhiFaceAr(cCells) = computeFluxPPPure(gradPhi1(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
                     HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
-		    Flux_sortant_av, gt->deltat_n, 0, cCells, options->threshold);
+		    Flux_sortant_av, gt->deltat_n, 0, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
               else
                 deltaPhiFaceAr(cCells) = computeFluxPP(gradPhi1(cCells), 
                     varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
                     HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
-		    Flux_sortant_av, gt->deltat_n, 0, cCells, options->threshold);
+		    Flux_sortant_av, gt->deltat_n, 0, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
 
               double Flux_sortant_ar =
 		dot(varlp->outerFaceNormal(cCells, ftFacesOfCellC),
@@ -266,12 +272,14 @@ void Remap::computeGradPhi1() noexcept {
                 deltaPhiFaceAv(cCells) = computeFluxPPPure(gradPhi1(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
                     HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
-		    Flux_sortant_ar, gt->deltat_n, 1, cCells, options->threshold);
+		    Flux_sortant_ar, gt->deltat_n, 1, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
               else
                 deltaPhiFaceAv(cCells) = computeFluxPP(gradPhi1(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
                     HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
-		    Flux_sortant_ar, gt->deltat_n, 1, cCells, options->threshold);
+		    Flux_sortant_ar, gt->deltat_n, 1, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
             }
           });
     }
@@ -446,6 +454,7 @@ void Remap::computeUremap1() noexcept {
                                 varlp->outerFaceNormal(cCells, fFacesOfCellC), exy,
                                 gt->deltat_n));
 
+
           }
           if (cdl->FluxBC > 0) {
             // flux exterieur eventuel
@@ -472,7 +481,7 @@ void Remap::computeUremap1() noexcept {
         }
 
         Uremap1(cCells) = varlp->ULagrange(cCells) - reduction8;
-	
+
         if (limiteurs->projectionAvecPlateauPente == 1) {
           // option ou on ne regarde pas la variation de rho, V et e
           // phi = (f1, f2, rho1*f1, rho2*f2, Vx, Vy, e1, e2

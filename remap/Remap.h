@@ -239,14 +239,16 @@ class Remap {
                                RealArray1D<d> phiplus, RealArray1D<d> phimoins,
                                double h0, double hplus, double hmoins,
                                double face_normal_velocity, double deltat_n,
-                               int type, int cell, double flux_threhold);
+                               int type, int cell, double flux_threhold,
+		               int projectionPlateauPenteComplet);
   template <size_t d>
   RealArray1D<d> computeFluxPPPure(RealArray1D<d> gradphi, RealArray1D<d> phi,
                                    RealArray1D<d> phiplus,
                                    RealArray1D<d> phimoins, double h0,
                                    double hplus, double hmoins,
                                    double face_normal_velocity, double deltat_n,
-                                   int type, int cell, double flux_threhold);
+                                   int type, int cell, double flux_threhold,
+				   int projectionPlateauPenteComplet);
   template <size_t d>
   RealArray1D<d> computeUpwindFaceQuantities(
       RealArray1D<dim> face_normal, double face_normal_velocity, double delta_x,

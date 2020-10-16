@@ -145,7 +145,7 @@ RealArray1D<d> Remap::computeFluxPP(
     RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
     double face_normal_velocity, double deltat_n, int type, int cell,
-    double flux_threhold) {
+    double flux_threhold, int projectionPlateauPenteComplet) {
   RealArray1D<d> Flux = Uzero;
   int nbmat = options->nbmat;
   double y0plus, y0moins, xd, xg, yd, yg;
@@ -154,7 +154,7 @@ RealArray1D<d> Remap::computeFluxPP(
       0.5 * (face_normal_velocity + abs(face_normal_velocity)) * deltat_n;
   if (partie_positive_v == 0.) return Flux;
   int cas_PP = 0;
-  for (size_t i = 0; i < nbmat; i++) {
+  for (size_t i = 0; i < nbequamax; i++) {
     // calcul des seuils y0plus, y0moins pour cCells
     y0plus = computeY0(limiteurs->projectionLimiterId, phi[i], phiplus[i],
                        phimoins[i], h0, hplus, hmoins, 0);
@@ -166,32 +166,11 @@ RealArray1D<d> Remap::computeFluxPP(
     xd = computexgxd(phi[i], phiplus[i], phimoins[i], h0, y0plus, y0moins, 1);
 
     // calcul des valeurs sur ces points d'intersections
-    // yg = computeygyd(phi[i], phiplus[i], phimoins[i], h0, gradphi[i], 0);
-    // yd = computeygyd(phi[i], phiplus[i], phimoins[i], h0, gradphi[i], 1);
-
     yg = computeygyd(phi[i], phiplus[i], phimoins[i], h0, y0plus, y0moins,
                      gradphi[i], 0);
     yd = computeygyd(phi[i], phiplus[i], phimoins[i], h0, y0plus, y0moins,
                      gradphi[i], 1);
 
-    // if (cell == -1009) {
-    //   std::cout << " -------------" << std::endl;
-    //   std::cout << " type = " << type << " I =" << i << " du mat 1"<<
-    //   std::endl; std::cout << " y0moins " << y0moins << std::endl; std::cout
-    //   << " y0plus " << y0plus << std::endl; std::cout << " phimoins " <<
-    //   phimoins[i] << std::endl; std::cout << " phi " << phi[i] << std::endl;
-    //   std::cout << " phiplus " << phiplus[i] << std::endl;
-    //   std::cout << " h0 " << h0 << " donc " << h0/2. << std::endl;
-    //   std::cout << " hmoins " << hmoins << std::endl;
-    //   std::cout << " hplus " << hplus << std::endl;
-    //   std::cout << " grady " << gradphi[i] << std::endl;
-    //   std::cout << " xg " << xg << std::endl;
-    //   std::cout << " xd " << xd << std::endl;
-    //   std::cout << " yg " << yg << std::endl;
-    //   std::cout << " yd " << yd << std::endl;
-    //   std::cout << " partie_positive_v " << partie_positive_v << std::endl;
-    //   cas_PP = 1;
-    //  }
 
     if (type == 0)  // flux arriere ou en dessous de cCells, integration entre
                     // -h0/2. et -h0/2.+abs(face_normal_velocity)*deltat_n
@@ -201,33 +180,14 @@ RealArray1D<d> Remap::computeFluxPP(
           INT2Y(-h0 / 2. + partie_positive_v, -h0 / 2., phimoins[i], xg, yg);
       // Flux1m : integrale -inf,  -h0/2.
       flux1 = INT2Y(-h0 / 2., -h0 / 2., phimoins[i], xg, yg);
-      //
-      // if (abs(flux1-flux1m) > flux_threhold && abs(xg) != abs(xd)) {
-      //   std::cout << i << " Activation Plateau Pente  AR Flux -h0/2, xg non
-      //   nul " << cell << " = " << abs(flux1-flux1m) << std::endl;
-
-      //   std::cout << " xg " << xg << " et h0/2 " << h0/2. << std::endl;
-      //   std::cout << " xd " << xd << " et h0/2 " << h0/2. << std::endl;
-      //   cas_PP = 1;
-      //  }
-      //
       // Flux2m : integrale -inf,  -h0/2.+partie_positive_v
       flux2m = INT2Y(-h0 / 2. + partie_positive_v, xg, yg, xd, yd);
       // Flux2 : integrale -inf,  -h0/2.
       flux2 = INT2Y(-h0 / 2., xg, yg, xd, yd);
-      //
       // Flux3m : integrale -inf,  -h0/2.+partie_positive_v
       flux3m = INT2Y(-h0 / 2. + partie_positive_v, xd, yd, h0 / 2., phiplus[i]);
       // Flux3 : integrale -inf,  -h0/2.
       flux3 = INT2Y(-h0 / 2., xd, yd, h0 / 2., phiplus[i]);
-      //
-      // if (abs(flux3-flux3m) > flux_threhold && abs(xg) != abs(xd)) {
-      //   std::cout << i << " Activation Plateau Pente  AR Flux xd , h0/2, non
-      //   nul " << cell << " = " << abs(flux3-flux3m) << std::endl; std::cout
-      //   << " xg " << xg << " et h0/2 " << h0/2. << std::endl; std::cout << "
-      //   xd " << xd << " et h0/2 " << h0/2. << std::endl; cas_PP = 1;
-      // }
-      //
       // integrale positive
       Flux[i] = MathFunctions::max(
           ((flux1m - flux1) + (flux2m - flux2) + (flux3m - flux3)), 0.);
@@ -235,25 +195,13 @@ RealArray1D<d> Remap::computeFluxPP(
       if (((phiplus[i] - phi[i]) * (phimoins[i] - phi[i])) >= 0.)
         Flux[i] = phi[i] * partie_positive_v;
       //
-      // if (cas_PP == 1) std::cout << " type 1 Flux1 " << flux1 << " Flux1m "
-      // << flux1m << " Flux2 " << flux2
-      //			    << " Flux2m " << flux2m << " Flux3 " <<
-      // flux3 << " Flux3m " << flux3m << " soit " << Flux[i] << std::endl;
-    } else if (type ==
-               1)  // flux devant ou au dessus de cCells, integration entre
-                   // h0/2.-abs(face_normal_velocity)*deltat_n et h0/2.
-    {
+    } else if (type == 1) {
+      // flux devant ou au dessus de cCells, integration entre
+      // h0/2.-abs(face_normal_velocity)*deltat_n et h0/2.
       // Flux1 : integrale -inf,  h0/2.-partie_positive_v
       flux1 = INT2Y(h0 / 2. - partie_positive_v, -h0 / 2., phimoins[i], xg, yg);
       // Flux1m : integrale -inf,  -h0/2.
       flux1m = INT2Y(h0 / 2., -h0 / 2., phimoins[i], xg, yg);
-      //
-      // if (abs(flux1-flux1m) > flux_threhold && abs(xg) != abs(xd)) {
-      //   std::cout << i << " Activation Plateau Pente  AV Flux -h0/2, xg non
-      //   nul " << cell << " = " << abs(flux1-flux1m) << std::endl; std::cout
-      //   << " xg " << xg << " et h0/2 " << h0/2. << std::endl; std::cout << "
-      //   xd " << xd << " et h0/2 " << h0/2. << std::endl; cas_PP = 1;
-      //  }
       //
       // Flux2 : integrale -inf,  h0/2.-partie_positive_v
       flux2 = INT2Y(h0 / 2. - partie_positive_v, xg, yg, xd, yd);
@@ -264,13 +212,6 @@ RealArray1D<d> Remap::computeFluxPP(
       flux3 = INT2Y(h0 / 2. - partie_positive_v, xd, yd, h0 / 2., phiplus[i]);
       // Flux3m : integrale -inf,  -h0/2.
       flux3m = INT2Y(h0 / 2., xd, yd, h0 / 2., phiplus[i]);
-      // if (abs(flux3-flux3m) > flux_threhold && abs(xg) != abs(xd)) {
-      //    std::cout << i << " Activation Plateau Pente  AV Flux xd , h0/2, non
-      //    nul " << cell << " = " << abs(flux3-flux3m) << std::endl;
-      //  std::cout << " xg " << xg << " et h0/2 " << h0/2. << std::endl;
-      //  std::cout << " xd " << xd << " et h0/2 " << h0/2. << std::endl;
-      //  cas_PP = 1;
-      // }
       //
       // integrale positive
       Flux[i] = MathFunctions::max(
@@ -278,37 +219,59 @@ RealArray1D<d> Remap::computeFluxPP(
       // formule 16
       if (((phiplus[i] - phi[i]) * (phimoins[i] - phi[i])) >= 0.)
         Flux[i] = phi[i] * partie_positive_v;
-
-      // if (cas_PP == 1) std::cout << " type 1 Flux1 " << flux1 << " Flux1m "
-      // << flux1m << " Flux2 " << flux2
-      //			    << " Flux2m " << flux2m << " Flux3 " <<
-      // flux3 << " Flux3m " << flux3m << " soit " << Flux[i] << std::endl;
     }
-
   }
-  // std::cout << " Flux " << Flux << std::endl;
-  // les flux de masse, de quantité de mouvement et d'energie massique se
-  // deduisent des flux de volumes
-  double somme_flux_masse = 0.;
-  double somme_flux_volume = 0.;
-  for (size_t imat = 0; imat < nbmat; imat++) {
-    Flux[nbmat + imat] =
+  if (projectionPlateauPenteComplet == 1) {
+   // les flux de masse se déduisent des flux de volume en utilisant une valeur moyenne de Rho calculée par le flux de masse / flux de volume
+   // Celles des energies massiques avec une valeur moyenne de e calculée par le flux d'energie / flux de volume
+   // Celles de quantité de mouvement avec une valeur moyenne de u calculée par le flux de vitesse / flux de volume
+    double somme_flux_masse = 0.;
+    double somme_flux_volume = 0.;
+    for (size_t imat = 0; imat < nbmat; imat++)
+      somme_flux_volume += Flux[imat];
+    
+    if (MathFunctions::fabs(somme_flux_volume) > flux_threhold ) {
+      for (size_t imat = 0; imat < nbmat; imat++) {
+	Flux[nbmat + imat] = (Flux[nbmat + imat] / somme_flux_volume) * Flux[imat];
+	Flux[2.*nbmat + imat] = (Flux[2.*nbmat + imat] / somme_flux_volume) * Flux[nbmat + imat];
+	somme_flux_masse += Flux[nbmat + imat];
+      }
+    
+      Flux[3 * nbmat] =
+	(Flux[3 * nbmat]/somme_flux_volume) * somme_flux_masse;  // flux de quantité de mouvement x
+      Flux[3 * nbmat +1] =
+	(Flux[3 * nbmat +1 ]/somme_flux_volume) * somme_flux_masse;  // flux de quantité de mouvement y
+      Flux[3 * nbmat +2] =
+	(Flux[3 * nbmat +2 ]/somme_flux_volume) * somme_flux_masse;
+    
+      Flux[3 * nbmat + 3] =
+	phi[3 * nbmat + 3] * somme_flux_volume; // flux pour la pseudo VNR
+    } else {
+      Flux = Uzero;
+    }
+  } else {
+    // les flux de masse, de quantité de mouvement et d'energie massique se
+    // deduisent des flux de volumes avec la valeur de rho, e et u à la maille
+    double somme_flux_masse = 0.;
+    double somme_flux_volume = 0.;
+    for (size_t imat = 0; imat < nbmat; imat++) {
+      Flux[nbmat + imat] =
         phi[nbmat + imat] * Flux[imat];  // flux de masse de imat
-    Flux[2 * nbmat + imat] =
+      Flux[2 * nbmat + imat] =
         phi[2 * nbmat + imat] *
         Flux[nbmat + imat];  // flux de masse energy de imat
-    somme_flux_masse += Flux[nbmat + imat];
-    somme_flux_volume += Flux[imat];
-  }
-  Flux[3 * nbmat] =
+      somme_flux_masse += Flux[nbmat + imat];
+      somme_flux_volume += Flux[imat];
+    }
+    Flux[3 * nbmat] =
       phi[3 * nbmat] * somme_flux_masse;  // flux de quantité de mouvement x
-  Flux[3 * nbmat + 1] =
+    Flux[3 * nbmat + 1] =
       phi[3 * nbmat + 1] * somme_flux_masse;  // flux de quantité de mouvement y
-  Flux[3 * nbmat + 2] =
+    Flux[3 * nbmat + 2] =
       phi[3 * nbmat + 2] * somme_flux_masse;  // flux d'energie cinetique
-  Flux[3 * nbmat + 3] =
-    phi[3 * nbmat + 3] * somme_flux_volume; // flux pour la pseudo VNR
-
+    Flux[3 * nbmat + 3] =
+      phi[3 * nbmat + 3] * somme_flux_volume; // flux pour la pseudo VNR
+  }
   return Flux;
 }
 
@@ -317,7 +280,7 @@ RealArray1D<d> Remap::computeFluxPPPure(
     RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
     double face_normal_velocity, double deltat_n, int type, int cell,
-    double flux_threhold) {
+    double flux_threhold, int projectionPlateauPenteComplet) {
   RealArray1D<d> Flux = Uzero;
   int nbmat = options->nbmat;
   double y0plus, y0moins, xd, xg, yd, yg;
@@ -327,7 +290,7 @@ RealArray1D<d> Remap::computeFluxPPPure(
   if (partie_positive_v == 0.) return Flux;
   int cas_PP = 0;
   // on ne fait que la projection des volumes et masses
-  for (size_t i = 0; i < 2 * nbmat; i++) {
+  for (size_t i = 0; i < nbequamax; i++) {
     // calcul des seuils y0plus, y0moins pour cCells
     y0plus = computeY0(limiteurs->projectionLimiterIdPure, phi[i], phiplus[i],
                        phimoins[i], h0, hplus, hmoins, 0);
@@ -339,32 +302,10 @@ RealArray1D<d> Remap::computeFluxPPPure(
     xd = computexgxd(phi[i], phiplus[i], phimoins[i], h0, y0plus, y0moins, 1);
 
     // calcul des valeurs sur ces points d'intersections
-    // yg = computeygyd(phi[i], phiplus[i], phimoins[i], h0, gradphi[i], 0);
-    // yd = computeygyd(phi[i], phiplus[i], phimoins[i], h0, gradphi[i], 1);
-
     yg = computeygyd(phi[i], phiplus[i], phimoins[i], h0, y0plus, y0moins,
                      gradphi[i], 0);
     yd = computeygyd(phi[i], phiplus[i], phimoins[i], h0, y0plus, y0moins,
                      gradphi[i], 1);
-
-    // if (cell == -1009) {
-    //   std::cout << " -------------" << std::endl;
-    //   std::cout << " type = " << type << " I =" << i << " du mat 1"<<
-    //   std::endl; std::cout << " y0moins " << y0moins << std::endl; std::cout
-    //   << " y0plus " << y0plus << std::endl; std::cout << " phimoins " <<
-    //   phimoins[i] << std::endl; std::cout << " phi " << phi[i] << std::endl;
-    //   std::cout << " phiplus " << phiplus[i] << std::endl;
-    //   std::cout << " h0 " << h0 << " donc " << h0/2. << std::endl;
-    //   std::cout << " hmoins " << hmoins << std::endl;
-    //   std::cout << " hplus " << hplus << std::endl;
-    //   std::cout << " grady " << gradphi[i] << std::endl;
-    //   std::cout << " xg " << xg << std::endl;
-    //   std::cout << " xd " << xd << std::endl;
-    //   std::cout << " yg " << yg << std::endl;
-    //   std::cout << " yd " << yd << std::endl;
-    //   std::cout << " partie_positive_v " << partie_positive_v << std::endl;
-    //   cas_PP = 1;
-    //  }
 
     if (type == 0)  // flux arriere ou en dessous de cCells, integration entre
                     // -h0/2. et -h0/2.+abs(face_normal_velocity)*deltat_n
@@ -374,15 +315,6 @@ RealArray1D<d> Remap::computeFluxPPPure(
           INT2Y(-h0 / 2. + partie_positive_v, -h0 / 2., phimoins[i], xg, yg);
       // Flux1m : integrale -inf,  -h0/2.
       flux1 = INT2Y(-h0 / 2., -h0 / 2., phimoins[i], xg, yg);
-      //
-      // if (abs(flux1-flux1m) > flux_threhold && abs(xg) != abs(xd)) {
-      //   std::cout << i << " Activation Plateau Pente  AR Flux -h0/2, xg non
-      //   nul " << cell << " = " << abs(flux1-flux1m) << std::endl;
-
-      //   std::cout << " xg " << xg << " et h0/2 " << h0/2. << std::endl;
-      //   std::cout << " xd " << xd << " et h0/2 " << h0/2. << std::endl;
-      //   cas_PP = 1;
-      //  }
       //
       // Flux2m : integrale -inf,  -h0/2.+partie_positive_v
       flux2m = INT2Y(-h0 / 2. + partie_positive_v, xg, yg, xd, yd);
@@ -394,13 +326,6 @@ RealArray1D<d> Remap::computeFluxPPPure(
       // Flux3 : integrale -inf,  -h0/2.
       flux3 = INT2Y(-h0 / 2., xd, yd, h0 / 2., phiplus[i]);
       //
-      // if (abs(flux3-flux3m) > flux_threhold && abs(xg) != abs(xd)) {
-      //   std::cout << i << " Activation Plateau Pente  AR Flux xd , h0/2, non
-      //   nul " << cell << " = " << abs(flux3-flux3m) << std::endl; std::cout
-      //   << " xg " << xg << " et h0/2 " << h0/2. << std::endl; std::cout << "
-      //   xd " << xd << " et h0/2 " << h0/2. << std::endl; cas_PP = 1;
-      // }
-      //
       // integrale positive
       Flux[i] = MathFunctions::max(
           ((flux1m - flux1) + (flux2m - flux2) + (flux3m - flux3)), 0.);
@@ -408,26 +333,13 @@ RealArray1D<d> Remap::computeFluxPPPure(
       if (((phiplus[i] - phi[i]) * (phimoins[i] - phi[i])) >= 0.)
         Flux[i] = phi[i] * partie_positive_v;
       //
-      // if (cas_PP == 1) std::cout << " type 1 Flux1 " << flux1 << " Flux1m "
-      // << flux1m << " Flux2 " << flux2
-      //			    << " Flux2m " << flux2m << " Flux3 " <<
-      // flux3 << " Flux3m " << flux3m << " soit " << Flux[i] << std::endl;
-    } else if (type ==
-               1)  // flux devant ou au dessus de cCells, integration entre
-                   // h0/2.-abs(face_normal_velocity)*deltat_n et h0/2.
-    {
+    } else if (type ==1) {
+      // flux devant ou au dessus de cCells, integration entre
+      // h0/2.-abs(face_normal_velocity)*deltat_n et h0/2.
       // Flux1 : integrale -inf,  h0/2.-partie_positive_v
       flux1 = INT2Y(h0 / 2. - partie_positive_v, -h0 / 2., phimoins[i], xg, yg);
       // Flux1m : integrale -inf,  -h0/2.
       flux1m = INT2Y(h0 / 2., -h0 / 2., phimoins[i], xg, yg);
-      //
-      // if (abs(flux1-flux1m) > flux_threhold && abs(xg) != abs(xd)) {
-      //   std::cout << i << " Activation Plateau Pente  AV Flux -h0/2, xg non
-      //   nul " << cell << " = " << abs(flux1-flux1m) << std::endl; std::cout
-      //   << " xg " << xg << " et h0/2 " << h0/2. << std::endl; std::cout << "
-      //   xd " << xd << " et h0/2 " << h0/2. << std::endl; cas_PP = 1;
-      //  }
-      //
       // Flux2 : integrale -inf,  h0/2.-partie_positive_v
       flux2 = INT2Y(h0 / 2. - partie_positive_v, xg, yg, xd, yd);
       // Flux2m : integrale -inf,  -h0/2.
@@ -437,49 +349,61 @@ RealArray1D<d> Remap::computeFluxPPPure(
       flux3 = INT2Y(h0 / 2. - partie_positive_v, xd, yd, h0 / 2., phiplus[i]);
       // Flux3m : integrale -inf,  -h0/2.
       flux3m = INT2Y(h0 / 2., xd, yd, h0 / 2., phiplus[i]);
-      // if (abs(flux3-flux3m) > flux_threhold && abs(xg) != abs(xd)) {
-      //    std::cout << i << " Activation Plateau Pente  AV Flux xd , h0/2, non
-      //    nul " << cell << " = " << abs(flux3-flux3m) << std::endl;
-      //  std::cout << " xg " << xg << " et h0/2 " << h0/2. << std::endl;
-      //  std::cout << " xd " << xd << " et h0/2 " << h0/2. << std::endl;
-      //  cas_PP = 1;
-      // }
-      //
       // integrale positive
       Flux[i] = MathFunctions::max(
           ((flux1m - flux1) + (flux2m - flux2) + (flux3m - flux3)), 0.);
       // formule 16
       if (((phiplus[i] - phi[i]) * (phimoins[i] - phi[i])) >= 0.)
         Flux[i] = phi[i] * partie_positive_v;
-
-      // if (cas_PP == 1) std::cout << " type 1 Flux1 " << flux1 << " Flux1m "
-      // << flux1m << " Flux2 " << flux2
-      //			    << " Flux2m " << flux2m << " Flux3 " <<
-      // flux3 << " Flux3m " << flux3m << " soit " << Flux[i] << std::endl;
     }
-
   }
-  // std::cout << " Flux " << Flux << std::endl;
-  // les flux de masse, de quantité de mouvement et d'energie massique se
-  // deduisent des flux de volumes
-  double somme_flux_masse = 0.;
-  double somme_flux_volume = 0.;
-  for (size_t imat = 0; imat < nbmat; imat++) {
-    Flux[2 * nbmat + imat] =
+  if (projectionPlateauPenteComplet == 1) {
+   // les flux de masse se déduisent des flux de volume en utilisant une valeur moyenne de Rho calculée par le flux de masse / flux de volume
+   // Celles des energies massiques avec une valeur moyenne de e calculée par le flux d'energie / flux de volume
+   // Celles de quantité de mouvement avec une valeur moyenne de u calculée par le flux de vitesse / flux de volume
+    double somme_flux_masse = 0.;
+    double somme_flux_volume = 0.;
+    for (size_t imat = 0; imat < nbmat; imat++)
+      somme_flux_volume += Flux[imat];
+    
+    if (MathFunctions::fabs(somme_flux_volume) > flux_threhold) {
+      for (size_t imat = 0; imat < nbmat; imat++) {
+	Flux[2.*nbmat + imat] = (Flux[2.*nbmat + imat] / somme_flux_volume) * Flux[nbmat + imat];
+	somme_flux_masse += Flux[nbmat + imat];
+      }
+    
+      Flux[3 * nbmat] =
+	(Flux[3 * nbmat]/somme_flux_volume) * somme_flux_masse;  // flux de quantité de mouvement x
+      Flux[3 * nbmat +1] =
+	(Flux[3 * nbmat +1 ]/somme_flux_volume) * somme_flux_masse;  // flux de quantité de mouvement y
+      Flux[3 * nbmat +2] =
+	(Flux[3 * nbmat +2 ]/somme_flux_volume) * somme_flux_masse;
+      Flux[3 * nbmat + 3] =
+	phi[3 * nbmat + 3] * somme_flux_volume; // flux pour la pseudo VNR
+    } else {
+      Flux = Uzero;
+    }
+  } else {
+    // les flux de masse, de quantité de mouvement et d'energie massique se
+    // deduisent des flux de volumes
+    double somme_flux_masse = 0.;
+    double somme_flux_volume = 0.;
+    for (size_t imat = 0; imat < nbmat; imat++) {
+      Flux[2 * nbmat + imat] =
         phi[2 * nbmat + imat] *
         Flux[nbmat + imat];  // flux de masse energy de imat
-    somme_flux_masse += Flux[nbmat + imat];
-    somme_flux_volume += Flux[imat];
-  }
-  Flux[3 * nbmat] =
+      somme_flux_masse += Flux[nbmat + imat];
+      somme_flux_volume += Flux[imat];
+    }
+    Flux[3 * nbmat] =
       phi[3 * nbmat] * somme_flux_masse;  // flux de quantité de mouvement x
-  Flux[3 * nbmat + 1] =
+    Flux[3 * nbmat + 1] =
       phi[3 * nbmat + 1] * somme_flux_masse;  // flux de quantité de mouvement y
-  Flux[3 * nbmat + 2] =
+    Flux[3 * nbmat + 2] =
       phi[3 * nbmat + 2] * somme_flux_masse;  // flux d'energie cinetique
-  Flux[3 * nbmat + 3] =
-    phi[3 * nbmat + 3] * somme_flux_volume; // flux pour la pseudo VNR
-
+    Flux[3 * nbmat + 3] =
+      phi[3 * nbmat + 3] * somme_flux_volume; // flux pour la pseudo VNR
+  }
   return Flux;
 }
 

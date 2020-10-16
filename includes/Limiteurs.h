@@ -22,6 +22,7 @@ class LimiteursClass {
     int projectionLimiterIdPure = -1;
 
     int projectionLimiteurMixte = 0;
+    int projectionPlateauPenteComplet = 0;
   };
   Limiteurs* limiteurs;
 

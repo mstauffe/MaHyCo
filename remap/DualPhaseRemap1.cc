@@ -40,10 +40,7 @@ void Remap::computeDualUremap1() noexcept {
 	if (options->methode_flux_masse == 1)
 	  getRightAndLeftFluxMasseViaVol1(nbmat, pNode);
 	UDualremap1(pNode)[2] = varlp->UDualLagrange(pNode)[2] + LeftFluxMasse(pNode) - RightFluxMasse(pNode);
-	// if (pNode == 300 || pNode == 301 || pNode == 302) {
-	//   std::cout << " H1 pNode " <<  pNode << " UL " << varlp->UDualLagrange(pNode)[2] 
-	// 	    << " UDualremap1 " << UDualremap1(pNode)[2] << endl;
-	// }
+	
 	if (options->projectionOrder >= 1) {	  
 	  // Rightvitesse = vitesse(pNode) si RightFluxMasse(pNode) > 0 et vitesse(voisin de droite) sinon
 	  // Leftvitesse = vitesse(voisin de gauche) si LeftFluxMasse(pNode) > 0 et vitesse(pNode) sinon

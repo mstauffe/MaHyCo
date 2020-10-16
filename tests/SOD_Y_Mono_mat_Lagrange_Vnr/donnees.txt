@@ -34,9 +34,5 @@ non
 minmod
 # option Pente Borne
 non
-# option Pente Borne Mixte
-non
-# limiteur Pente Borne Pure
-arithmeticG
 # pseudo_centree
 non
