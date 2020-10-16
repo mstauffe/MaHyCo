@@ -171,12 +171,14 @@ void Remap::computeGradPhi2() noexcept {
                 deltaPhiFaceAr(cCells) = computeFluxPPPure(gradPhi2(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
                     HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
-		    Flux_sortant_av, gt->deltat_n, 0, cCells, options->threshold);
+		    Flux_sortant_av, gt->deltat_n, 0, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
               else
                 deltaPhiFaceAr(cCells) = computeFluxPP(gradPhi2(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
                     HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
-		    Flux_sortant_av, gt->deltat_n, 0, cCells, options->threshold);
+		    Flux_sortant_av, gt->deltat_n, 0, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
 
               double Flux_sortant_ar =
                   dot(varlp->outerFaceNormal(cCells, ftFacesOfCellC),
@@ -186,12 +188,14 @@ void Remap::computeGradPhi2() noexcept {
                 deltaPhiFaceAv(cCells) = computeFluxPPPure(gradPhi2(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
                     HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
-		    Flux_sortant_ar, gt->deltat_n, 1, cCells, options->threshold);
+		    Flux_sortant_ar, gt->deltat_n, 1, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
               else
                 deltaPhiFaceAv(cCells) = computeFluxPP(gradPhi2(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
                     HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
-		    Flux_sortant_ar, gt->deltat_n, 1, cCells, options->threshold);
+		    Flux_sortant_ar, gt->deltat_n, 1, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
             }
           });
     } else {
@@ -244,12 +248,14 @@ void Remap::computeGradPhi2() noexcept {
                 deltaPhiFaceAr(cCells) = computeFluxPPPure(gradPhi2(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
                     HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
-		    Flux_sortant_ar, gt->deltat_n, 0, cCells, options->threshold);
+		    Flux_sortant_ar, gt->deltat_n, 0, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
               else
                 deltaPhiFaceAr(cCells) = computeFluxPP(gradPhi2(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
                     HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
-		    Flux_sortant_ar, gt->deltat_n, 0, cCells, options->threshold);
+		    Flux_sortant_ar, gt->deltat_n, 0, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
 
               double Flux_sortant_av =
                   dot(varlp->outerFaceNormal(cCells, frFacesOfCellC),
@@ -259,12 +265,14 @@ void Remap::computeGradPhi2() noexcept {
                 deltaPhiFaceAv(cCells) = computeFluxPPPure(gradPhi2(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
                     HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
-		    Flux_sortant_av, gt->deltat_n, 1, cCells, options->threshold);
+		    Flux_sortant_av, gt->deltat_n, 1, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
               else
                 deltaPhiFaceAv(cCells) = computeFluxPP(gradPhi2(cCells),
 		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
                     HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
-		    Flux_sortant_av, gt->deltat_n, 1, cCells, options->threshold);
+		    Flux_sortant_av, gt->deltat_n, 1, cCells, options->threshold,
+		    limiteurs->projectionPlateauPenteComplet);
             }
           });
     }
@@ -437,7 +445,6 @@ void Remap::computeUremap2() noexcept {
                                 varlp->outerFaceNormal(cCells, fFacesOfCellC), exy,
                                 gt->deltat_n));	    
             //
-
             //
           }
           if (cdl->FluxBC > 0) {

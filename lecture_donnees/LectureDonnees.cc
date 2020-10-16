@@ -151,24 +151,33 @@ void LectureDonneesClass::LectureDonnees(string Fichier,
               << l->projectionAvecPlateauPente << " ) " << std::endl;
     mesdonnees.ignore();
 
-    getline(mesdonnees, ligne);  // Projection Avec Plateau Pente Mixte
-    mesdonnees >> mot;
-    l->projectionLimiteurMixte = ouiOUnon[mot];
-    std::cout << " Projection Avec Plateau Pente Mixte " << mot << " ( "
-              << l->projectionLimiteurMixte << " ) " << std::endl;
-    mesdonnees.ignore();
+    if (l->projectionAvecPlateauPente ==1) {
+      getline(mesdonnees, ligne);  // Projection Avec Plateau Pente Mixte
+      mesdonnees >> mot;
+      l->projectionLimiteurMixte = ouiOUnon[mot];
+      std::cout << " Projection Avec Plateau Pente Mixte " << mot << " ( "
+		<< l->projectionLimiteurMixte << " ) " << std::endl;
+      mesdonnees.ignore();
 
-    getline(mesdonnees, ligne);  // Projection Limiteur pour Mailles Pures
-    mesdonnees >> mot;
-    l->projectionLimiterIdPure = limiteur[mot];
-    std::cout << " Limiteur pour Mailles Pures " << mot << " ( "
-              << l->projectionLimiterIdPure << " ) " << std::endl;
-    if ((l->projectionLimiterId == -1) && (l->projectionLimiteurMixte == 1)) {
-      cout << "ERREUR: Limiteur pour mailles pures non défini " <<
-	" alors que l option projectionLimiteurMixte est demandée" << endl;
-       exit(1);
+      getline(mesdonnees, ligne);  // Projection Limiteur pour Mailles Pures
+      mesdonnees >> mot;
+      l->projectionLimiterIdPure = limiteur[mot];
+      std::cout << " Limiteur pour Mailles Pures " << mot << " ( "
+		<< l->projectionLimiterIdPure << " ) " << std::endl;
+      if ((l->projectionLimiterId == -1) && (l->projectionLimiteurMixte == 1)) {
+	cout << "ERREUR: Limiteur pour mailles pures non défini " <<
+	  " alors que l option projectionLimiteurMixte est demandée" << endl;
+	exit(1);
+      }
+      mesdonnees.ignore();
+      
+      getline(mesdonnees, ligne);  // Projection Plateau-Pente Complet
+      mesdonnees >> mot;
+      l->projectionPlateauPenteComplet = ouiOUnon[mot];;
+      std::cout << " Projection Avec Plateau Pente Complet" << mot << " ( "
+		<< l->projectionPlateauPenteComplet << " ) " << std::endl;
+      mesdonnees.ignore();
     }
-    mesdonnees.ignore();
 
     if (s->schema == s->VNR) {
       // motclé spécifique VNR
