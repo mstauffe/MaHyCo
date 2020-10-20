@@ -17,7 +17,6 @@
 
 void Remap::computeDualUremap1() noexcept {
   if (varlp->x_then_y_n) {
-    // projection horizontale
     if (options->projectionOrder > 1) {
       // calcul des gradients de vitesses
       Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNode)
@@ -115,11 +114,11 @@ void Remap::computeDualUremap1() noexcept {
       // energie cinétique
       varlp->DualPhi(pNode)[3] = UDualremap1(pNode)[3] / UDualremap1(pNode)[2];
       
-      // if ((pNode == 30) || (pNode == 31) || (pNode == 32)) 
-      // std::cout << " pNode " <<  pNode << " sortie 1 remaillage "
-      //  		<<   UDualremap1(pNode)[0] / UDualremap1(pNode)[2]
-      //  		<< "   " << UDualremap1(pNode)[0] / UDualremap1(pNode)[2]
-      //  		<< "   " << UDualremap1(pNode)[2] << std::endl;
+      // if ((pNode == 600) || (pNode == 601) || (pNode == 602)) 
+      //   std::cout << " pNode " <<  pNode << " sortie 1 remaillage "
+      // 		  <<   varlp->UDualLagrange(pNode)[0] << " -> " << UDualremap1(pNode)[0] << " et " 
+      //   	  <<   varlp->UDualLagrange(pNode)[1] << " ->  " << UDualremap1(pNode)[1] 
+      //   		<< "   " << UDualremap1(pNode)[2] << std::endl;
 		  
     });
 }

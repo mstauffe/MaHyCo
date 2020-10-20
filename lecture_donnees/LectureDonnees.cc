@@ -37,6 +37,11 @@ void LectureDonneesClass::LectureDonnees(string Fichier,
       o->nbmat = 1;
     else o->nbmat = 2;
     if (test->Nom == test->BiTriplePoint) o->nbmat = 3;
+    if (test->Nom == test->AdvectionX || test->Nom == test->AdvectionY
+	|| test->Nom == test->BiAdvectionX || test->Nom == test->BiAdvectionY
+	|| test->Nom == test->AdvectionVitX || test->Nom == test->AdvectionVitY
+	|| test->Nom == test->BiAdvectionVitX || test->Nom == test->BiAdvectionVitY)
+      o->sansLagrange = 1;
       
 
     getline(mesdonnees, ligne);  // ligne de commentaire Nombre de Mailles en X

@@ -1,7 +1,17 @@
 # Test name is also test directory
 set( TEST_DIR "${CMAKE_CURRENT_LIST_DIR}" )
 
-set( TEST_NAMES "SOD_X_bi_mat_Superbee_PenteBorne_mix"
+set( TEST_NAMES "ADVECTION_X_Mono_mat_vnr_o1"
+                "ADVECTION_X_Mono_mat_Minmod_vnr_o2"
+                "ADVECTION_X_Mono_mat_Superbee_vnr_o2"
+		"ADVECTION_X_bi_mat_vnr_o1"
+		"ADVECTION_X_bi_mat_Minmod_vnr_o2"
+		"ADVECTION_X_bi_mat_Minmod_PenteBorne_pure_vnr_o2"
+		"ADVECTION_X_bi_mat_Minmod_PenteBorne_pure_complet_vnr_o2"
+		"ADVECTION_X_bi_mat_Superbee_vnr_o2"
+		"ADVECTION_X_bi_mat_Superbee_PenteBorne_pure_vnr_o2"
+		"ADVECTION_X_bi_mat_Superbee_PenteBorne_pure_complet_vnr_o2"
+		"SOD_X_bi_mat_Superbee_PenteBorne_mix"
                 "SOD_X_bi_mat_MinMod_simple"
                 "SOD_X_bi_mat_Superbee_PenteBorne_pure"
 		"SOD_X_bi_mat_Superbee_PenteBorne_pure_complet"

@@ -18,6 +18,7 @@ class OptionsSchema {
     int AvecEquilibrage = -1;   
     int pseudo_centree = 1;
     int methode_flux_masse = 0;
+    int sansLagrange = 0;
   };
   Options* options;
  private:

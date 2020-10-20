@@ -187,10 +187,11 @@ void Vnr::computeVariablesForRemap() noexcept {
 	  varlp->DualPhi(pNodes)[3] = (u_nplus1(pNodes)[0] * u_nplus1(pNodes)[0]
 				     + u_nplus1(pNodes)[1] * u_nplus1(pNodes)[1]);
 
-	// if ((pNodes == 30) || (pNodes == 31) || (pNodes == 32))
-	//   std::cout << " pNodes " <<  pNodes << " sortie Lagrange "
-	// 	    << varlp->UDualLagrange(pNodes)[0]/varlp->UDualLagrange(pNodes)[2]
-	// 	    << "  " << varlp->UDualLagrange(pNodes)[1]/varlp->UDualLagrange(pNodes)[2]
-	// 	    << "  " << varlp->UDualLagrange(pNodes)[2] << std::endl;
+	// if ((pNodes == 600) || (pNodes == 601) || (pNodes == 602))
+	//    std::cout << " pNodes " <<  pNodes << " sortie Lagrange "
+	//  	    << varlp->UDualLagrange(pNodes)[0]
+	//  	    << "  " << varlp->UDualLagrange(pNodes)[1]
+	// 	     << "  " << varlp->UDualLagrange(pNodes)[2]
+	// 	     << " vit " << u_nplus1(pNodes) << std::endl;
       });
 }

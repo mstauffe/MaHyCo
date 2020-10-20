@@ -184,3 +184,26 @@ void Vnr::updateVelocityBoundaryConditions() noexcept
 	  u_nplus1(pNodes) = cdl->rightBCValue;		     
       });
 }
+void Vnr::updatePeriodicBoundaryConditions() noexcept
+{
+  Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCell)
+    {
+      if (cdl->rightCellBC == cdl->periodic) {
+	int LeftCell = mesh->getLeftCellfromRight(cCell);
+	if (LeftCell != -1) {
+	  rho_nplus1(LeftCell) = rho_n0(LeftCell);
+	  e_nplus1(LeftCell) = e_n0(LeftCell);
+	  rho_nplus1(cCell) = rho_nplus1(LeftCell);
+	  e_nplus1(cCell) = e_nplus1(LeftCell);
+	  int nbmat = options->nbmat;
+	  for (int imat = 0; imat < nbmat; ++imat) {
+	    rhop_nplus1(LeftCell)[imat] = rhop_n0(LeftCell)[imat];
+	    ep_nplus1(LeftCell)[imat] = ep_n0(LeftCell)[imat];
+	    rhop_nplus1(cCell)[imat] = rhop_nplus1(LeftCell)[imat];
+	    ep_nplus1(cCell)[imat] = ep_nplus1(LeftCell)[imat];
+	  }
+	}
+      }
+    });
+}
+		   

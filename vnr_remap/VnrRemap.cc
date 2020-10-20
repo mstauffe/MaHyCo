@@ -128,25 +128,39 @@ void Vnr::executeTimeLoopN() noexcept
 		if (n!=1)
 			std::cout << "[" << __CYAN__ << __BOLD__ << setw(3) << n << __RESET__ "] t = " << __BOLD__
 				<< setiosflags(std::ios::scientific) << setprecision(8) << setw(16) << gt->t_n << __RESET__;
-		  	
-		computeCornerNormal(); // @1.0
-		computeDeltaT(); // @1.0
-		computeNodeVolume(); // @1.0
+		if (options->sansLagrange == 0) {
+		  computeCornerNormal(); // @1.0
+		  computeDeltaT(); // @1.0
+		  computeNodeVolume(); // @1.0
+		} else {
+		  gt->deltat_nplus1 = gt->deltat_n;
+		}
 		computeTime(); // @2.0
 		dumpVariables();  // @2.0
-		updateVelocity(); // @2.0
-		updateVelocityBoundaryConditions(); // @2.0
+		
+		if (options->sansLagrange == 0) {
+		  updateVelocity(); // @2.0
+		  updateVelocityBoundaryConditions(); // @2.0
+		} else {
+		  std::swap(u_n, u_nplus1);
+		}
+		  
 		updatePosition(); // @3.0
 		updateCellPos();
-		computeSubVol(); // @4.0
+		computeSubVol(); // @4.0		
 		updateRho(); // @5.0
-		computeTau(); // @6.0
-		computeDivU(); // @7.0
-		computeArtificialViscosity(); // @1.0
-		updateEnergy(); // @6.0
-		computeEOS(); // @7.0
-		computePressionMoyenne(); // @7.0
+		updatePeriodicBoundaryConditions();
 		
+		if (options->sansLagrange == 0) {
+		  computeTau(); // @6.0
+		  computeDivU(); // @7.0
+		  computeArtificialViscosity(); // @1.0
+		  updateEnergy(); // @6.0
+		  computeEOS(); // @7.0
+		  computePressionMoyenne(); // @7.0
+		} else {
+		  std::swap(e_n, e_nplus1);
+		}
 		if (options->AvecProjection == 1) {
 		  computeVariablesForRemap();
 		  computeCellQuantitesForRemap();
@@ -164,8 +178,7 @@ void Vnr::executeTimeLoopN() noexcept
 		  remapVariables();
 		  computeNodeMass(); // avec la masse des mailles recalculée dans remapVariables()
 		  computeEOS(); // rappel EOS apres projection
-		  computePressionMoyenne(); // rappel Pression moyenne apres projection
-		  
+		  computePressionMoyenne(); // rappel Pression moyenne apres projection		  
 		}
 			
 		// Evaluate loop condition with variables at time n
@@ -199,7 +212,7 @@ void Vnr::executeTimeLoopN() noexcept
 		  }		  
 		}
 		  
-		std::cout << " DT  = " <<  gt->t_nplus1 << std::endl;
+		std::cout << " DT  = " <<  gt->deltat_nplus1 << std::endl;
 		cpu_timer.stop();
 		global_timer.stop();
 	
@@ -281,9 +294,9 @@ void Vnr::simulate()
 	initMeshGeometryForFaces();
 	remap->FacesOfNode(); // pour la conectivité Noeud-face
 	computeCellMass(); // @3.0
-	initDeltaT(); // @3.0
-	initInternalEnergy(); // @3.0
-	initPseudo(); // @3.0
+	if (options->sansLagrange == 0) initDeltaT(); // @3.0
+	if (options->sansLagrange == 0) initInternalEnergy(); // @3.0
+	if (options->sansLagrange == 0) initPseudo(); // @3.0
 	setUpTimeLoopN(); // @4.0
 	computeNodeMass(); // @4.0
 	executeTimeLoopN(); // @5.0
