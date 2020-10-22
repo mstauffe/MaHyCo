@@ -34,10 +34,30 @@ void Remap::computeDualUremap1() noexcept {
     Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNode)
       {
 	int nbmat = options->nbmat;
+	if (pNode == 300 || pNode == 301 || pNode == 302) std::cout << " **** " << std::endl;
 	if (options->methode_flux_masse == 0)
 	  getRightAndLeftFluxMasse1(nbmat, pNode);
+
+	// if (pNode == 300 || pNode == 301 || pNode == 302) {
+	//   std::cout << " H1 methode 0 pNode " <<  pNode << " left " << LeftFluxMasse(pNode)
+	// 	    << " et " << RightFluxMasse(pNode) << std::endl;
+	// }
+	
 	if (options->methode_flux_masse == 1)
 	  getRightAndLeftFluxMasseViaVol1(nbmat, pNode);
+
+	// if (pNode == 300 || pNode == 301 || pNode == 302) {
+	//   std::cout << " H1 methode 1 pNode " <<  pNode << " left " << LeftFluxMasse(pNode)
+	// 	    << " et " << RightFluxMasse(pNode) << std::endl;
+	// }
+	    
+	if (options->methode_flux_masse == 2)
+	  getRightAndLeftFluxMassePB1(nbmat, pNode);
+
+	// if (pNode == 300 || pNode == 301 || pNode == 302) {
+	//   std::cout << " H1 methode 2 pNode " <<  pNode << " left " << LeftFluxMasse(pNode)
+	// 	    << " et " << RightFluxMasse(pNode) << std::endl;
+	// }  
 	UDualremap1(pNode)[2] = varlp->UDualLagrange(pNode)[2] + LeftFluxMasse(pNode) - RightFluxMasse(pNode);
 	
 	if (options->projectionOrder >= 1) {	  
@@ -82,6 +102,8 @@ void Remap::computeDualUremap1() noexcept {
 	  getTopAndBottomFluxMasse1(nbmat, pNode);	
 	if (options->methode_flux_masse == 1)
 	  getTopAndBottomFluxMasseViaVol1(nbmat, pNode);
+	if (options->methode_flux_masse == 2)
+	  getTopAndBottomFluxMassePB1(nbmat, pNode);
 	UDualremap1(pNode)[2] = varlp->UDualLagrange(pNode)[2] + BottomFluxMasse(pNode) - TopFluxMasse(pNode);
 	if (options->projectionOrder >= 1) {
 	  // recherche de la vitesse du decentrement upwind

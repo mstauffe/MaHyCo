@@ -70,10 +70,11 @@ class LectureDonneesClass {
       {"oui", 1}
   };
 
-  std::unordered_map<string, int> A1OUA2
+  std::unordered_map<string, int> A1OUA2OUPB
   {
     {"A1", 0},
-      {"A2", 1}
+      {"A2", 1},
+	{"PB", 2}
   };
 
   std::unordered_map<string, int> liste_eos
