@@ -791,31 +791,6 @@ void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
                 preduction4[2] + (dot(F3_nplus1(pNodes, cCellsOfNodeP),
 				  (Vnode_nplus1(pNodes) -
 				   (0.5 * (V_n(cCells) + VLagrange)))));
-	    
-            if (F1_nplus1(pNodes, cCellsOfNodeP) !=
-                F1_nplus1(pNodes, cCellsOfNodeP))
-              std::cout << " cell   " << cCells
-                        << " F1_nplus1(pNodes,cCellsOfNodeP) "
-                        << F1_nplus1(pNodes, cCellsOfNodeP) << std::endl;
-            if (F2_nplus1(pNodes, cCellsOfNodeP) !=
-                F2_nplus1(pNodes, cCellsOfNodeP))
-              std::cout << " cell   " << cCells
-                        << " F2_nplus1(pNodes,cCellsOfNodeP) "
-                        << F2_nplus1(pNodes, cCellsOfNodeP) << std::endl;
-            if (F3_nplus1(pNodes, cCellsOfNodeP) !=
-                F3_nplus1(pNodes, cCellsOfNodeP))
-              std::cout << " cell   " << cCells
-                        << " F3_nplus1(pNodes,cCellsOfNodeP) "
-                        << F3_nplus1(pNodes, cCellsOfNodeP) << std::endl;
-            if (V_n(cCells) != V_n(cCells))
-              std::cout << " cell   " << cCells << " V_n(cCells) "
-                        << V_n(cCells) << std::endl;
-            if (Vnode_nplus1(pNodes) != Vnode_nplus1(pNodes))
-              std::cout << " pNodes  " << pNodes << " Vnode_nplus1(pNodes) "
-                        << Vnode_nplus1(pNodes) << std::endl;
-            if (VLagrange != VLagrange)
-              std::cout << " cell   " << cCells << " VLagrange " << VLagrange
-                        << std::endl;
           }
         }
 
@@ -952,6 +927,7 @@ void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
 	    varlp->vLagrange(cCells);
         }
 
+#ifdef TEST 	
         if ((cCells == dbgcell3 || cCells == dbgcell2 || cCells == dbgcell1) &&
             test_debug == 1) {
           std::cout << " Apres Phase Lagrange cell   " << cCells << "Phi"
@@ -985,6 +961,7 @@ void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
                     << std::endl;
           exit(1);
         }
+#endif
 
         // ETOT_L(cCells) = (rhoLagrange * vLagrange(cCells)) * (eLagrange +
         // 0.5 * (VLagrange[0] * VLagrange[0] + VLagrange[1] * VLagrange[1]));

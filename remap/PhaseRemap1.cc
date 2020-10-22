@@ -458,25 +458,9 @@ void Remap::computeUremap1() noexcept {
           }
           if (cdl->FluxBC > 0) {
             // flux exterieur eventuel
-            if ((cCells == dbgcell1 || cCells == dbgcell2 ||
-                 cCells == dbgcell1)) {
-              std::cout << " --------- flux face exterieur "
-                           "----------------------------------"
-                        << std::endl;
-              std::cout << exy << " AV cell   " << cCells << "reduction8 "
-                        << reduction8 << std::endl;
-            }
             //
             reduction8 = reduction8 + (computeBoundaryFluxes(1, cCells, exy));
             //
-            if ((cCells == dbgcell1 || cCells == dbgcell2 ||
-                 cCells == dbgcell1)) {
-              std::cout << exy << " AP cell   " << cCells << "reduction8 "
-                        << reduction8 << std::endl;
-              std::cout << computeBoundaryFluxes(1, cCells, exy) << std::endl;
-              std::cout << " --------- ----------------------------------"
-                        << std::endl;
-            }
           }
         }
 
@@ -524,11 +508,7 @@ void Remap::computeUremap1() noexcept {
         } else {
           varlp->Phi(cCells) = Uremap1(cCells) / varlp->vLagrange(cCells);
         }
-
-        if ((cCells == dbgcell3 || cCells == dbgcell2 || cCells == dbgcell1)) {
-          std::cout << " cell   " << cCells << "Uremap1"
-                    << Uremap1(cCells) << std::endl;
-	}
+	
         // Mises à jour de l'indicateur mailles mixtes
         int matcell(0);
         int imatpure(-1);

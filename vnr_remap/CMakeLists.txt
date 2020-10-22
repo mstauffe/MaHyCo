@@ -1,5 +1,10 @@
 set( LIBRARY_NAME "vnrremap" )
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR
+      CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
+    string(APPEND CMAKE_CXX_FLAGS " -Wno-c++11-narrowing")
+endif()
+
 add_library( ${LIBRARY_NAME} )
 target_sources( ${LIBRARY_NAME} 
     PRIVATE

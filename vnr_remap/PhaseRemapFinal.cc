@@ -144,8 +144,10 @@ void Vnr::remapVariables() noexcept {
             std::cout << " concentrations   " << fracmass(cCells)[0] << " "
                       << fracmass(cCells)[1] << " " << fracmass(cCells)[2]
                       << std::endl;
+#ifdef TEST
             std::cout << "varlp->ULagrange " << varlp->ULagrange(cCells) << std::endl;
             std::cout << "varlp->Uremap2 " << varlp->Uremap2(cCells) << std::endl;
+#endif
             rhop_nplus1(cCells)[imat] = 0.;
             ep_nplus1(cCells)[imat] = 0.;
             fracmass(cCells)[imat] = 0.;
@@ -167,8 +169,10 @@ void Vnr::remapVariables() noexcept {
           std::cout << " energies   " << ep_nplus1(cCells)[0] << " "
                     << ep_nplus1(cCells)[1] << " " << ep_nplus1(cCells)[2]
                     << std::endl;
+#ifdef TEST
           std::cout << "varlp->ULagrange " << varlp->ULagrange(cCells) << std::endl;
           std::cout << "varlp->Uremap2 " << varlp->Uremap2(cCells) << std::endl;
+#endif
           exit(1);
         }
         // pour les sorties :

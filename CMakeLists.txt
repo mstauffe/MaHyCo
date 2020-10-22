@@ -8,6 +8,11 @@ if( " ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}" )
                        You should create a separate directory for build files." )
 endif()
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR
+      CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
+    string(APPEND CMAKE_CXX_FLAGS " -Wno-c++11-narrowing")
+endif()
+
 enable_testing()
 
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
