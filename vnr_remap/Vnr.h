@@ -363,6 +363,7 @@ private:
 	void computePressionMoyenne() noexcept;
 
 	void updateVelocityBoundaryConditions() noexcept;
+	void updatePeriodicBoundaryConditions() noexcept;
 	void computeVariablesForRemap() noexcept;
 	void computeFaceQuantitesForRemap() noexcept;
 	void computeCellQuantitesForRemap() noexcept;

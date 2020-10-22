@@ -14,6 +14,7 @@ class ConditionsLimites {
     int symmetry = 200;
     int imposedVelocity = 201;
     int freeSurface = 202;
+    int periodic = 203;
     int leftFluxBC = 0;
     RealArray1D<nbequamax> leftFluxBCValue = Uzero;
     int rightFluxBC = 0;
@@ -34,6 +35,12 @@ class ConditionsLimites {
 
     int bottomBC = 0;
     RealArray1D<dim> bottomBCValue = ex;
+
+    int leftCellBC = 0;
+    int rightCellBC = 0;
+    int bottomCellBC = 0;
+    int topCellBC = 0;
+
   };
   Cdl* cdl;
 

@@ -35,6 +35,33 @@ void Vnr::initBoundaryConditions() noexcept {
     cdl->bottomBC = cdl->symmetry;
     cdl->bottomBCValue = ex;
   }
+  if (test->Nom == test->AdvectionX || test->Nom == test->BiAdvectionX
+      || test->Nom == test->AdvectionVitX || test->Nom == test->BiAdvectionVitX) {
+    cdl->rightBC = cdl->imposedVelocity;
+    cdl->rightBCValue = {{1.0, 0.0}};
+    cdl->rightCellBC = cdl->periodic;
+    cdl->leftBC = cdl->imposedVelocity;
+    cdl->leftBCValue = {{1.0, 0.0}};
+    //cdl->leftCellBC = cdl->periodic;
+    cdl->topBC = cdl->symmetry;
+    cdl->topBCValue = ex;
+    cdl->bottomBC = cdl->symmetry;
+    cdl->bottomBCValue = ex;
+  }
+  if (test->Nom == test->AdvectionY || test->Nom == test->BiAdvectionY) {
+    cdl->bottomBC = cdl->imposedVelocity;
+    cdl->bottomBCValue = {{0.0, 1.0}};
+    cdl->bottomCellBC = cdl->periodic;
+    cdl->topBC = cdl->imposedVelocity;
+    cdl->topBCValue = {{0.0, 1.0}};
+    cdl->topCellBC = cdl->periodic;
+    
+    cdl->leftBC = cdl->symmetry;
+    cdl->leftBCValue = ey;
+
+    cdl->rightBC = cdl->symmetry;
+    cdl->rightBCValue = ey;
+  }
   if (test->Nom == test->UnitTestCase  || test->Nom == test->BiUnitTestCase) {
     cdl->rightBC = cdl->imposedVelocity;
     cdl->rightBCValue = {{1.0, 0.0}};
@@ -152,6 +179,178 @@ void Vnr::init() noexcept
 	    {
 	      u_n0(pNodes) = {0.0, 0.0};
 	
+	      ux(pNodes) = u_n0(pNodes)[0];
+	      uy(pNodes) = u_n0(pNodes)[1];
+	    }
+  } else if (test->Nom == test->AdvectionX || test->Nom == test->AdvectionY) {
+    
+    Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
+	{
+	  double r(0.);
+	  if (test->Nom == test->AdvectionX) r = cellPos_n0(cCells)[0];
+	  if (test->Nom == test->AdvectionY) r = cellPos_n0(cCells)[1];
+	  if (r < 0.3) 
+	    {
+	      fracvol(cCells)[0] = 1.;
+	      fracmass(cCells)[0] = 1.;
+	      rho_n0(cCells) = 1.;
+	      p_n0(cCells) = 0.0;
+	      rhop_n0(cCells)[0] = 1.;
+	      pp_n0(cCells)[0] = 0.0;
+	    }
+	  else if ((r > 0.3) && (r < 0.5))
+	    {
+	      fracvol(cCells)[0] = 1.;
+	      fracmass(cCells)[0] = 1.;
+	      rho_n0(cCells) = 10.;
+	      p_n0(cCells) = 0.0;
+	      rhop_n0(cCells)[0] = 10.0;
+	      pp_n0(cCells)[0] = 0.0;
+	    }
+	  else if (r > 0.5)
+	    {
+	      fracvol(cCells)[0] = 1.;
+	      fracmass(cCells)[0] = 1.;
+	      rho_n0(cCells) = 1.;
+	      p_n0(cCells) = 0.0;
+	      rhop_n0(cCells)[0] = 1.;
+	      pp_n0(cCells)[0] = 0.0;
+	    }
+	  cp_n0(cCells)[0] = 1.;
+	  cp_n0(cCells)[1] = 1.;
+	  c_n0(cCells) = min(cp_n0(cCells)[0], cp_n0(cCells)[1]);
+	  ep_n0(cCells)[0] = 1.;
+	  ep_n0(cCells)[1] = 1.;
+	  e_n0(cCells) = 1.;
+	});
+    const RealArray1D<dim> ex = {{1.0, 0.0}};
+    const RealArray1D<dim> ey = {{0.0, 1.0}};
+    RealArray1D<dim> u;
+    if (test->Nom == test->AdvectionX) u = ex;
+    if (test->Nom == test->AdvectionY) u = ey;
+        for (size_t pNodes=0; pNodes<nbNodes; pNodes++)
+	    {
+	      u_n0(pNodes) = u;
+	
+	      ux(pNodes) = u_n0(pNodes)[0];
+	      uy(pNodes) = u_n0(pNodes)[1];
+	    }
+  } else if (test->Nom == test->BiAdvectionX || test->Nom == test->BiAdvectionY) {
+    
+    Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
+	{
+	  double r(0.);
+	  if (test->Nom == test->BiAdvectionX) r = cellPos_n0(cCells)[0];
+	  if (test->Nom == test->BiAdvectionY) r = cellPos_n0(cCells)[1];
+	  if (r < 0.3) 
+	    {
+	      fracvol(cCells)[0] = 1.;
+	      fracmass(cCells)[0] = 1.;
+	      rho_n0(cCells) = 1.;
+	      p_n0(cCells) = 0.0;
+	      rhop_n0(cCells)[0] = 1.0;
+	      pp_n0(cCells)[0] = 0.0;
+	    }
+	  else if ((r > 0.3) && (r < 0.5))
+	    {
+	      fracvol(cCells)[1] = 1.;
+	      fracmass(cCells)[1] = 1.;
+	      rho_n0(cCells) = 1.;
+	      p_n0(cCells) = 0.0;
+	      rhop_n0(cCells)[1] = 1.0;
+	      pp_n0(cCells)[1] = 0.0;
+	    }
+	  else if (r > 0.5)
+	    {
+	      fracvol(cCells)[0] = 1.;
+	      fracmass(cCells)[0] = 1.;
+	      rho_n0(cCells) = 1.;
+	      p_n0(cCells) = 0.0;
+	      rhop_n0(cCells)[0] = 1.0;
+	      pp_n0(cCells)[0] = 0.0;
+	    }
+	  cp_n0(cCells)[0] = 1.;
+	  cp_n0(cCells)[1] = 1.;
+	  c_n0(cCells) = min(cp_n0(cCells)[0], cp_n0(cCells)[1]);
+	  ep_n0(cCells)[0] = 1.;
+	  ep_n0(cCells)[1] = 1.;
+	  e_n0(cCells) = 1.;
+	});
+    const RealArray1D<dim> ex = {{1.0, 0.0}};
+    const RealArray1D<dim> ey = {{0.0, 1.0}};
+    RealArray1D<dim> u;
+    if (test->Nom == test->BiAdvectionX) u = ex;
+    if (test->Nom == test->BiAdvectionY) u = ey;
+        for (size_t pNodes=0; pNodes<nbNodes; pNodes++)
+	    {
+	      u_n0(pNodes) = u;
+	
+	      ux(pNodes) = u_n0(pNodes)[0];
+	      uy(pNodes) = u_n0(pNodes)[1];
+	    }
+  }  else if (test->Nom == test->BiAdvectionVitX || test->Nom == test->BiAdvectionVitY) {
+    
+    Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells)
+	{
+	  double r(0.);
+	  if (test->Nom == test->BiAdvectionVitX) r = cellPos_n0(cCells)[0];
+	  if (test->Nom == test->BiAdvectionVitY) r = cellPos_n0(cCells)[1];
+	  if (r < 0.3) 
+	    {
+	      fracvol(cCells)[0] = 1.;
+	      fracmass(cCells)[0] = 1.;
+	      rho_n0(cCells) = 4.;
+	      p_n0(cCells) = 0.0;
+	      rhop_n0(cCells)[0] = 4.0;
+	      pp_n0(cCells)[0] = 0.0;
+	    }
+	  else if ((r > 0.3) && (r < 0.5))
+	    {
+	      fracvol(cCells)[1] = 1.;
+	      fracmass(cCells)[1] = 1.;
+	      rho_n0(cCells) = 4.;
+	      p_n0(cCells) = 0.0;
+	      rhop_n0(cCells)[1] = 1.0;
+	      pp_n0(cCells)[1] = 0.0;
+	    }
+	  else if (r > 0.5)
+	    {
+	      fracvol(cCells)[0] = 1.;
+	      fracmass(cCells)[0] = 1.;
+	      rho_n0(cCells) = 4.;
+	      p_n0(cCells) = 0.0;
+	      rhop_n0(cCells)[0] = 4.0;
+	      pp_n0(cCells)[0] = 0.0;
+	    }
+	  cp_n0(cCells)[0] = 1.;
+	  cp_n0(cCells)[1] = 1.;
+	  c_n0(cCells) = min(cp_n0(cCells)[0], cp_n0(cCells)[1]);
+	  ep_n0(cCells)[0] = 1.;
+	  ep_n0(cCells)[1] = 1.;
+	  e_n0(cCells) = 1.;
+	});
+    const RealArray1D<dim> ex = {{1.0, 0.0}};
+    const RealArray1D<dim> ey = {{0.0, 1.0}};
+    RealArray1D<dim> u;
+    if (test->Nom == test->BiAdvectionVitX) u = ex;
+    if (test->Nom == test->BiAdvectionVitY) u = ey;
+        for (size_t pNodes=0; pNodes<nbNodes; pNodes++)
+	    {
+	      double r(0.);
+	      if (test->Nom == test->BiAdvectionVitX) r = X_n0(pNodes)[0];
+	      if (test->Nom == test->BiAdvectionVitY) r = X_n0(pNodes)[1];
+	  if (r <= 0.3) 
+	    {
+	      u_n0(pNodes) = 0.2 * u;
+	    }
+	  else if ((r > 0.3) && (r <= 0.5))
+	    {
+	      u_n0(pNodes) = (4. * r - 1.) * u;
+	    }
+	  else if (r > 0.5)
+	    {
+	      u_n0(pNodes) = u;
+	    }
 	      ux(pNodes) = u_n0(pNodes)[0];
 	      uy(pNodes) = u_n0(pNodes)[1];
 	    }

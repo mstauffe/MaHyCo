@@ -28,13 +28,21 @@ class LectureDonneesClass {
 	  {"SodCaseX", 4},
 	    {"SodCaseY", 5},
 	      {"NohTestCase", 6},
-		{"BiUnitTestCase", 10},
-		  {"BiSedovTestCase", 11},
-		    {"BiTriplePoint", 12},
-		      {"BiShockBubble", 13},
-			{"BiSodCaseX", 14},
-			  {"BiSodCaseY", 15},
-			    {"BiNohTestCase", 16}
+		{"AdvectionX", 7},
+		  {"AdvectionY", 8},
+		    {"AdvectionVitX", 9},
+		      {"AdvectionVitY", 10},
+			{"BiUnitTestCase", 11},
+			  {"BiSedovTestCase", 12},
+			    {"BiTriplePoint", 13},
+			      {"BiShockBubble", 14},
+				{"BiSodCaseX", 15},
+				  {"BiSodCaseY", 16},
+				    {"BiNohTestCase", 17},
+				      {"BiAdvectionX", 18},
+					{"BiAdvectionY", 19},
+					  {"BiAdvectionVitX", 20},
+					    {"BiAdvectionVitY", 21}
   };
 
   std::unordered_map<string, int> schema_lagrange

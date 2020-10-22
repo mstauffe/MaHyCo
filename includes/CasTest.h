@@ -13,13 +13,21 @@ class CasTest {
     int SodCaseX = 4;
     int SodCaseY = 5;
     int NohTestCase = 6;
-    int BiUnitTestCase = 10;
-    int BiSedovTestCase = 11;
-    int BiTriplePoint = 12;
-    int BiShockBubble = 13;
-    int BiSodCaseX = 14;
-    int BiSodCaseY = 15;
-    int BiNohTestCase = 16;
+    int AdvectionX = 7;
+    int AdvectionY = 8;
+    int AdvectionVitX = 9;
+    int AdvectionVitY = 10;
+    int BiUnitTestCase = 11;
+    int BiSedovTestCase = 12;
+    int BiTriplePoint = 13;
+    int BiShockBubble = 14;
+    int BiSodCaseX = 15;
+    int BiSodCaseY = 16;
+    int BiNohTestCase = 17;
+    int BiAdvectionX = 18;
+    int BiAdvectionY = 19;
+    int BiAdvectionVitX = 20;
+    int BiAdvectionVitY = 21;
 
     int Nom = -1;
   };

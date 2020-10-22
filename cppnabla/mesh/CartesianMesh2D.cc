@@ -382,5 +382,40 @@ Id CartesianMesh2D::getTopNode(const int node) const noexcept
    else return -1;
    
 }
-
+Id CartesianMesh2D::getTopCellfromBottom(const int cell) const noexcept
+{
+   size_t i,j;
+   tie(i,j) = id2IndexCell(cell);
+   if (i == 0)
+     return index2IdCell((m_nb_y_quads-1),j);
+   else
+     return -1;   
+}
+Id CartesianMesh2D::getBottomCellfromTop(const int cell) const noexcept
+{
+   size_t i,j;
+   tie(i,j) = id2IndexCell(cell);
+   if (i == (m_nb_y_quads-1))
+     return index2IdCell(0,j);
+   else
+     return -1;   
+}
+Id CartesianMesh2D::getLeftCellfromRight(const int cell) const noexcept
+{
+   size_t i,j;
+   tie(i,j) = id2IndexCell(cell);
+   if (j == (m_nb_x_quads-1))
+     return index2IdCell(i,0);
+   else
+     return -1;   
+}
+Id CartesianMesh2D::getRightCellfromLeft(const int cell) const noexcept
+{
+   size_t i,j;
+   tie(i,j) = id2IndexCell(cell);
+   if (j == 0)
+     return index2IdCell(i, (m_nb_x_quads-1));
+   else
+     return -1;   
+}    
 }

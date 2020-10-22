@@ -196,11 +196,12 @@ void Vnr::remapVariables() noexcept {
         //if (options->projectionConservative == 1)
         //  delta_ec = varlp->Uremap2(cCells)[3 * nbmat + 2] / masset -
         //                     0.5 * (V_np1[0] * V_np1[0] + V_np1[1] * V_np1[1]);
-	// if ((pNodes == 30) || (pNodes == 31) || (pNodes == 32))
-          // std::cout << " pNodes " <<  pNodes << " sortie 2 remaillage  vx "
-	  // 	    << varlp->UDualremap2(pNodes)[0] / varlp->UDualremap2(pNodes)[2]
-	  // 	    << " vy " << varlp->UDualremap2(pNodes)[1] / varlp->UDualremap2(pNodes)[2]
-	  // 	    << " m " << varlp->UDualremap2(pNodes)[2] << std::endl;
+	// if ((pNodes == 600) || (pNodes == 601) || (pNodes == 602))
+        //    std::cout << " pNodes " <<  pNodes << " sortie 2 remaillage  vx "
+	//    	    << varlp->UDualremap2(pNodes)[0] / varlp->UDualremap2(pNodes)[2]
+	//   	    << " vy " << varlp->UDualremap2(pNodes)[1] / varlp->UDualremap2(pNodes)[2]
+	// 	     << " m " << varlp->UDualremap2(pNodes)[2]
+	// 	     << " vit " << u_nplus1(pNodes) << std::endl;
 	  
 	ux(pNodes) = u_nplus1(pNodes)[0];
 	uy(pNodes) = u_nplus1(pNodes)[1];
