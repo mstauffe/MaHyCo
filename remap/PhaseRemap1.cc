@@ -177,7 +177,7 @@ void Remap::computeGradPhi1() noexcept {
                                      exy) *
                   varlp->faceNormalVelocity(frFaces);
 
-	      double flux_dual = 0.5*(Flux_sortant_ar + Flux_sortant_av);
+	      double flux_dual = 0.5*(varlp->faceNormalVelocity(flFaces)+varlp->faceNormalVelocity(frFaces));
 	      int calcul_flux_dual(0);
 	      if (options->methode_flux_masse == 2) calcul_flux_dual = 1;
 
@@ -271,7 +271,7 @@ void Remap::computeGradPhi1() noexcept {
                                      exy) *
                   varlp->faceNormalVelocity(ftFaces);
 
-	      double flux_dual = 0.5*(Flux_sortant_ar + Flux_sortant_av);
+	      double flux_dual = 0.5*(varlp->faceNormalVelocity(fbFaces)+varlp->faceNormalVelocity(ftFaces));
 	      int calcul_flux_dual(0);
 	      if (options->methode_flux_masse == 2) calcul_flux_dual = 1;
 	      
