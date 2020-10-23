@@ -39,7 +39,9 @@ void Remap::computeDualUremap2() noexcept {
 	if (options->methode_flux_masse == 0)
 	  getTopAndBottomFluxMasse2(nbmat, pNode);	
 	if (options->methode_flux_masse == 1)
-	  getTopAndBottomFluxMasseViaVol2(nbmat, pNode);
+	  getTopAndBottomFluxMasseViaVol2(nbmat, pNode);	
+	if (options->methode_flux_masse == 2)
+	  getTopAndBottomFluxMassePB2(nbmat, pNode);
 	varlp->UDualremap2(pNode)[2] = UDualremap1(pNode)[2] + BottomFluxMasse(pNode) - TopFluxMasse(pNode);
 
 	if (options->projectionOrder >= 1) {
@@ -82,9 +84,14 @@ void Remap::computeDualUremap2() noexcept {
       {
 	int nbmat = options->nbmat;
 	if (options->methode_flux_masse == 0)
-	  getRightAndLeftFluxMasse2(nbmat, pNode);	
+	  getRightAndLeftFluxMasse2(nbmat, pNode);
+	
 	if (options->methode_flux_masse == 1)
 	  getRightAndLeftFluxMasseViaVol2(nbmat, pNode);
+	
+	if (options->methode_flux_masse == 2)
+	  getRightAndLeftFluxMassePB2(nbmat, pNode);
+	
 	varlp->UDualremap2(pNode)[2] = UDualremap1(pNode)[2] + LeftFluxMasse(pNode) - RightFluxMasse(pNode);
 	
 	// if (pNode == 300 || pNode == 301 || pNode == 302) {

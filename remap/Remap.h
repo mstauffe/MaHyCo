@@ -76,6 +76,10 @@ class Remap {
   Kokkos::View<RealArray1D<nbequamax>*> gradPhi2;
   Kokkos::View<RealArray1D<nbequamax>*> phiFace1;
   Kokkos::View<RealArray1D<nbequamax>*> phiFace2;
+  Kokkos::View<RealArray1D<nbequamax>*> DualphiFlux1;
+  Kokkos::View<RealArray1D<nbequamax>*> DualphiFlux2;
+  Kokkos::View<RealArray1D<nbequamax>*> Bidon1;
+  Kokkos::View<RealArray1D<nbequamax>*> Bidon2;
   Kokkos::View<RealArray1D<nbequamax>*> deltaPhiFaceAv;
   Kokkos::View<RealArray1D<nbequamax>*> deltaPhiFaceAr;
   Kokkos::View<RealArray1D<nbequamax>**> FluxFace1;
@@ -133,6 +137,10 @@ class Remap {
         gradDualPhi2("gradPhi2", nbNodes),
         phiFace1("phiFace1", nbFaces),
         phiFace2("phiFace2", nbFaces),
+        DualphiFlux1("DualphiFlux1", nbCells),
+        DualphiFlux2("DualphiFlux2", nbCells),
+        Bidon1("Bidon1", nbCells),
+        Bidon2("Bidon2", nbCells),
         FluxFace1("FluxFace1", nbCells, nbFacesOfCell),
         FluxFace2("FluxFace2", nbCells, nbFacesOfCell),
         deltaPhiFaceAv("deltaPhiFaceAv", nbCells),
@@ -198,6 +206,10 @@ class Remap {
   void getRightAndLeftFluxMasseViaVol2(const int nbmat, const size_t pNodes);
   void getTopAndBottomFluxMasseViaVol1(const int nbmat, const size_t pNodes);
   void getTopAndBottomFluxMasseViaVol2(const int nbmat, const size_t pNodes);
+  void getRightAndLeftFluxMassePB1(const int nbmat, const size_t pNodes);
+  void getRightAndLeftFluxMassePB2(const int nbmat, const size_t pNodes);
+  void getTopAndBottomFluxMassePB1(const int nbmat, const size_t pNodes);
+  void getTopAndBottomFluxMassePB2(const int nbmat, const size_t pNodes);
 
   
   double fluxLimiter(int projectionLimiterId, double r);
@@ -235,20 +247,25 @@ class Remap {
       RealArray1D<d> phimoins, double h0, double hplus, double hmoins);
 
   template <size_t d>
-  RealArray1D<d> computeFluxPP(RealArray1D<d> gradphi, RealArray1D<d> phi,
+    void computeFluxPP(RealArray1D<d> gradphi, RealArray1D<d> phi,
                                RealArray1D<d> phiplus, RealArray1D<d> phimoins,
                                double h0, double hplus, double hmoins,
                                double face_normal_velocity, double deltat_n,
                                int type, int cell, double flux_threhold,
-		               int projectionPlateauPenteComplet);
+		               int projectionPlateauPenteComplet,
+			       double dual_normal_velocity, int calcul_flux_dual,
+			       RealArray1D<d> *Flux,  RealArray1D<d> *Flux_dual);
+  
   template <size_t d>
-  RealArray1D<d> computeFluxPPPure(RealArray1D<d> gradphi, RealArray1D<d> phi,
+    void computeFluxPPPure(RealArray1D<d> gradphi, RealArray1D<d> phi,
                                    RealArray1D<d> phiplus,
                                    RealArray1D<d> phimoins, double h0,
                                    double hplus, double hmoins,
                                    double face_normal_velocity, double deltat_n,
                                    int type, int cell, double flux_threhold,
-				   int projectionPlateauPenteComplet);
+				   int projectionPlateauPenteComplet,
+				   double dual_normal_velocity, int calcul_flux_dual,
+				   RealArray1D<d> *Flux,  RealArray1D<d> *Flux_dual);
   template <size_t d>
   RealArray1D<d> computeUpwindFaceQuantities(
       RealArray1D<dim> face_normal, double face_normal_velocity, double delta_x,

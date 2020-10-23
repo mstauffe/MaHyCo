@@ -36,8 +36,13 @@ void Remap::computeDualUremap1() noexcept {
 	int nbmat = options->nbmat;
 	if (options->methode_flux_masse == 0)
 	  getRightAndLeftFluxMasse1(nbmat, pNode);
+	
 	if (options->methode_flux_masse == 1)
 	  getRightAndLeftFluxMasseViaVol1(nbmat, pNode);
+	    
+	if (options->methode_flux_masse == 2)
+	  getRightAndLeftFluxMassePB1(nbmat, pNode);
+	
 	UDualremap1(pNode)[2] = varlp->UDualLagrange(pNode)[2] + LeftFluxMasse(pNode) - RightFluxMasse(pNode);
 	
 	if (options->projectionOrder >= 1) {	  
@@ -82,6 +87,8 @@ void Remap::computeDualUremap1() noexcept {
 	  getTopAndBottomFluxMasse1(nbmat, pNode);	
 	if (options->methode_flux_masse == 1)
 	  getTopAndBottomFluxMasseViaVol1(nbmat, pNode);
+	if (options->methode_flux_masse == 2)
+	  getTopAndBottomFluxMassePB1(nbmat, pNode);
 	UDualremap1(pNode)[2] = varlp->UDualLagrange(pNode)[2] + BottomFluxMasse(pNode) - TopFluxMasse(pNode);
 	if (options->projectionOrder >= 1) {
 	  // recherche de la vitesse du decentrement upwind
