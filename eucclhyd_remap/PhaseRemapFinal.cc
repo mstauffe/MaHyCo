@@ -5,7 +5,7 @@
 #include <iostream>         // for operator<<, basic_ostream, endl
 #include <memory>           // for allocator
 
-#include "Eucclhyd.h"        // for Eucclhyd, Eucclhyd::...
+#include "Eucclhyd.h"             // for Eucclhyd, Eucclhyd::...
 #include "types/MathFunctions.h"  // for max, min
 #include "types/MultiArray.h"     // for operator<<
 
@@ -15,12 +15,12 @@
  * Out variables: V_nplus1, e_nplus1, rho_nplus1, x_then_y_nplus1
  */
 void Eucclhyd::remapCellcenteredVariable() noexcept {
-  ETOTALE_T = 0.;
+  m_global_total_energy_T = 0.;
   varlp->x_then_y_nplus1 = !(varlp->x_then_y_n);
   int nbmat = options->nbmat;
   Kokkos::parallel_for(
       "remapCellcenteredVariable", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-        double vol = volE(cCells);  // volume euler
+        double vol = m_euler_volume(cCells);  // volume euler
         double volt = 0.;
         double masset = 0.;
         RealArray1D<nbmatmax> vol_np1;
@@ -39,18 +39,19 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
         }
         double somme_frac = 0.;
         for (int imat = 0; imat < nbmat; imat++) {
-          fracvol(cCells)[imat] = vol_np1[imat] / volt_normalise;
-          if (fracvol(cCells)[imat] < options->threshold)
-            fracvol(cCells)[imat] = 0.;
-          somme_frac += fracvol(cCells)[imat];
+          m_fracvol_env(cCells)[imat] = vol_np1[imat] / volt_normalise;
+          if (m_fracvol_env(cCells)[imat] < options->threshold)
+            m_fracvol_env(cCells)[imat] = 0.;
+          somme_frac += m_fracvol_env(cCells)[imat];
         }
         for (int imat = 0; imat < nbmat; imat++)
-          fracvol(cCells)[imat] = fracvol(cCells)[imat] / somme_frac;
+          m_fracvol_env(cCells)[imat] =
+              m_fracvol_env(cCells)[imat] / somme_frac;
 
         int matcell(0);
         int imatpure(-1);
         for (int imat = 0; imat < nbmat; imat++)
-          if (fracvol(cCells)[imat] > 0.) {
+          if (m_fracvol_env(cCells)[imat] > 0.) {
             matcell++;
             imatpure = imat;
           }
@@ -63,13 +64,14 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
         }
         // -----
         for (int imat = 0; imat < nbmat; imat++)
-          fracmass(cCells)[imat] = varlp->Uremap2(cCells)[nbmat + imat] / masset;
+          fracmass(cCells)[imat] =
+              varlp->Uremap2(cCells)[nbmat + imat] / masset;
 
         // on enleve les petits fractions de volume aussi sur la fraction
         // massique et on normalise
         double fmasset = 0.;
         for (int imat = 0; imat < nbmat; imat++) {
-          if (fracvol(cCells)[imat] < options->threshold) {
+          if (m_fracvol_env(cCells)[imat] < options->threshold) {
             fracmass(cCells)[imat] = 0.;
           }
           fmasset += fracmass(cCells)[imat];
@@ -82,10 +84,11 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
         // std::cout << " cell--m   " << cCells << " " <<  volt << " " <<
         // vol_np1[0] << " " << vol_np1[1] << std::endl;
         for (int imat = 0; imat < nbmat; imat++) {
-          if (fracvol(cCells)[imat] > options->threshold)
-            rhop_np1[imat] = varlp->Uremap2(cCells)[nbmat + imat] / vol_np1[imat];
+          if (m_fracvol_env(cCells)[imat] > options->threshold)
+            rhop_np1[imat] =
+                varlp->Uremap2(cCells)[nbmat + imat] / vol_np1[imat];
           // 1/rho_np1 += fracmass(cCells)[imat] / rhop_np1[imat];
-          rho_np1 += fracvol(cCells)[imat] * rhop_np1[imat];
+          rho_np1 += m_fracvol_env(cCells)[imat] * rhop_np1[imat];
         }
 
         RealArray1D<dim> V_np1 = {
@@ -95,7 +98,7 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
         // double e_np1 = Uremap2(cCells)[6] / (rho_np1 * vol);
         RealArray1D<nbmatmax> pesp_np1 = zeroVectmat;
         for (int imat = 0; imat < nbmat; imat++) {
-          if ((fracvol(cCells)[imat] > options->threshold) &&
+          if ((m_fracvol_env(cCells)[imat] > options->threshold) &&
               (varlp->Uremap2(cCells)[nbmat + imat] != 0.))
             pesp_np1[imat] = varlp->Uremap2(cCells)[2 * nbmat + imat] /
                              varlp->Uremap2(cCells)[nbmat + imat];
@@ -111,7 +114,7 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
         double delta_ec(0.);
         if (options->projectionConservative == 1)
           delta_ec = varlp->Uremap2(cCells)[3 * nbmat + 2] / masset -
-                             0.5 * (V_np1[0] * V_np1[0] + V_np1[1] * V_np1[1]);
+                     0.5 * (V_np1[0] * V_np1[0] + V_np1[1] * V_np1[1]);
 
         for (int imat = 0; imat < nbmat; imat++) {
           // densité
@@ -122,16 +125,15 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
           // delta_ec : energie specifique
           ep_nplus1(cCells)[imat] += delta_ec;
           // energie interne totale
-          e_nplus1(cCells) +=
-              fracmass(cCells)[imat] * ep_nplus1(cCells)[imat];
+          e_nplus1(cCells) += fracmass(cCells)[imat] * ep_nplus1(cCells)[imat];
         }
 
-        ETOT_T(cCells) =
+        m_total_energy_T(cCells) =
             (rho_np1 * vol) * e_nplus1(cCells) +
             0.5 * (rho_np1 * vol) * (V_np1[0] * V_np1[0] + V_np1[1] * V_np1[1]);
-        MTOT_T(cCells) = 0.;
+        m_global_masse_T(cCells) = 0.;
         for (int imat = 0; imat < nbmat; imat++)
-          MTOT_T(cCells) +=
+          m_global_masse_T(cCells) +=
               rhop_nplus1(cCells)[imat] *
               vol_np1[imat];  // fracmass(cCells)[imat] * (rho_np1 * vol) ; //
                               // rhop_nplus1(cCells)[imat] * vol_np1[imat];
@@ -147,20 +149,22 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
                       << " " << pesp_np1[2] << std::endl;
             std::cout << " rhop_np1   " << rhop_np1[0] << " " << rhop_np1[1]
                       << " " << rhop_np1[2] << std::endl;
-            std::cout << " fractionvol   " << fracvol(cCells)[0] << " "
-                      << fracvol(cCells)[1] << " " << fracvol(cCells)[2]
-                      << std::endl;
+            std::cout << " fractionvol   " << m_fracvol_env(cCells)[0] << " "
+                      << m_fracvol_env(cCells)[1] << " "
+                      << m_fracvol_env(cCells)[2] << std::endl;
             std::cout << " concentrations   " << fracmass(cCells)[0] << " "
                       << fracmass(cCells)[1] << " " << fracmass(cCells)[2]
                       << std::endl;
-#ifdef TEST	    
-            std::cout << "varlp->ULagrange " << varlp->ULagrange(cCells) << std::endl;
-            std::cout << "varlp->Uremap2 " << varlp->Uremap2(cCells) << std::endl;
+#ifdef TEST
+            std::cout << "varlp->ULagrange " << varlp->ULagrange(cCells)
+                      << std::endl;
+            std::cout << "varlp->Uremap2 " << varlp->Uremap2(cCells)
+                      << std::endl;
 #endif
             rhop_nplus1(cCells)[imat] = 0.;
             ep_nplus1(cCells)[imat] = 0.;
             fracmass(cCells)[imat] = 0.;
-            fracvol(cCells)[imat] = 0.;
+            m_fracvol_env(cCells)[imat] = 0.;
             // exit(1);
           }
         }
@@ -172,22 +176,23 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
           std::cout << " concentrations   " << fracmass(cCells)[0] << " "
                     << fracmass(cCells)[1] << " " << fracmass(cCells)[2]
                     << std::endl;
-          std::cout << " fractionvol   " << fracvol(cCells)[0] << " "
-                    << fracvol(cCells)[1] << " " << fracvol(cCells)[2]
-                    << std::endl;
+          std::cout << " fractionvol   " << m_fracvol_env(cCells)[0] << " "
+                    << m_fracvol_env(cCells)[1] << " "
+                    << m_fracvol_env(cCells)[2] << std::endl;
           std::cout << " energies   " << ep_nplus1(cCells)[0] << " "
                     << ep_nplus1(cCells)[1] << " " << ep_nplus1(cCells)[2]
                     << std::endl;
 #ifdef TEST
-          std::cout << "varlp->ULagrange " << varlp->ULagrange(cCells) << std::endl;
+          std::cout << "varlp->ULagrange " << varlp->ULagrange(cCells)
+                    << std::endl;
           std::cout << "varlp->Uremap2 " << varlp->Uremap2(cCells) << std::endl;
 #endif
           exit(1);
         }
         // pour les sorties :
-        fracvol1(cCells) = fracvol(cCells)[0];
-        fracvol2(cCells) = fracvol(cCells)[1];
-        fracvol3(cCells) = fracvol(cCells)[2];
+        m_fracvol_env1(cCells) = m_fracvol_env(cCells)[0];
+        m_fracvol_env2(cCells) = m_fracvol_env(cCells)[1];
+        m_fracvol_env3(cCells) = m_fracvol_env(cCells)[2];
         // pression
         p1(cCells) = pp(cCells)[0];
         p2(cCells) = pp(cCells)[1];
@@ -212,16 +217,16 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
     Kokkos::Sum<double> reducerE(reductionE);
     Kokkos::parallel_reduce("reductionE", nbCells,
                             KOKKOS_LAMBDA(const int& cCells, double& x) {
-                              reducerE.join(x, ETOT_T(cCells));
+                              reducerE.join(x, m_total_energy_T(cCells));
                             },
                             reducerE);
     Kokkos::Sum<double> reducerM(reductionM);
     Kokkos::parallel_reduce("reductionM", nbCells,
                             KOKKOS_LAMBDA(const int& cCells, double& x) {
-                              reducerM.join(x, MTOT_0(cCells));
+                              reducerM.join(x, m_global_masse_0(cCells));
                             },
                             reducerM);
   }
-  ETOTALE_T = reductionE;
-  MASSET_T = reductionM;
+  m_global_total_energy_T = reductionE;
+  m_total_masse_T = reductionM;
 }

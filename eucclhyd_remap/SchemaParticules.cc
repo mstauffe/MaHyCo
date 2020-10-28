@@ -7,36 +7,39 @@
 #include <iostream>   // for operator<<, basic_ostream, basic_...
 #include <vector>     // for allocator, vector
 
-#include "Eucclhyd.h"  // for Eucclhyd, Eucclhyd::Opt...
 #include "../includes/SchemaParticules.h"  // for SchemaParticules, SchemaParticules::Particules
-#include "types/MathFunctions.h"    // for max
+#include "Eucclhyd.h"                      // for Eucclhyd, Eucclhyd::Opt...
+#include "types/MathFunctions.h"  // for max
 
 void Eucclhyd::updateParticlePosition() noexcept {
   Kokkos::parallel_for(
       "updateParticleCoefficient", mesh->getNbCells(),
       KOKKOS_LAMBDA(const int& cCells) { listpart(cCells).clear(); });
   Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
-    Xpart_nplus1(ipart) = Xpart_n(ipart) + Vpart_n(ipart) * gt->deltat_n;
-    if (Xpart_nplus1(ipart)[1] < 0.) {
-      Xpart_nplus1(ipart)[1] = -Xpart_nplus1(ipart)[1];
+    m_particle_coord_nplus1(ipart) =
+        m_particle_coord_n(ipart) + Vpart_n(ipart) * gt->deltat_n;
+    if (m_particle_coord_nplus1(ipart)[1] < 0.) {
+      m_particle_coord_nplus1(ipart)[1] = -m_particle_coord_nplus1(ipart)[1];
       Vpart_n(ipart)[1] = -Vpart_n(ipart)[1];
     }
     int icell = MathFunctions::max(
-        floor(Xpart_nplus1(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
+        floor(m_particle_coord_nplus1(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
     int jcell = MathFunctions::max(
-        floor(Xpart_nplus1(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
+        floor(m_particle_coord_nplus1(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
     ICellp(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
 
     // conditions limites
-    if (fracvol(ICellp(ipart))[IMatp(ipart)] < 0.25) {
+    if (m_fracvol_env(ICellp(ipart))[IMatp(ipart)] < 0.25) {
       RealArray1D<dim> gradf = zeroVect;
       if (IMatp(ipart) == 0) gradf = gradf1(ICellp(ipart));
       if (IMatp(ipart) == 1) gradf = gradf2(ICellp(ipart));
       if (IMatp(ipart) == 2) gradf = gradf3(ICellp(ipart));
 
       // std::cout << " CL : Part  " << ipart << " vit " << Vpart_n(ipart)
-      //	    << "  xp= " << Xpart_nplus1(ipart)[0] << "  yp= " <<
-      // Xpart_nplus1(ipart)[1] << "  " << ICellp(ipart) << std::endl;
+      //	    << "  xp= " << m_particle_coord_nplus1(ipart)[0] << "  yp= "
+      //<<
+      // m_particle_coord_nplus1(ipart)[1] << "  " << ICellp(ipart) <<
+      // std::endl;
 
       // particule sort du materiau IMatp(ipart)
       // changement de la vitesse
@@ -44,31 +47,33 @@ void Eucclhyd::updateParticlePosition() noexcept {
                                Vpart_n(ipart)[1] * Vpart_n(ipart)[1]);
       double module_gradf = sqrt(gradf[0] * gradf[0] + gradf[1] * gradf[1]);
       Vpart_n(ipart) = gradf * 1.1 * module_vit / module_gradf;
-      Xpart_nplus1(ipart) = Xpart_n(ipart) + Vpart_n(ipart) * gt->deltat_n;
-      if (Xpart_nplus1(ipart)[1] < 0.) {
-        Xpart_nplus1(ipart)[1] = -Xpart_nplus1(ipart)[1];
+      m_particle_coord_nplus1(ipart) =
+          m_particle_coord_n(ipart) + Vpart_n(ipart) * gt->deltat_n;
+      if (m_particle_coord_nplus1(ipart)[1] < 0.) {
+        m_particle_coord_nplus1(ipart)[1] = -m_particle_coord_nplus1(ipart)[1];
         Vpart_n(ipart)[1] = -Vpart_n(ipart)[1];
       }
       int icell = MathFunctions::max(
-          floor(Xpart_nplus1(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
+          floor(m_particle_coord_nplus1(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
       int jcell = MathFunctions::max(
-          floor(Xpart_nplus1(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
+          floor(m_particle_coord_nplus1(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
       ICellp(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
 
       // std::cout << " AP : Part  " << ipart << " vit " << Vpart_n(ipart)
-      //	    << "  xp= " << Xpart_nplus1(ipart)[0] << "  yp= " <<
-      // Xpart_nplus1(ipart)[1] << "  " << ICellp(ipart) << std::endl;
-      // std::cout << " AP : Part  " << ipart << " gradf " << gradf << "
-      // module_vit " << module_vit << std::endl;
+      //	    << "  xp= " << m_particle_coord_nplus1(ipart)[0] << "  yp= "
+      //<<
+      // m_particle_coord_nplus1(ipart)[1] << "  " << ICellp(ipart) <<
+      // std::endl; std::cout << " AP : Part  " << ipart << " gradf " << gradf
+      // << " module_vit " << module_vit << std::endl;
 
-      if (fracvol(ICellp(ipart))[IMatp(ipart)] < 0.05)
+      if (m_fracvol_env(ICellp(ipart))[IMatp(ipart)] < 0.05)
         std::cout << " Part  " << ipart << " non recuperee " << std::endl;
     }
 
     listpart(ICellp(ipart)).push_back(ipart);
     // std::cout << " Part  " << ipart << " vit " << Vpart_nplus1(ipart) <<
-    // "  xp= " << Xpart_nplus1(ipart)[0] << "  yp= " <<
-    // Xpart_nplus1(ipart)[1] << "  " << ICellp(ipart)
+    // "  xp= " << m_particle_coord_nplus1(ipart)[0] << "  yp= " <<
+    // m_particle_coord_nplus1(ipart)[1] << "  " << ICellp(ipart)
     //	  << " " << listpart(ICellp(ipart)).size() << std::endl;
   });
 }
@@ -78,18 +83,20 @@ void Eucclhyd::updateParticleCoefficients() noexcept {
       "updateParticleCoefficient", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         fracpart(cCells) = 1.;
         for (int ipart = 0; ipart < listpart(cCells).size(); ipart++) {
-          fracpart(cCells) -= wpart(ipart) * vpart(ipart) / volE(cCells);
+          fracpart(cCells) -=
+              wpart(ipart) * vpart(ipart) / m_euler_volume(cCells);
           fracpart(cCells) = max(fracpart(cCells), 0.);
           if (fracpart(cCells) == 0.) {
             std::cout << cCells << "  " << listpart(cCells).size() << " v "
-                      << volE(cCells) << " " << fracpart(cCells) << std::endl;
+                      << m_euler_volume(cCells) << " " << fracpart(cCells)
+                      << std::endl;
             std::cout << " Plus de gaz dans la maille -> fin du calcul "
                       << std::endl;
             exit(1);
           }
         }
         // if (listpart(cCells).size() > 0) std::cout << cCells << "  " <<
-        // listpart(cCells).size() << " v " << volE(cCells) << " " <<
+        // listpart(cCells).size() << " v " << m_euler_volume(cCells) << " " <<
         // fracpart(cCells) << std::endl;
       });
 
@@ -135,7 +142,7 @@ void Eucclhyd::updateParticleCoefficients() noexcept {
 void Eucclhyd::updateParticleVelocity() noexcept {
   Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
     int icells = ICellp(ipart);
-    Vpart_nplus1(ipart) = 
+    Vpart_nplus1(ipart) =
         Vpart_n(ipart) - ForceGradp(icells) * gt->deltat_n / rhopart(ipart);
 
     // std::cout << " Part  " << ipart << " vit " << Vpart_nplus1(ipart)  <<

@@ -4,12 +4,12 @@
 #include <iostream>   // for operator<<, basic_ostream::operat...
 #include <vector>     // for allocator, vector
 
-#include "Eucclhyd.h"          // for Eucclhyd, Eucclhyd::Opt...
-#include "../remap/UtilesRemap-Impl.h"  // for Remap::computeRemapFlux
-#include "mesh/CartesianMesh2D.h"   // for CartesianMesh2D
-#include "types/MathFunctions.h"    // for dot, matVectProduct, norm
-#include "types/MultiArray.h"       // for operator<<
-#include "utils/Utils.h"            // for indexOf
+#include "../remap/UtilesRemap-Impl.h"  // for Remap::computeRemapFlm_x_velocity
+#include "Eucclhyd.h"                   // for Eucclhyd, Eucclhyd::Opt...
+#include "mesh/CartesianMesh2D.h"       // for CartesianMesh2D
+#include "types/MathFunctions.h"        // for dot, matVectProduct, norm
+#include "types/MultiArray.h"           // for operator<<
+#include "utils/Utils.h"                // for indexOf
 
 /**
  * Job computeBoundaryNodeVelocities called @4.0 in executeTimeLoopN method.
@@ -108,8 +108,8 @@ RealArray1D<dim> Eucclhyd::nodeVelocityBoundaryCondition(
     RealArray1D<dim> Gp) {
   if (BC == 200)
     return (dot(Gp, BCValue) /
-            (dot(MathFunctions::matVectProduct(Mp, BCValue),
-                                BCValue)) * BCValue);
+            (dot(MathFunctions::matVectProduct(Mp, BCValue), BCValue)) *
+            BCValue);
   else if (BC == 201)
     return BCValue;
   else if (BC == 202)
@@ -123,14 +123,12 @@ RealArray1D<dim> Eucclhyd::nodeVelocityBoundaryConditionCorner(
     int BC1, RealArray1D<dim> BCValue1, int BC2, RealArray1D<dim> BCValue2,
     RealArray2D<dim, dim> Mp, RealArray1D<dim> Gp) {
   if (BC1 == 200 && BC2 == 200) {
-    if (MathFunctions::fabs(
-            MathFunctions::fabs(dot(BCValue1, BCValue2)) -
-            MathFunctions::norm(BCValue1) * MathFunctions::norm(BCValue2)) <
-        1.0E-8)
-      return (
-          dot(Gp, BCValue1) /
-              (dot(MathFunctions::matVectProduct(Mp, BCValue1),
-                                  BCValue1)) * BCValue1);
+    if (MathFunctions::fabs(MathFunctions::fabs(dot(BCValue1, BCValue2)) -
+                            MathFunctions::norm(BCValue1) *
+                                MathFunctions::norm(BCValue2)) < 1.0E-8)
+      return (dot(Gp, BCValue1) /
+              (dot(MathFunctions::matVectProduct(Mp, BCValue1), BCValue1)) *
+              BCValue1);
     else {
       return zeroVect;
     }
@@ -142,5 +140,3 @@ RealArray1D<dim> Eucclhyd::nodeVelocityBoundaryConditionCorner(
     { return zeroVect; }
   }
 }
-
-

@@ -66,8 +66,8 @@ class Eucclhyd {
   // Global Variables
   int n, nbCalls;
   double lastDump;
-  double ETOTALE_L, ETOTALE_T, ETOTALE_0;
-  double MASSET_L, MASSET_T, MASSET_0;
+  double m_global_total_energy_L, m_global_total_energy_T, m_global_total_energy_0;
+  double m_total_masse_L, m_total_masse_T, m_total_masse_0;
 
   // cells a debuguer
   int dbgcell1 = -389;
@@ -78,20 +78,20 @@ class Eucclhyd {
   int test_debug = 1;
 
   // Connectivity Variables
-  Kokkos::View<RealArray1D<dim>*> X;
-  Kokkos::View<RealArray1D<dim>*> Xc;
-  Kokkos::View<double*> Xc_x;
-  Kokkos::View<double*> Xc_y;
-  Kokkos::View<RealArray1D<dim>**> lpc_n;
+  Kokkos::View<RealArray1D<dim>*> m_node_coord;
+  Kokkos::View<RealArray1D<dim>*> m_cell_coord;
+  Kokkos::View<double*> m_cell_coord_x;
+  Kokkos::View<double*> m_cell_coord_y;
+  Kokkos::View<RealArray1D<dim>**> m_lpc_n;
   Kokkos::View<RealArray1D<dim>**> nplus;
   Kokkos::View<RealArray1D<dim>**> nminus;
   Kokkos::View<double**> lplus;
   Kokkos::View<double**> lminus;
-  Kokkos::View<double*> p;
+  Kokkos::View<double*> m_pressure;
   Kokkos::View<RealArray1D<nbmatmax>*> pp;
   Kokkos::View<double*> m;
   Kokkos::View<RealArray1D<nbmatmax>*> mp;
-  Kokkos::View<double*> volE;
+  Kokkos::View<double*> m_euler_volume;
   Kokkos::View<RealArray1D<nbmatmax>*> vpLagrange;
   Kokkos::View<double*> perim;
   Kokkos::View<double*> vitson;
@@ -100,12 +100,12 @@ class Eucclhyd {
   Kokkos::View<RealArray1D<dim>*> Vnode_n;
   Kokkos::View<RealArray1D<dim>*> Vnode_nplus1;
   Kokkos::View<RealArray1D<dim>*> Vnode_n0;
-  Kokkos::View<double*> ETOT_0;
-  Kokkos::View<double*> ETOT_T;
-  Kokkos::View<double*> ETOT_L;
-  Kokkos::View<double*> MTOT_0;
-  Kokkos::View<double*> MTOT_T;
-  Kokkos::View<double*> MTOT_L;
+  Kokkos::View<double*> m_total_energy_0;
+  Kokkos::View<double*> m_total_energy_T;
+  Kokkos::View<double*> m_total_energy_L;
+  Kokkos::View<double*> m_global_masse_0;
+  Kokkos::View<double*> m_global_masse_T;
+  Kokkos::View<double*> m_global_masse_L;
   Kokkos::View<double*> rho_n;
   Kokkos::View<double*> rho_nplus1;
   Kokkos::View<double*> rho_n0;
@@ -150,11 +150,11 @@ class Eucclhyd {
   Kokkos::View<RealArray2D<dim, dim>**> M3;
   Kokkos::View<RealArray2D<dim, dim>*> Mnode;
   Kokkos::View<RealArray1D<nbmatmax>*> fracmass;
-  Kokkos::View<RealArray1D<nbmatmax>*> fracvol;
-  Kokkos::View<RealArray1D<nbmatmax>*> fracvolnode;
-  Kokkos::View<double*> fracvol1;
-  Kokkos::View<double*> fracvol2;
-  Kokkos::View<double*> fracvol3;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_fracvol_env;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_node_fracvol;
+  Kokkos::View<double*> m_fracvol_env1;
+  Kokkos::View<double*> m_fracvol_env2;
+  Kokkos::View<double*> m_fracvol_env3;
   Kokkos::View<double*> p1;
   Kokkos::View<double*> p2;
   Kokkos::View<double*> p3;
@@ -168,9 +168,9 @@ class Eucclhyd {
   Kokkos::View<double*> Mcpart;
   Kokkos::View<double*> Repart;
   Kokkos::View<double*> Temppart;
-  Kokkos::View<RealArray1D<dim>*> Xpart_n0;
-  Kokkos::View<RealArray1D<dim>*> Xpart_n;
-  Kokkos::View<RealArray1D<dim>*> Xpart_nplus1;
+  Kokkos::View<RealArray1D<dim>*> m_particle_coord_n0;
+  Kokkos::View<RealArray1D<dim>*> m_particle_coord_n;
+  Kokkos::View<RealArray1D<dim>*> m_particle_coord_nplus1;
   Kokkos::View<RealArray1D<dim>*> ForceGradp;
   Kokkos::View<RealArray1D<dim>*> Vpart_n0;
   Kokkos::View<RealArray1D<dim>*> Vpart_n;
@@ -232,37 +232,37 @@ class Eucclhyd {
         ForceGradp("ForceGradp", nbCells),
         listpart("listepart", nbCells),
         fracpart("fracPart", nbCells),
-        Xpart_n0("Xpart_n0", nbPartMax),
-        Xpart_n("Xpart_n", nbPartMax),
-        Xpart_nplus1("Xpart_nplus1", nbPartMax),
+        m_particle_coord_n0("m_particle_coord_n0", nbPartMax),
+        m_particle_coord_n("m_particle_coord_n", nbPartMax),
+        m_particle_coord_nplus1("m_particle_coord_nplus1", nbPartMax),
         Vpart_n0("Vpart_n0", nbPartMax),
         Vpart_n("Vpart_n", nbPartMax),
         Vpart_nplus1("Vpart_nplus1", nbPartMax),
         ICellp("Icellp", nbPartMax),
         IMatp("Imatp", nbPartMax),
-        X("X", nbNodes),
-        Xc("Xc", nbCells),
-        Xc_x("Xc_x", nbCells),
-        Xc_y("Xc_y", nbCells),
-        lpc_n("lpc_n", nbNodes, nbCellsOfNode),
+        m_node_coord("m_node_coord", nbNodes),
+        m_cell_coord("m_cell_coord", nbCells),
+        m_cell_coord_x("m_cell_coord_x", nbCells),
+        m_cell_coord_y("m_cell_coord_y", nbCells),
+        m_lpc_n("m_lpc_n", nbNodes, nbCellsOfNode),
         nplus("nplus", nbNodes, nbCellsOfNode),
         nminus("nminus", nbNodes, nbCellsOfNode),
         lplus("lplus", nbNodes, nbCellsOfNode),
         lminus("lminus", nbNodes, nbCellsOfNode),
-        p("p", nbCells),
+        m_pressure("p", nbCells),
         p1("p1", nbCells),
         p2("p2", nbCells),
         p3("p3", nbCells),
         pp("pp", nbCells),
         m("m", nbCells),
         mp("mp", nbCells),
-        volE("volE", nbCells),
+        m_euler_volume("m_euler_volume", nbCells),
         fracmass("fracmass", nbCells),
-        fracvol("fracvol", nbCells),
-        fracvolnode("fracvolnode", nbNodes),
-        fracvol1("fracvol1", nbCells),
-        fracvol2("fracvol2", nbCells),
-        fracvol3("fracvol3", nbCells),
+        m_fracvol_env("m_fracvol_env", nbCells),
+        m_node_fracvol("m_node_fracvol", nbNodes),
+        m_fracvol_env1("m_fracvol_env1", nbCells),
+        m_fracvol_env2("m_fracvol_env2", nbCells),
+        m_fracvol_env3("m_fracvol_env3", nbCells),
         vpLagrange("vpLagrange", nbCells),
         perim("perim", nbCells),
         vitson("vitson", nbCells),
@@ -271,12 +271,12 @@ class Eucclhyd {
         Vnode_n("Vnode_n", nbNodes),
         Vnode_nplus1("Vnode_nplus1", nbNodes),
         Vnode_n0("Vnode_n0", nbNodes),
-        ETOT_0("ETOT_0", nbCells),
-        ETOT_T("ETOT_T", nbCells),
-        ETOT_L("ETOT_L", nbCells),
-        MTOT_0("MTOT_0", nbCells),
-        MTOT_T("MTOT_T", nbCells),
-        MTOT_L("MTOT_L", nbCells),
+        m_total_energy_0("m_total_energy_0", nbCells),
+        m_total_energy_T("m_total_energy_T", nbCells),
+        m_total_energy_L("m_total_energy_L", nbCells),
+        m_global_masse_0("m_global_masse_0", nbCells),
+        m_global_masse_T("m_global_masse_T", nbCells),
+        m_global_masse_L("m_global_masse_L", nbCells),
         rho_n("rho_n", nbCells),
         rho_nplus1("rho_nplus1", nbCells),
         rho_n0("rho_n0", nbCells),
@@ -323,7 +323,7 @@ class Eucclhyd {
     // Copy node coordinates
     const auto& gNodes = mesh->getGeometry()->getNodes();
     Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const int& rNodes) {
-      X(rNodes) = gNodes[rNodes];
+      m_node_coord(rNodes) = gNodes[rNodes];
       });
   }
 
@@ -387,7 +387,7 @@ class Eucclhyd {
   
   /**
    * Job dumpVariables called @2.0 in executeTimeLoopN method.
-   * In variables: Xc_x, Xc_y, e_n, m, p, rho_n, t_n, v
+   * In variables: m_cell_coord_x, m_cell_coord_y, e_n, m, p, rho_n, t_n, v
    * Out variables:
    */
   void dumpVariables() noexcept;
@@ -395,16 +395,16 @@ class Eucclhyd {
   /**
    * Job executeTimeLoopN called @4.0 in simulate method.
    * In variables: F_n, F_nplus1, G, M, Mnode, ULagrange, Uremap1, Uremap2,
-   * V_extrap, V_n, Vnode_n, Vnode_nplus1, X, XLagrange, Xc, XcLagrange, Xc_x,
-   * Xc_y, Xf, bottomBC, bottomBCValue, c, cfl, deltat_n, deltat_nplus1,
+   * V_extrap, V_n, Vnode_n, Vnode_nplus1, X, XLagrange, m_cell_coord, m_cell_coordLagrange, m_cell_coord_x,
+   * m_cell_coord_y, Xf, bottomBC, bottomBCValue, c, cfl, deltat_n, deltat_nplus1,
    * deltatc, deltaxLagrange, eos, eosPerfectGas, e_n, faceLength, faceNormal,
    * faceNormalVelocity, gamma, gradPhi1, gradPhi2, gradPhiFace1, gradPhiFace2,
-   * gradV, gradp, leftBC, leftBCValue, lminus, lpc_n, lplus, m, nminus, nplus,
+   * gradV, gradp, leftBC, leftBCValue, lminus, m_lpc_n, lplus, m, nminus, nplus,
    * outerFaceNormal, p, p_extrap, perim, phiFace1, phiFace2,
    * projectionLimiterId, projectionOrder, rho_n, rightBC, rightBCValue,
    * spaceOrder, t_n, topBC, topBCValue, v, vLagrange, x_then_y_n Out variables:
    * F_nplus1, G, M, Mnode, ULagrange, Uremap1, Uremap2, V_extrap, V_nplus1,
-   * Vnode_nplus1, XLagrange, XcLagrange, c, deltat_nplus1, deltatc,
+   * Vnode_nplus1, XLagrange, m_cell_coordLagrange, c, deltat_nplus1, deltatc,
    * deltaxLagrange, e_nplus1, faceNormalVelocity, gradPhi1, gradPhi2,
    * gradPhiFace1, gradPhiFace2, gradV, gradp, m, p, p_extrap, phiFace1,
    * phiFace2, rho_nplus1, t_nplus1, vLagrange, x_then_y_nplus1

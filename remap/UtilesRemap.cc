@@ -3,7 +3,7 @@
 
 #include <array>  // for array
 
-#include "Remap.h"        // for Remap, Remap::Options
+#include "Remap.h"                // for Remap, Remap::Options
 #include "types/MathFunctions.h"  // for min, max
 
 double Remap::fluxLimiter(int projectionLimiterId, double r) {
@@ -23,9 +23,9 @@ double Remap::fluxLimiter(int projectionLimiterId, double r) {
 }
 
 double Remap::fluxLimiterPP(int projectionLimiterId, double gradplus,
-                                    double gradmoins, double y0, double yplus,
-                                    double ymoins, double h0, double hplus,
-                                    double hmoins) {
+                            double gradmoins, double y0, double yplus,
+                            double ymoins, double h0, double hplus,
+                            double hmoins) {
   double grady, gradM, gradMplus, gradMmoins;
   // limitation rupture de pente (formule 16 si on utilise pas le plateau pente)
   if (gradplus * gradmoins < 0.0) return 0.;
@@ -71,9 +71,9 @@ double Remap::fluxLimiterPP(int projectionLimiterId, double gradplus,
   return grady;
 }
 
-double Remap::computeY0(int projectionLimiterId, double y0,
-                                double yplus, double ymoins, double h0,
-                                double hplus, double hmoins, int type) {
+double Remap::computeY0(int projectionLimiterId, double y0, double yplus,
+                        double ymoins, double h0, double hplus, double hmoins,
+                        int type) {
   // retourne {{y0plus, y0moins}}
   double y0plus = 0., y0moins = 0.;
   if (projectionLimiterId == limiteurs->minmodG ||
@@ -124,9 +124,8 @@ double Remap::computeY0(int projectionLimiterId, double y0,
     return 0.0;  // lancer forcement avec type 0 ou 1 mais warning compile
 }
 
-double Remap::computexgxd(double y0, double yplus, double ymoins,
-                                  double h0, double y0plus, double y0moins,
-                                  int type) {
+double Remap::computexgxd(double y0, double yplus, double ymoins, double h0,
+                          double y0plus, double y0moins, int type) {
   // retourne {{xg, xd}}
   double xd = 0., xg = 0.;
   double xplus = 1.;
@@ -145,9 +144,9 @@ double Remap::computexgxd(double y0, double yplus, double ymoins,
     return 0.0;  // lancer forcement avec type 0 ou 1 mais warning compile
 }
 
-double Remap::computeygyd(double y0, double yplus, double ymoins,
-                                  double h0, double y0plus, double y0moins,
-                                  double grady, int type) {
+double Remap::computeygyd(double y0, double yplus, double ymoins, double h0,
+                          double y0plus, double y0moins, double grady,
+                          int type) {
   // retourne {{yg, yd}}
   double yd, yg;
   double xtd = y0 + h0 / 2 * grady;
@@ -166,8 +165,7 @@ double Remap::computeygyd(double y0, double yplus, double ymoins,
     return 0.0;  // lancer forcement avec type 0 ou 1 mais warning compile
 }
 
-double Remap::INTY(double X, double x0, double y0, double x1,
-                           double y1) {
+double Remap::INTY(double X, double x0, double y0, double x1, double y1) {
   double flux = 0.;
   double Xbar = MathFunctions::min(MathFunctions::max(x0, X), x1);
   // std::cout << " Xbar  " << Xbar << std::endl;
@@ -176,8 +174,7 @@ double Remap::INTY(double X, double x0, double y0, double x1,
   return flux;
 }
 
-double Remap::INT2Y(double X, double x0, double y0, double x1,
-                            double y1) {
+double Remap::INT2Y(double X, double x0, double y0, double x1, double y1) {
   double flux = 0.;
   // std::cout << " x0 " << x0 << std::endl;
   // std::cout << " x1 " << x1 << std::endl;
@@ -201,7 +198,7 @@ RealArray1D<dim> Remap::xThenYToDirection(bool x_then_y_) {
 // ----------------------------------
 // fonction pour evaluer le gradient
 double Remap::evaluate_grad(double hm, double h0, double hp, double ym,
-                                    double y0, double yp) {
+                            double y0, double yp) {
   double grad;
   grad = h0 / (hm + h0 + hp) *
          ((2. * hm + h0) / (h0 + hp) * (yp - y0) +
@@ -210,10 +207,9 @@ double Remap::evaluate_grad(double hm, double h0, double hp, double ym,
 }
 // ----------------------------------
 // fonction pour évaluer ystar
-double Remap::evaluate_ystar(double hmm, double hm, double hp,
-                                     double hpp, double ymm, double ym,
-                                     double yp, double ypp, double gradm,
-                                     double gradp) {
+double Remap::evaluate_ystar(double hmm, double hm, double hp, double hpp,
+                             double ymm, double ym, double yp, double ypp,
+                             double gradm, double gradp) {
   double ystar, tmp1, tmp2;
   tmp1 = (2. * hp * hm) / (hm + hp) *
          ((hmm + hm) / (2. * hm + hp) - (hpp + hp) / (2. * hp + hm)) *
@@ -227,7 +223,7 @@ double Remap::evaluate_ystar(double hmm, double hm, double hp,
 // ----------------------------------
 // fonction pour évaluer fm
 double Remap::evaluate_fm(double x, double dx, double up, double du,
-                                  double u6) {
+                          double u6) {
   double fm;
   fm = up - 0.5 * x / dx * (du - (1. - 2. / 3. * x / dx) * u6);
   return fm;
@@ -235,7 +231,7 @@ double Remap::evaluate_fm(double x, double dx, double up, double du,
 // ----------------------------------
 // fonction pour évaluer fr
 double Remap::evaluate_fp(double x, double dx, double um, double du,
-                                  double u6) {
+                          double u6) {
   double fp;
   fp = um + 0.5 * x / dx * (du - (1. - 2. / 3. * x / dx) * u6);
   return fp;
@@ -263,11 +259,10 @@ Remap::interval Remap::intersection(interval I1, interval I2) {
 }
 // ----------------------------------
 // fonction pour calculer le flux
-double Remap::ComputeFluxOrdre3(double ymmm, double ymm, double ym,
-                                        double yp, double ypp, double yppp,
-                                        double hmmm, double hmm, double hm,
-                                        double hp, double hpp, double hppp,
-                                        double vdt) {
+double Remap::ComputeFluxOrdre3(double ymmm, double ymm, double ym, double yp,
+                                double ypp, double yppp, double hmmm,
+                                double hmm, double hm, double hp, double hpp,
+                                double hppp, double vdt) {
   double flux;
   double gradmm, gradm, gradp, gradpp;
   double ystarm, ystar, ystarp;
