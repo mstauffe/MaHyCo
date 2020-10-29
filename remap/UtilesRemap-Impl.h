@@ -139,20 +139,27 @@ RealArray1D<d> Remap::computeVecFluxOrdre3(
   }
   return res;
 }
-
 template <size_t d>
-RealArray1D<d> Remap::computeFluxPP(
+void Remap::computeFluxPP(
     RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
     double face_normal_velocity, double deltat_n, int type, int cell,
-    double flux_threhold, int projectionPlateauPenteComplet) {
-  RealArray1D<d> Flux = Uzero;
+    double flux_threhold, int projectionPlateauPenteComplet,
+    double dual_normal_velocity, int calcul_flux_dual,
+    RealArray1D<d> *pFlux,  RealArray1D<d> *pFlux_dual) {
+
+  RealArray1D<d> Flux = *pFlux;
+  RealArray1D<d> Flux_dual = *pFlux_dual;
+  
+  Flux = Uzero;
+  Flux_dual = Uzero;
   int nbmat = options->nbmat;
   double y0plus, y0moins, xd, xg, yd, yg;
   double flux1, flux2, flux3, flux1m, flux2m, flux3m;
   double partie_positive_v =
       0.5 * (face_normal_velocity + abs(face_normal_velocity)) * deltat_n;
-  if (partie_positive_v == 0.) return Flux;
+  double partie_positive_dual_v =
+      0.5 * (dual_normal_velocity + abs(dual_normal_velocity)) * deltat_n;
   int cas_PP = 0;
   for (size_t i = 0; i < nbequamax; i++) {
     // calcul des seuils y0plus, y0moins pour cCells
@@ -195,6 +202,28 @@ RealArray1D<d> Remap::computeFluxPP(
       if (((phiplus[i] - phi[i]) * (phimoins[i] - phi[i])) >= 0.)
         Flux[i] = phi[i] * partie_positive_v;
       //
+      // et calcul du flux dual si calcul_flux_dual=1
+      if (calcul_flux_dual == 1) {
+	// Flux1m : integrale -inf, partie_positive_dual_v
+	flux1m = INT2Y(partie_positive_dual_v, -h0 / 2., phimoins[i], xg, yg);
+	// Flux1m : integrale -inf,  0..
+	flux1 = INT2Y(0., -h0 / 2., phimoins[i], xg, yg);
+	// Flux2m : integrale -inf, partie_positive_dual_v  
+	flux2m = INT2Y(partie_positive_dual_v, xg, yg, xd, yd);
+	// Flux2 : integrale -inf, 0.
+	flux2 = INT2Y(0., xg, yg, xd, yd);
+	// Flux3m : integrale -inf, partie_positive_dual_v  
+	flux3m = INT2Y(partie_positive_dual_v, xd, yd, h0 / 2., phiplus[i]);
+	// Flux3 : integrale -inf, 0.
+	flux3 = INT2Y(0., xd, yd, h0 / 2., phiplus[i]);
+	// integrale positive
+	Flux_dual[i] = MathFunctions::max(
+				     ((flux1m - flux1) + (flux2m - flux2) + (flux3m - flux3)), 0.);
+	// formule 16
+	if (((phiplus[i] - phi[i]) * (phimoins[i] - phi[i])) >= 0.)
+	  Flux_dual[i] = phi[i] * partie_positive_dual_v;
+	//
+      }
     } else if (type == 1) {
       // flux devant ou au dessus de cCells, integration entre
       // h0/2.-abs(face_normal_velocity)*deltat_n et h0/2.
@@ -219,6 +248,12 @@ RealArray1D<d> Remap::computeFluxPP(
       // formule 16
       if (((phiplus[i] - phi[i]) * (phimoins[i] - phi[i])) >= 0.)
         Flux[i] = phi[i] * partie_positive_v;
+      //
+      // et calcul du flux dual si calcul_flux_dual=1
+      if (calcul_flux_dual == 1) {
+	// flux dual deja calculé lors du premier appel à la fonction
+	  Flux_dual[i] = 0.;
+      }
     }
   }
   if (projectionPlateauPenteComplet == 1) {
@@ -242,8 +277,7 @@ RealArray1D<d> Remap::computeFluxPP(
       Flux[3 * nbmat +1] =
 	(Flux[3 * nbmat +1 ]/somme_flux_volume) * somme_flux_masse;  // flux de quantité de mouvement y
       Flux[3 * nbmat +2] =
-	(Flux[3 * nbmat +2 ]/somme_flux_volume) * somme_flux_masse;
-    
+	(Flux[3 * nbmat +2 ]/somme_flux_volume) * somme_flux_masse;   
       Flux[3 * nbmat + 3] =
 	phi[3 * nbmat + 3] * somme_flux_volume; // flux pour la pseudo VNR
     } else {
@@ -272,22 +306,37 @@ RealArray1D<d> Remap::computeFluxPP(
     Flux[3 * nbmat + 3] =
       phi[3 * nbmat + 3] * somme_flux_volume; // flux pour la pseudo VNR
   }
-  return Flux;
-}
 
+  *pFlux = Flux;
+  *pFlux_dual = Flux_dual;
+  if (partie_positive_v == 0.) *pFlux = Uzero;
+  if (partie_positive_dual_v == 0.) *pFlux_dual = Uzero;
+  
+  return;
+}
 template <size_t d>
-RealArray1D<d> Remap::computeFluxPPPure(
+void Remap::computeFluxPPPure(
     RealArray1D<d> gradphi, RealArray1D<d> phi, RealArray1D<d> phiplus,
     RealArray1D<d> phimoins, double h0, double hplus, double hmoins,
     double face_normal_velocity, double deltat_n, int type, int cell,
-    double flux_threhold, int projectionPlateauPenteComplet) {
-  RealArray1D<d> Flux = Uzero;
+    double flux_threhold, int projectionPlateauPenteComplet,
+    double dual_normal_velocity, int calcul_flux_dual,
+    RealArray1D<d> *pFlux,  RealArray1D<d> *pFlux_dual) {
+
+  
+  
+  RealArray1D<d> Flux = *pFlux;
+  RealArray1D<d> Flux_dual = *pFlux_dual;
+  
+  Flux = Uzero;
+  Flux_dual  = Uzero;
   int nbmat = options->nbmat;
   double y0plus, y0moins, xd, xg, yd, yg;
   double flux1, flux2, flux3, flux1m, flux2m, flux3m;
   double partie_positive_v =
       0.5 * (face_normal_velocity + abs(face_normal_velocity)) * deltat_n;
-  if (partie_positive_v == 0.) return Flux;
+  double partie_positive_dual_v =
+      0.5 * (dual_normal_velocity + abs(dual_normal_velocity)) * deltat_n;
   int cas_PP = 0;
   // on ne fait que la projection des volumes et masses
   for (size_t i = 0; i < nbequamax; i++) {
@@ -333,6 +382,28 @@ RealArray1D<d> Remap::computeFluxPPPure(
       if (((phiplus[i] - phi[i]) * (phimoins[i] - phi[i])) >= 0.)
         Flux[i] = phi[i] * partie_positive_v;
       //
+       // et calcul du flux dual si calcul_flux_dual=1
+      if (calcul_flux_dual == 1) {
+	// Flux1m : integrale -inf, partie_positive_dual_v
+	flux1m = INT2Y(partie_positive_dual_v, -h0 / 2., phimoins[i], xg, yg);
+	// Flux1m : integrale -inf,  0..
+	flux1 = INT2Y(0., -h0 / 2., phimoins[i], xg, yg);
+	// Flux2m : integrale -inf, partie_positive_dual_v  
+	flux2m = INT2Y(partie_positive_dual_v, xg, yg, xd, yd);
+	// Flux2 : integrale -inf, 0.
+	flux2 = INT2Y(0., xg, yg, xd, yd);
+	// Flux3m : integrale -inf, partie_positive_dual_v  
+	flux3m = INT2Y(partie_positive_dual_v, xd, yd, h0 / 2., phiplus[i]);
+	// Flux3 : integrale -inf, 0.
+	flux3 = INT2Y(0., xd, yd, h0 / 2., phiplus[i]);
+	// integrale positive
+	Flux_dual[i] = MathFunctions::max(
+				     ((flux1m - flux1) + (flux2m - flux2) + (flux3m - flux3)), 0.);
+	// formule 16
+	if (((phiplus[i] - phi[i]) * (phimoins[i] - phi[i])) >= 0.)
+	  Flux_dual[i] = phi[i] * partie_positive_dual_v;
+	//
+      }
     } else if (type ==1) {
       // flux devant ou au dessus de cCells, integration entre
       // h0/2.-abs(face_normal_velocity)*deltat_n et h0/2.
@@ -355,6 +426,11 @@ RealArray1D<d> Remap::computeFluxPPPure(
       // formule 16
       if (((phiplus[i] - phi[i]) * (phimoins[i] - phi[i])) >= 0.)
         Flux[i] = phi[i] * partie_positive_v;
+      // et calcul du flux dual si calcul_flux_dual=1
+      if (calcul_flux_dual == 1) {
+	// flux dual deja calculé lors du premier appel à la fonction
+	  Flux_dual[i] = 0.;
+      }
     }
   }
   if (projectionPlateauPenteComplet == 1) {
@@ -404,7 +480,12 @@ RealArray1D<d> Remap::computeFluxPPPure(
     Flux[3 * nbmat + 3] =
       phi[3 * nbmat + 3] * somme_flux_volume; // flux pour la pseudo VNR
   }
-  return Flux;
+  
+  *pFlux = Flux;
+  *pFlux_dual = Flux_dual;
+  if (partie_positive_v == 0.) *pFlux = Uzero;
+  if (partie_positive_dual_v == 0.) *pFlux_dual = Uzero;
+  return;
 }
 
 template <size_t d>

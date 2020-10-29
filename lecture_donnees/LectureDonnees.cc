@@ -200,12 +200,12 @@ void LectureDonneesClass::LectureDonnees(
       mesdonnees.ignore();
 
       if (o->AvecProjection == 1) {
-        getline(mesdonnees, ligne);  // methode calcul des flux de masses duales
-        mesdonnees >> mot;
-        o->methode_flux_masse = A1OUA2[mot];
-        std::cout << " Methode Projection Dual : " << mot << " ( "
-                  << o->methode_flux_masse << " ) " << std::endl;
-        mesdonnees.ignore();
+    	  getline(mesdonnees, ligne);  // methode calcul des flux de masses duales
+	      mesdonnees >> mot;
+	      o->methode_flux_masse = A1OUA2OUPB[mot];
+	      std::cout << " Methode Projection Dual : " << mot << " ( "
+		        << o->methode_flux_masse << " ) " << std::endl;
+	      mesdonnees.ignore();
       }
     }
     // getline(mesdonnees, ligne); // Presence de Particules
