@@ -35,8 +35,8 @@ void Vnr::computeDeltaT() noexcept {
             int pNodes(pId);
             reduction1 =
                 sumR0(reduction1, m_node_cellvolume_n(cCells, pNodesOfCellC));
-            uc += std::sqrt(m_velocity_n(pNodes)[0] * m_velocity_n(pNodes)[0] +
-                            m_velocity_n(pNodes)[1] * m_velocity_n(pNodes)[1]) *
+            uc += std::sqrt(m_node_velocity_n(pNodes)[0] * m_node_velocity_n(pNodes)[0] +
+                            m_node_velocity_n(pNodes)[1] * m_node_velocity_n(pNodes)[1]) *
                   0.25;
           }
         }
@@ -59,11 +59,11 @@ void Vnr::computeTime() noexcept { gt->t_nplus1 = gt->t_n + gt->deltat_nplus1; }
 /**
  * Job SetUpTimeLoopN called @4.0 in simulate method.
  * In variables: m_node_cellvolume_n0, m_node_coord_n0, m_speed_velocity_n0,
- * cellPos_n0, deltat_init, m_divu_n0, m_internal_energy_n0, m_pressure_n0,
- * m_density_n0, m_tau_density_n0, m_velocity_n0 Out variables:
- * m_node_cellvolume_n, m_node_coord_n, m_speed_velocity_n, cellPos_n, deltat_n,
+ * m_cell_coord_n0, deltat_init, m_divu_n0, m_internal_energy_n0, m_pressure_n0,
+ * m_density_n0, m_tau_density_n0, m_node_velocity_n0 Out variables:
+ * m_node_cellvolume_n, m_node_coord_n, m_speed_velocity_n, m_cell_coord_n, deltat_n,
  * m_divu_n, m_internal_energy_n, m_pressure_n, m_density_n, m_tau_density_n,
- * m_velocity_n
+ * m_node_velocity_n
  */
 void Vnr::setUpTimeLoopN() noexcept {
   gt->deltat_n = gt->deltat_init;
@@ -82,8 +82,8 @@ void Vnr::setUpTimeLoopN() noexcept {
   deep_copy(m_speed_velocity_env_n, m_speed_velocity_env_n0);
   deep_copy(m_internal_energy_n, m_internal_energy_n0);
   deep_copy(m_internal_energy_env_n, m_internal_energy_env_n0);
-  deep_copy(m_velocity_n, m_velocity_n0);
-  deep_copy(cellPos_n, cellPos_n0);
+  deep_copy(m_node_velocity_n, m_node_velocity_n0);
+  deep_copy(m_cell_coord_n, m_cell_coord_n0);
 
   // if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY ||
   //     test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
@@ -115,14 +115,14 @@ void Vnr::setUpTimeLoopN() noexcept {
  * Job ExecuteTimeLoopN called @5.0 in simulate method.
  * In variables: C, m_pseudo_viscosity_nplus1, m_node_cellvolume_n,
  * m_node_cellvolume_nplus1, m_node_coord_n, m_node_coord_nplus1,
- * m_speed_velocity_n, m_cell_mass, cellPos_nplus1, deltat_n, deltat_nplus1,
+ * m_speed_velocity_n, m_cell_mass, m_cell_coord_nplus1, deltat_n, deltat_nplus1,
  * m_divu_n, m_internal_energy_n, m_internal_energy_nplus1, gamma, m,
  * m_pressure_n, m_density_n, m_density_nplus1, t_n, m_tau_density_n,
- * m_tau_density_nplus1, m_velocity_n, m_velocity_nplus1 Out variables: C,
+ * m_tau_density_nplus1, m_node_velocity_n, m_node_velocity_nplus1 Out variables: C,
  * m_pseudo_viscosity_nplus1, m_node_cellvolume_nplus1, V, m_node_coord_nplus1,
  * m_speed_velocity_nplus1, deltat_nplus1, m_divu_nplus1,
  * m_internal_energy_nplus1, m_pressure_nplus1, m_density_nplus1, t_nplus1,
- * m_tau_density_nplus1, m_velocity_nplus1
+ * m_tau_density_nplus1, m_node_velocity_nplus1
  */
 void Vnr::executeTimeLoopN() noexcept {
   n = 0;
@@ -150,7 +150,7 @@ void Vnr::executeTimeLoopN() noexcept {
       updateVelocity();                    // @2.0
       updateVelocityBoundaryConditions();  // @2.0
     } else {
-      std::swap(m_velocity_n, m_velocity_nplus1);
+      std::swap(m_node_velocity_n, m_node_velocity_nplus1);
     }
 
     updatePosition();  // @3.0
@@ -213,9 +213,9 @@ void Vnr::executeTimeLoopN() noexcept {
       std::swap(m_speed_velocity_env_nplus1, m_speed_velocity_env_n);
       std::swap(m_internal_energy_nplus1, m_internal_energy_n);
       std::swap(m_internal_energy_env_nplus1, m_internal_energy_env_n);
-      std::swap(m_velocity_nplus1, m_velocity_n);
+      std::swap(m_node_velocity_nplus1, m_node_velocity_n);
       if (options->AvecProjection == 0) {
-        std::swap(cellPos_nplus1, cellPos_n);
+        std::swap(m_cell_coord_nplus1, m_cell_coord_n);
         std::swap(m_node_cellvolume_nplus1, m_node_cellvolume_n);
         std::swap(m_node_coord_nplus1, m_node_coord_n);
       }

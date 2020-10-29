@@ -101,7 +101,7 @@ void Eucclhyd::initBoundaryConditions() noexcept {
 /**
  * Job initMeshGeometryForCells called @1.0 in simulate method.
  * In variables: X
- * Out variables: m_cell_coord, m_cell_coord_x, m_cell_coord_y, perim, v
+ * Out variables: m_cell_coord, m_cell_coord_x, m_cell_coord_y, m_cell_perimeter, v
  */
 void Eucclhyd::initMeshGeometryForCells() noexcept {
   Kokkos::parallel_for(
@@ -160,14 +160,14 @@ void Eucclhyd::initMeshGeometryForCells() noexcept {
                                                 m_node_coord(pPlus1Nodes))));
           }
         }
-        perim(cCells) = reduction13;
+        m_cell_perimeter(cCells) = reduction13;
       });
 }
 
 /**
  * Job initVpAndFpc called @1.0 in simulate method.
  * In variables: zeroVect
- * Out variables: F_n0, Vnode_n0
+ * Out variables: m_node_force_n0, m_node_velocity_n0
  */
 void Eucclhyd::initVpAndFpc() noexcept {
   Kokkos::parallel_for(
@@ -177,8 +177,8 @@ void Eucclhyd::initVpAndFpc() noexcept {
           auto cellsOfNodeP(mesh->getCellsOfNode(pId));
           for (int cCellsOfNodeP = 0; cCellsOfNodeP < cellsOfNodeP.size();
                cCellsOfNodeP++) {
-            Vnode_n0(pNodes) = zeroVect;
-            F_n0(pNodes, cCellsOfNodeP) = zeroVect;
+            m_node_velocity_n0(pNodes) = zeroVect;
+            m_node_force_n0(pNodes, cCellsOfNodeP) = zeroVect;
           }
         }
       });
@@ -188,13 +188,13 @@ void Eucclhyd::initVpAndFpc() noexcept {
  * Job initCellInternalEnergy called @2.0 in simulate method.
  * In variables: NohTestCase, SedovTestCase, SodCase, TriplePoint, X,
  * X_EDGE_LENGTH, m_cell_coord, Y_EDGE_LENGTH, testCase, threshold Out
- * variables: e_n0
+ * variables: m_internal_energy_n0
  */
 void Eucclhyd::initCellInternalEnergy() noexcept {
   Kokkos::parallel_for("initCellInternalEnergy", nbCells,
                        KOKKOS_LAMBDA(const int& cCells) {
                          for (int imat = 0; imat < nbmatmax; imat++) {
-                           ep_n0(cCells)[imat] = 0.0;
+                           m_internal_energy_env_n0(cCells)[imat] = 0.0;
                          }
                        });
 
@@ -206,9 +206,9 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
     double e0 = p0 / ((gamma - 1.0) * rho0);
     Kokkos::parallel_for("initCellInternalEnergy", nbCells,
                          KOKKOS_LAMBDA(const int& cCells) {
-                           e_n0(cCells) = e0;
+                           m_internal_energy_n0(cCells) = e0;
                            for (int imat = 0; imat < nbmatmax; imat++)
-                             ep_n0(cCells)[imat] = e0;
+                             m_internal_energy_env_n0(cCells)[imat] = e0;
                          });
   } else if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY) {
     Kokkos::parallel_for("initCellInternalEnergy", nbCells,
@@ -229,8 +229,8 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
                              rhoInit = 0.125;
                            }
                            eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-                           e_n0(cCells) = eInit;
-                           ep_n0(cCells)[0] = eInit;
+                           m_internal_energy_n0(cCells) = eInit;
+                           m_internal_energy_env_n0(cCells)[0] = eInit;
                          });
   } else if (test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
     Kokkos::parallel_for("initCellInternalEnergy", nbCells,
@@ -250,22 +250,22 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
                              pInit = 1.0;
                              rhoInit = 1.0;
                              eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-                             ep_n0(cCells)[0] = eInit;
-                             ep_n0(cCells)[1] = 0.;
-                             e_n0(cCells) = eInit;
+                             m_internal_energy_env_n0(cCells)[0] = eInit;
+                             m_internal_energy_env_n0(cCells)[1] = 0.;
+                             m_internal_energy_n0(cCells) = eInit;
                              // std::cout << " cell " << cCells << "  e1= " <<
-                             // ep_n0(cCells)[0]
-                             // << "  e2= " << ep_n0(cCells)[0] << std::endl;
+                             // m_internal_energy_env_n0(cCells)[0]
+                             // << "  e2= " << m_internal_energy_env_n0(cCells)[0] << std::endl;
                            } else {
                              pInit = 0.1;
                              rhoInit = 0.125;
                              eInit = pInit / ((eos->gammap[1] - 1.0) * rhoInit);
-                             ep_n0(cCells)[0] = 0.;
-                             ep_n0(cCells)[1] = eInit;
-                             e_n0(cCells) = eInit;
+                             m_internal_energy_env_n0(cCells)[0] = 0.;
+                             m_internal_energy_env_n0(cCells)[1] = eInit;
+                             m_internal_energy_n0(cCells) = eInit;
                              // std::cout << " cell " << cCells << "  e1= " <<
-                             // ep_n0(cCells)[0]
-                             // << "  e2= " << ep_n0(cCells)[0] << std::endl;
+                             // m_internal_energy_env_n0(cCells)[0]
+                             // << "  e2= " << m_internal_energy_env_n0(cCells)[0] << std::endl;
                            }
                          });
   } else if (test->Nom == test->BiShockBubble) {
@@ -278,9 +278,9 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
           rhoInit = 1.0;
           pInit = 1.e5;
           eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-          ep_n0(cCells)[0] = eInit;
-          ep_n0(cCells)[1] = 0.;
-          e_n0(cCells) = eInit;
+          m_internal_energy_env_n0(cCells)[0] = eInit;
+          m_internal_energy_env_n0(cCells)[1] = 0.;
+          m_internal_energy_n0(cCells) = eInit;
           // bulle surchargera l'aire
           // centre de la bulle
           RealArray1D<dim> Xb = {{0.320, 0.04}};
@@ -294,9 +294,9 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
             pInit = 1.e5;
             rhoInit = 0.182;
             eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-            ep_n0(cCells)[0] = 0.;
-            ep_n0(cCells)[1] = eInit;
-            e_n0(cCells) = eInit;
+            m_internal_energy_env_n0(cCells)[0] = 0.;
+            m_internal_energy_env_n0(cCells)[1] = eInit;
+            m_internal_energy_n0(cCells) = eInit;
           }
         });
   } else if (test->Nom == test->SedovTestCase ||
@@ -323,11 +323,11 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
             double total_energy_deposit = 0.244816;
             double dx = cstmesh->X_EDGE_LENGTH;
             double dy = cstmesh->Y_EDGE_LENGTH;
-            e_n0(cCells) = e1 + total_energy_deposit / (dx * dy);
+            m_internal_energy_n0(cCells) = e1 + total_energy_deposit / (dx * dy);
           } else {
-            e_n0(cCells) = e1;
+            m_internal_energy_n0(cCells) = e1;
           }
-          ep_n0(cCells)[0] = e_n0(cCells);
+          m_internal_energy_env_n0(cCells)[0] = m_internal_energy_n0(cCells);
         });
   } else if (test->Nom == test->TriplePoint) {
     Kokkos::parallel_for("initCellInternalEnergy", nbCells,
@@ -348,8 +348,8 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
                              }
                            }
                            eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-                           e_n0(cCells) = eInit;
-                           ep_n0(cCells)[0] = eInit;
+                           m_internal_energy_n0(cCells) = eInit;
+                           m_internal_energy_env_n0(cCells)[0] = eInit;
                          });
   } else if (test->Nom == test->BiTriplePoint) {
     Kokkos::parallel_for(
@@ -361,21 +361,21 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
             pInit = 1.0;  // 1.e5; // 1.0;
             rhoInit = 1.0;
             eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
-            e_n0(cCells) = eInit;
-            ep_n0(cCells)[0] = eInit;
+            m_internal_energy_n0(cCells) = eInit;
+            m_internal_energy_env_n0(cCells)[0] = eInit;
           } else {
             if (m_cell_coord(cCells)[1] <= 0.015) {
               pInit = 0.1;  // 1.e4; // 0.1;
               rhoInit = 1.;
               eInit = pInit / ((eos->gammap[1] - 1.0) * rhoInit);
-              e_n0(cCells) = eInit;
-              ep_n0(cCells)[1] = eInit;
+              m_internal_energy_n0(cCells) = eInit;
+              m_internal_energy_env_n0(cCells)[1] = eInit;
             } else {
               pInit = 0.1;  // 1.e4; // 0.1;
               rhoInit = 0.1;
               eInit = pInit / ((eos->gammap[2] - 1.0) * rhoInit);
-              e_n0(cCells) = eInit;
-              ep_n0(cCells)[2] = eInit;
+              m_internal_energy_n0(cCells) = eInit;
+              m_internal_energy_env_n0(cCells)[2] = eInit;
             }
           }
         });
@@ -385,7 +385,7 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
 /**
  * Job initCellVelocity called @2.0 in simulate method.
  * In variables: NohTestCase, SedovTestCase, SodCase, m_cell_coord, testCase
- * Out variables: V_n0
+ * Out variables: m_cell_velocity_n0
  */
 void Eucclhyd::initCellVelocity() noexcept {
   Kokkos::parallel_for(
@@ -396,8 +396,8 @@ void Eucclhyd::initCellVelocity() noexcept {
           double n1 = m_cell_coord(cCells)[0];
           double n2 = m_cell_coord(cCells)[1];
           double normVect = MathFunctions::sqrt(n1 * n1 + n2 * n2);
-          V_n0(cCells)[0] = -u0 * n1 / normVect;
-          V_n0(cCells)[1] = -u0 * n2 / normVect;
+          m_cell_velocity_n0(cCells)[0] = -u0 * n1 / normVect;
+          m_cell_velocity_n0(cCells)[1] = -u0 * n2 / normVect;
         } else if (test->Nom == test->SedovTestCase ||
                    test->Nom == test->SodCaseX || test->Nom == test->SodCaseY ||
                    test->Nom == test->TriplePoint ||
@@ -405,17 +405,17 @@ void Eucclhyd::initCellVelocity() noexcept {
                    test->Nom == test->BiSodCaseX ||
                    test->Nom == test->BiSodCaseY ||
                    test->Nom == test->BiTriplePoint) {
-          V_n0(cCells)[0] = 0.0;
-          V_n0(cCells)[1] = 0.0;
+          m_cell_velocity_n0(cCells)[0] = 0.0;
+          m_cell_velocity_n0(cCells)[1] = 0.0;
         } else if (test->Nom == test->BiShockBubble) {
           if (m_cell_coord(cCells)[0] >= 0.60) {
-            V_n0(cCells)[0] = -124.824;
-            V_n0(cCells)[1] = 0.0;
+            m_cell_velocity_n0(cCells)[0] = -124.824;
+            m_cell_velocity_n0(cCells)[1] = 0.0;
           }
         } else if (test->Nom == test->UnitTestCase ||
                    test->Nom == test->BiUnitTestCase) {
-          V_n0(cCells)[0] = 1.0;
-          V_n0(cCells)[1] = 0.0;
+          m_cell_velocity_n0(cCells)[0] = 1.0;
+          m_cell_velocity_n0(cCells)[1] = 0.0;
         }
       });
 }
@@ -423,15 +423,15 @@ void Eucclhyd::initCellVelocity() noexcept {
 /**
  * Job initDensity called @2.0 in simulate method.
  * In variables: SodCase, m_cell_coord, testCase
- * Out variables: rho_n0, m_fracvol_env, fracmass
+ * Out variables: m_density_n0, m_fracvol_env, m_mass_fraction_env
  */
 void Eucclhyd::initDensity() noexcept {
   Kokkos::parallel_for("initDensity", nbCells,
                        KOKKOS_LAMBDA(const int& cCells) {
                          for (int imat = 0; imat < nbmatmax; imat++) {
                            m_fracvol_env(cCells)[imat] = 0.0;
-                           fracmass(cCells)[imat] = 0.0;
-                           rhop_n0(cCells)[imat] = 0.0;
+                           m_mass_fraction_env(cCells)[imat] = 0.0;
+                           m_density_env_n0(cCells)[imat] = 0.0;
                          }
                        });
   if (test->Nom == test->UnitTestCase) {
@@ -440,19 +440,19 @@ void Eucclhyd::initDensity() noexcept {
                            if (m_cell_coord(cCells)[0] <= 0.5) {
                              m_fracvol_env(cCells)[0] = 1.;
                              m_fracvol_env(cCells)[1] = 0.;
-                             fracmass(cCells)[0] = 1.;
-                             fracmass(cCells)[1] = 0.;
-                             rho_n0(cCells) = 1.0;
-                             rhop_n0(cCells)[0] = 1.0;
-                             rhop_n0(cCells)[1] = 0.;
+                             m_mass_fraction_env(cCells)[0] = 1.;
+                             m_mass_fraction_env(cCells)[1] = 0.;
+                             m_density_n0(cCells) = 1.0;
+                             m_density_env_n0(cCells)[0] = 1.0;
+                             m_density_env_n0(cCells)[1] = 0.;
                            } else {
                              m_fracvol_env(cCells)[0] = 1.;
                              m_fracvol_env(cCells)[1] = 0.;
-                             fracmass(cCells)[0] = 1.;
-                             fracmass(cCells)[1] = 0.;
-                             rho_n0(cCells) = 1.;
-                             rhop_n0(cCells)[0] = 1.;
-                             rhop_n0(cCells)[1] = 0.;
+                             m_mass_fraction_env(cCells)[0] = 1.;
+                             m_mass_fraction_env(cCells)[1] = 0.;
+                             m_density_n0(cCells) = 1.;
+                             m_density_env_n0(cCells)[0] = 1.;
+                             m_density_env_n0(cCells)[1] = 0.;
                            }
                          });
   } else if (test->Nom == test->BiUnitTestCase) {
@@ -461,19 +461,19 @@ void Eucclhyd::initDensity() noexcept {
                            if (m_cell_coord(cCells)[0] <= 0.5) {
                              m_fracvol_env(cCells)[0] = 1.;
                              m_fracvol_env(cCells)[1] = 0.;
-                             fracmass(cCells)[0] = 1.;
-                             fracmass(cCells)[1] = 0.;
-                             rho_n0(cCells) = 1.0;
-                             rhop_n0(cCells)[0] = 1.0;
-                             rhop_n0(cCells)[1] = 0.;
+                             m_mass_fraction_env(cCells)[0] = 1.;
+                             m_mass_fraction_env(cCells)[1] = 0.;
+                             m_density_n0(cCells) = 1.0;
+                             m_density_env_n0(cCells)[0] = 1.0;
+                             m_density_env_n0(cCells)[1] = 0.;
                            } else {
                              m_fracvol_env(cCells)[0] = 0.;
                              m_fracvol_env(cCells)[1] = 1.;
-                             fracmass(cCells)[0] = 0.;
-                             fracmass(cCells)[1] = 1.;
-                             rho_n0(cCells) = 1.;
-                             rhop_n0(cCells)[0] = 0.;
-                             rhop_n0(cCells)[1] = 1.0;
+                             m_mass_fraction_env(cCells)[0] = 0.;
+                             m_mass_fraction_env(cCells)[1] = 1.;
+                             m_density_n0(cCells) = 1.;
+                             m_density_env_n0(cCells)[0] = 0.;
+                             m_density_env_n0(cCells)[1] = 1.0;
                            }
                          });
   } else if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY) {
@@ -481,21 +481,21 @@ void Eucclhyd::initDensity() noexcept {
                          KOKKOS_LAMBDA(const int& cCells) {
                            m_fracvol_env(cCells)[0] = 1.;
                            m_fracvol_env(cCells)[1] = 0.;
-                           fracmass(cCells)[0] = 1.;
-                           fracmass(cCells)[1] = 0.;
+                           m_mass_fraction_env(cCells)[0] = 1.;
+                           m_mass_fraction_env(cCells)[1] = 0.;
                            double r(0.);
                            if (test->Nom == test->SodCaseX)
                              r = m_cell_coord(cCells)[0];
                            if (test->Nom == test->SodCaseY)
                              r = m_cell_coord(cCells)[1];
                            if (r <= 0.5) {
-                             rho_n0(cCells) = 1.0;
-                             rhop_n0(cCells)[0] = 1.0;
-                             rhop_n0(cCells)[1] = 1.0;
+                             m_density_n0(cCells) = 1.0;
+                             m_density_env_n0(cCells)[0] = 1.0;
+                             m_density_env_n0(cCells)[1] = 1.0;
                            } else {
-                             rho_n0(cCells) = 0.125;
-                             rhop_n0(cCells)[0] = 0.125;
-                             rhop_n0(cCells)[1] = 0.125;
+                             m_density_n0(cCells) = 0.125;
+                             m_density_env_n0(cCells)[0] = 0.125;
+                             m_density_env_n0(cCells)[1] = 0.125;
                            }
                          });
   } else if (test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
@@ -509,19 +509,19 @@ void Eucclhyd::initDensity() noexcept {
                            if (r <= 0.5) {
                              m_fracvol_env(cCells)[0] = 1.;
                              m_fracvol_env(cCells)[1] = 0.;
-                             fracmass(cCells)[0] = 1.;
-                             fracmass(cCells)[1] = 0.;
-                             rho_n0(cCells) = 1.0;
-                             rhop_n0(cCells)[0] = 1.0;
-                             rhop_n0(cCells)[1] = 0.;
+                             m_mass_fraction_env(cCells)[0] = 1.;
+                             m_mass_fraction_env(cCells)[1] = 0.;
+                             m_density_n0(cCells) = 1.0;
+                             m_density_env_n0(cCells)[0] = 1.0;
+                             m_density_env_n0(cCells)[1] = 0.;
                            } else {
                              m_fracvol_env(cCells)[0] = 0.;
                              m_fracvol_env(cCells)[1] = 1.;
-                             fracmass(cCells)[0] = 0.;
-                             fracmass(cCells)[1] = 1.;
-                             rho_n0(cCells) = 0.125;
-                             rhop_n0(cCells)[0] = 0.;
-                             rhop_n0(cCells)[1] = 0.125;
+                             m_mass_fraction_env(cCells)[0] = 0.;
+                             m_mass_fraction_env(cCells)[1] = 1.;
+                             m_density_n0(cCells) = 0.125;
+                             m_density_env_n0(cCells)[0] = 0.;
+                             m_density_env_n0(cCells)[1] = 0.125;
                            }
                          });
   } else if (test->Nom == test->BiShockBubble) {
@@ -531,13 +531,13 @@ void Eucclhyd::initDensity() noexcept {
           double rhoInit;
           double eInit;
           // Air partout
-          rhop_n0(cCells)[0] = 1.0;
-          rho_n0(cCells) = 1.0;
+          m_density_env_n0(cCells)[0] = 1.0;
+          m_density_n0(cCells) = 1.0;
           m_fracvol_env(cCells)[0] = 1.;
           m_fracvol_env(cCells)[1] = 0.;
 
-          fracmass(cCells)[0] = 1.;
-          fracmass(cCells)[1] = 0.;
+          m_mass_fraction_env(cCells)[0] = 1.;
+          m_mass_fraction_env(cCells)[1] = 0.;
           // bulle surchargera l'aire
           // centre de la bulle
           RealArray1D<dim> Xb = {{0.320, 0.04}};
@@ -547,15 +547,15 @@ void Eucclhyd::initDensity() noexcept {
                           (m_cell_coord(cCells)[1] - Xb[1]) *
                               (m_cell_coord(cCells)[1] - Xb[1]));
           if (r <= rb) {
-            rhop_n0(cCells)[0] = 0.0;
-            rhop_n0(cCells)[1] = 0.182;
-            rho_n0(cCells) = 0.182;
+            m_density_env_n0(cCells)[0] = 0.0;
+            m_density_env_n0(cCells)[1] = 0.182;
+            m_density_n0(cCells) = 0.182;
 
             m_fracvol_env(cCells)[0] = 0.;
             m_fracvol_env(cCells)[1] = 1.;
 
-            fracmass(cCells)[0] = 0.;
-            fracmass(cCells)[1] = 1.;
+            m_mass_fraction_env(cCells)[0] = 0.;
+            m_mass_fraction_env(cCells)[1] = 1.;
           }
         });
   } else if (test->Nom == test->TriplePoint) {
@@ -564,26 +564,26 @@ void Eucclhyd::initDensity() noexcept {
                            m_fracvol_env(cCells)[0] = 1.;
                            m_fracvol_env(cCells)[1] = 0.;
 
-                           fracmass(cCells)[0] = 1.;
-                           fracmass(cCells)[1] = 0.;
+                           m_mass_fraction_env(cCells)[0] = 1.;
+                           m_mass_fraction_env(cCells)[1] = 0.;
                            if (m_cell_coord(cCells)[0] <= 0.01) {
                              // std::cout << " cell " << cCells << "  x= " <<
                              // m_cell_coord(cCells)[0] << " y= " <<
                              // m_cell_coord(cCells)[1] << std::endl;
-                             rho_n0(cCells) = 1.0;
+                             m_density_n0(cCells) = 1.0;
                            } else {
                              if (m_cell_coord(cCells)[1] <= 0.015) {
                                // std::cout << " cell cas 2  " << cCells << " x=
                                // " << m_cell_coord(cCells)[0] << "  y= " <<
                                // m_cell_coord(cCells)[1]
                                // << std::endl;
-                               rho_n0(cCells) = 1.0;
+                               m_density_n0(cCells) = 1.0;
                              } else {
                                // std::cout << " cell cas 3  " << cCells << " x=
                                // " << m_cell_coord(cCells)[0] << "  y= " <<
                                // m_cell_coord(cCells)[1]
                                // << std::endl;
-                               rho_n0(cCells) = 0.1;
+                               m_density_n0(cCells) = 0.1;
                              }
                            }
                          });
@@ -595,10 +595,10 @@ void Eucclhyd::initDensity() noexcept {
                              // << m_cell_coord(cCells)[0]
                              //          << "  y= " << m_cell_coord(cCells)[1]
                              //          << std::endl;
-                             rho_n0(cCells) = 1.0;
+                             m_density_n0(cCells) = 1.0;
                              m_fracvol_env(cCells)[0] = 1.;
-                             fracmass(cCells)[0] = 1.;
-                             rhop_n0(cCells)[0] = 1.0;
+                             m_mass_fraction_env(cCells)[0] = 1.;
+                             m_density_env_n0(cCells)[0] = 1.0;
 
                            } else {
                              if (m_cell_coord(cCells)[1] <= 0.015) {
@@ -606,27 +606,27 @@ void Eucclhyd::initDensity() noexcept {
                                // " <<m_cell_coord(cCells)[0]
                                //          << "  y= " << m_cell_coord(cCells)[1]
                                //          << std::endl;
-                               rho_n0(cCells) = 1.0;
+                               m_density_n0(cCells) = 1.0;
                                m_fracvol_env(cCells)[1] = 1.;
-                               fracmass(cCells)[1] = 1.;
-                               rhop_n0(cCells)[1] = 1.0;
+                               m_mass_fraction_env(cCells)[1] = 1.;
+                               m_density_env_n0(cCells)[1] = 1.0;
                              } else {
                                // std::cout << "cell cas 3  " << cCells << "  x=
                                // " <<m_cell_coord(cCells)[0]
                                //          << "  y= " << m_cell_coord(cCells)[1]
                                //          << std::endl;
-                               rho_n0(cCells) = 0.1;
+                               m_density_n0(cCells) = 0.1;
                                m_fracvol_env(cCells)[2] = 1.;
-                               fracmass(cCells)[2] = 1.;
-                               rhop_n0(cCells)[2] = 0.1;
+                               m_mass_fraction_env(cCells)[2] = 1.;
+                               m_density_env_n0(cCells)[2] = 0.1;
                              }
                            }
                          });
   } else if (test->Nom == test->SedovTestCase) {
     Kokkos::parallel_for("initDensity", nbCells,
                          KOKKOS_LAMBDA(const int& cCells) {
-                           rho_n0(cCells) = 1.0;
-                           rhop_n0(cCells)[0] = 1.0;
+                           m_density_n0(cCells) = 1.0;
+                           m_density_env_n0(cCells)[0] = 1.0;
                          });
   }
   if (options->nbmat == 1) {
@@ -636,9 +636,9 @@ void Eucclhyd::initDensity() noexcept {
                            m_fracvol_env(cCells)[1] = 0.;
                            m_fracvol_env(cCells)[2] = 0.;
 
-                           fracmass(cCells)[0] = 1.;
-                           fracmass(cCells)[1] = 0.;
-                           fracmass(cCells)[2] = 0.;
+                           m_mass_fraction_env(cCells)[0] = 1.;
+                           m_mass_fraction_env(cCells)[1] = 0.;
+                           m_mass_fraction_env(cCells)[2] = 0.;
                          });
   }
   Kokkos::parallel_for(
@@ -647,8 +647,8 @@ void Eucclhyd::initDensity() noexcept {
         m_fracvol_env1(cCells) = m_fracvol_env(cCells)[0];
         m_fracvol_env2(cCells) = m_fracvol_env(cCells)[1];
         m_fracvol_env3(cCells) = m_fracvol_env(cCells)[2];
-        Vxc(cCells) = V_n0(cCells)[0];
-        Vyc(cCells) = V_n0(cCells)[1];
+        m_x_cell_velocity(cCells) = m_cell_velocity_n0(cCells)[0];
+        m_y_cell_velocity(cCells) = m_cell_velocity_n0(cCells)[1];
         // indicateur mailles mixtes
         int matcell(0);
         int imatpure(-1);
@@ -715,13 +715,13 @@ void Eucclhyd::initMeshGeometryForFaces() noexcept {
 
 void Eucclhyd::initPart() noexcept {
   Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
-    Vpart_n0(ipart) = zeroVect;
+    m_particle_velocity_n0(ipart) = zeroVect;
 
-    rpart(ipart) = 5.e-6;
-    rhopart(ipart) = 1110.;
-    wpart(ipart) = 1.e7;
-    vpart(ipart) = 4. * Pi * rpart(ipart) * rpart(ipart) * rpart(ipart) / 3.;
-    mpart(ipart) = rhopart(ipart) * vpart(ipart);
+    m_particle_radius(ipart) = 5.e-6;
+    m_particle_density(ipart) = 1110.;
+    m_particle_weight(ipart) = 1.e7;
+    m_particle_volume(ipart) = 4. * Pi * m_particle_radius(ipart) * m_particle_radius(ipart) * m_particle_radius(ipart) / 3.;
+    m_particle_mass(ipart) = m_particle_density(ipart) * m_particle_volume(ipart);
   });
 
   if (test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY ||
@@ -746,13 +746,13 @@ void Eucclhyd::initPart() noexcept {
           floor(m_particle_coord_n0(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
       int jcell = MathFunctions::max(
           floor(m_particle_coord_n0(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
-      ICellp(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
-      listpart(ICellp(ipart)).push_back(ipart);
-      IMatp(ipart) = 1;
+      m_particle_cell(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
+      m_cell_particle_list(m_particle_cell(ipart)).push_back(ipart);
+      m_particle_env(ipart) = 1;
       // std::cout << " Part  " << ipart << "  xp= " <<
       // m_particle_coord_n0(ipart)[0]
       //          << "  yp= " << m_particle_coord_n0(ipart)[1] << "  " <<
-      //          ICellp(ipart)
+      //          m_particle_cell(ipart)
       //          << std::endl;
     });
   else if (test->Nom == test->BiTriplePoint)
@@ -767,29 +767,29 @@ void Eucclhyd::initPart() noexcept {
           floor(m_particle_coord_n0(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
       int jcell = MathFunctions::max(
           floor(m_particle_coord_n0(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
-      ICellp(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
-      listpart(ICellp(ipart)).push_back(ipart);
-      IMatp(ipart) = 1;
+      m_particle_cell(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
+      m_cell_particle_list(m_particle_cell(ipart)).push_back(ipart);
+      m_particle_env(ipart) = 1;
       // std::cout << " Part  " << ipart << "  xp= " <<
       // m_particle_coord_n0(ipart)[0]
       //          << "  yp= " << m_particle_coord_n0(ipart)[1] << "  " <<
-      //          ICellp(ipart)
+      //          m_particle_cell(ipart)
       //          << std::endl;
     });
 }
 /**
  * Job setUpTimeLoopN called @3.0 in simulate method.
- * In variables: F_n0, V_n0, Vnode_n0, e_n0, rho_n0
- * Out variables: F_n, V_n, Vnode_n, e_n, rho_n
+ * In variables: m_node_force_n0, m_cell_velocity_n0, m_node_velocity_n0, m_internal_energy_n0, m_density_n0
+ * Out variables: m_node_force_n, m_cell_velocity_n, m_node_velocity_n, m_internal_energy_n, m_density_n
  */
 void Eucclhyd::setUpTimeLoopN() noexcept {
-  deep_copy(Vnode_n, Vnode_n0);
-  deep_copy(rho_n, rho_n0);
-  deep_copy(rhop_n, rhop_n0);
-  deep_copy(V_n, V_n0);
-  deep_copy(e_n, e_n0);
-  deep_copy(ep_n, ep_n0);
-  deep_copy(F_n, F_n0);
+  deep_copy(m_node_velocity_n, m_node_velocity_n0);
+  deep_copy(m_density_n, m_density_n0);
+  deep_copy(m_density_env_n, m_density_env_n0);
+  deep_copy(m_cell_velocity_n, m_cell_velocity_n0);
+  deep_copy(m_internal_energy_n, m_internal_energy_n0);
+  deep_copy(m_internal_energy_env_n, m_internal_energy_env_n0);
+  deep_copy(m_node_force_n, m_node_force_n0);
   deep_copy(m_particle_coord_n, m_particle_coord_n0);
 
   if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY ||
@@ -821,10 +821,10 @@ void Eucclhyd::setUpTimeLoopN() noexcept {
       "init_m_global_total_energy_0", nbCells,
       KOKKOS_LAMBDA(const int& cCells) {
         m_total_energy_0(cCells) =
-            (rho_n0(cCells) * m_euler_volume(cCells)) *
-            (e_n0(cCells) + 0.5 * (V_n0(cCells)[0] * V_n0(cCells)[0] +
-                                   V_n0(cCells)[1] * V_n0(cCells)[1]));
-        m_global_masse_0(cCells) = (rho_n0(cCells) * m_euler_volume(cCells));
+            (m_density_n0(cCells) * m_euler_volume(cCells)) *
+            (m_internal_energy_n0(cCells) + 0.5 * (m_cell_velocity_n0(cCells)[0] * m_cell_velocity_n0(cCells)[0] +
+                                   m_cell_velocity_n0(cCells)[1] * m_cell_velocity_n0(cCells)[1]));
+        m_global_masse_0(cCells) = (m_density_n0(cCells) * m_euler_volume(cCells));
       });
   double reductionE(0.), reductionM(0.);
   {

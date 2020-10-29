@@ -18,7 +18,7 @@ void Vnr::computeCellMass() noexcept {
         cstmesh->X_EDGE_LENGTH * cstmesh->Y_EDGE_LENGTH * m_density_n0(cCells);
     for (int imat = 0; imat < nbmat; ++imat) {
       m_cell_mass_env(cCells)[imat] =
-          fracmass(cCells)[imat] * m_cell_mass(cCells);
+          m_mass_fraction_env(cCells)[imat] * m_cell_mass(cCells);
     }
   });
 }
@@ -162,7 +162,7 @@ void Vnr::computeNodeVolume() noexcept {
 /**
  * Job updateVelocity called @2.0 in executeTimeLoopN method.
  * In variables: C, m_pseudo_viscosity_nplus1, deltat_n, deltat_nplus1, m,
- * m_pressure_n, m_velocity_n Out variables: m_velocity_nplus1
+ * m_pressure_n, m_node_velocity_n Out variables: m_node_velocity_nplus1
  */
 void Vnr::updateVelocity() noexcept {
   const double dt(0.5 * (gt->deltat_nplus1 + gt->deltat_n));
@@ -188,28 +188,28 @@ void Vnr::updateVelocity() noexcept {
                                                  m_cqs(cCells, pNodesOfCellC));
             }
           }
-          m_velocity_nplus1(pNodes) =
-              m_velocity_n(pNodes) + dt / m_node_mass(pNodes) * reduction0;
-          m_x_velocity(pNodes) = m_velocity_nplus1(pNodes)[0];
-          m_y_velocity(pNodes) = m_velocity_nplus1(pNodes)[1];
+          m_node_velocity_nplus1(pNodes) =
+              m_node_velocity_n(pNodes) + dt / m_node_mass(pNodes) * reduction0;
+          m_x_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[0];
+          m_y_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[1];
         });
   }
 }
 /**
  * Job updatePosition called @3.0 in executeTimeLoopN method.
- * In variables: m_node_coord_n, deltat_nplus1, m_velocity_nplus1
+ * In variables: m_node_coord_n, deltat_nplus1, m_node_velocity_nplus1
  * Out variables: m_node_coord_nplus1
  */
 void Vnr::updatePosition() noexcept {
   Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
     m_node_coord_nplus1(pNodes) =
-        m_node_coord_n(pNodes) + gt->deltat_nplus1 * m_velocity_nplus1(pNodes);
+        m_node_coord_n(pNodes) + gt->deltat_nplus1 * m_node_velocity_nplus1(pNodes);
   });
 }
 /**
  * Job initCellPos called @1.0 in simulate method.
  * In variables: m_node_coord_nplus1
- * Out variables: cellPos_nplus1
+ * Out variables: m_cell_coord_nplus1
  */
 void Vnr::updateCellPos() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
@@ -225,12 +225,12 @@ void Vnr::updateCellPos() noexcept {
         reduction0 = sumR1(reduction0, m_node_coord_nplus1(pNodes));
       }
     }
-    cellPos_nplus1(cCells) = 0.25 * reduction0;
+    m_cell_coord_nplus1(cCells) = 0.25 * reduction0;
   });
 }
 /**
  * Job computeSubVol called @4.0 in executeTimeLoopN method.
- * In variables: m_node_coord_nplus1, cellPos_nplus1
+ * In variables: m_node_coord_nplus1, m_cell_coord_nplus1
  * Out variables: m_node_cellvolume_nplus1
  */
 void Vnr::computeSubVol() noexcept {
@@ -249,7 +249,7 @@ void Vnr::computeSubVol() noexcept {
         const size_t pMinus1Nodes(pMinus1Id);
         const size_t pNodes(pId);
         const size_t pPlus1Nodes(pPlus1Id);
-        const RealArray1D<2> x1(cellPos_nplus1(cCells));
+        const RealArray1D<2> x1(m_cell_coord_nplus1(cCells));
         const RealArray1D<2> x2(0.5 * (m_node_coord_nplus1(pMinus1Nodes) +
                                        m_node_coord_nplus1(pNodes)));
         const RealArray1D<2> x3(m_node_coord_nplus1(pNodes));
@@ -287,7 +287,7 @@ void Vnr::updateRho() noexcept {
         m_density_env_nplus1(cCells)[imat] =
             m_cell_mass_env(cCells)[imat] /
             (m_fracvol_env(cCells)[imat] * reduction0);
-      // ou 1/rhon_nplus1 += fracmass(cCells)[imat] /
+      // ou 1/rhon_nplus1 += m_mass_fraction_env(cCells)[imat] /
       // m_density_env_nplus1[imat];
       m_density_nplus1(cCells) +=
           m_fracvol_env(cCells)[imat] * m_density_env_nplus1(cCells)[imat];
@@ -354,7 +354,7 @@ void Vnr::updateEnergy() noexcept {
                               1.0 / m_density_env_n(cCells)[imat]));
         m_internal_energy_env_nplus1(cCells)[imat] = num / den;
         m_internal_energy_nplus1(cCells) +=
-            fracmass(cCells)[imat] * m_internal_energy_env_nplus1(cCells)[imat];
+            m_mass_fraction_env(cCells)[imat] * m_internal_energy_env_nplus1(cCells)[imat];
         if (abs(m_internal_energy_env_nplus1(cCells)[imat]) > 5.) {
           std::cout << cCells << " energie "
                     << m_internal_energy_env_nplus1(cCells)[imat]
@@ -480,6 +480,6 @@ void Vnr::computePressionMoyenne() noexcept {
     for (int imat = 0; imat < options->nbmat; ++imat)
       if (eos->Nom[imat] == eos->Void)
         m_internal_energy_nplus1(cCells) +=
-            fracmass(cCells)[imat] * m_internal_energy_env_nplus1(cCells)[imat];
+            m_mass_fraction_env(cCells)[imat] * m_internal_energy_env_nplus1(cCells)[imat];
   }
 }

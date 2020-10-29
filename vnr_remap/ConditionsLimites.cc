@@ -1,13 +1,13 @@
 #include <Kokkos_Core.hpp>
-#include "../includes/Freefunctions.h"
 #include "Vnr.h"                   // for VnrRemap
+#include "../includes/Freefunctions.h"
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D
 #include "utils/Utils.h"           // for Indexof
 
 /**
  * Job updateVelocity called @2.0 in executeTimeLoopN method.
  * In variables: C, m_pseudo_viscosity_nplus1, deltat_n, deltat_nplus1, m,
- * m_pressure_n, m_velocity_n Out variables: m_velocity_nplus1
+ * m_pressure_n, m_node_velocity_n Out variables: m_node_velocity_nplus1
  */
 void Vnr::updateVelocityBoundaryConditions() noexcept {
   const double dt(0.5 * (gt->deltat_nplus1 + gt->deltat_n));
@@ -36,10 +36,10 @@ void Vnr::updateVelocityBoundaryConditions() noexcept {
                    symmetricVector(m_cqs(cCells, pNodesOfCellC), {1.0, 0.0})));
         }
       }
-      m_velocity_nplus1(pNodes) =
-          m_velocity_n(pNodes) + dt / (m_node_mass(pNodes)) * reduction1;
+      m_node_velocity_nplus1(pNodes) =
+          m_node_velocity_n(pNodes) + dt / (m_node_mass(pNodes)) * reduction1;
     } else if (cdl->bottomBC == cdl->imposedVelocity) {
-      m_velocity_nplus1(pNodes) = cdl->bottomBCValue;
+      m_node_velocity_nplus1(pNodes) = cdl->bottomBCValue;
     }
   });
   const auto topNodes(mesh->getTopNodes());
@@ -66,10 +66,10 @@ void Vnr::updateVelocityBoundaryConditions() noexcept {
                    symmetricVector(m_cqs(cCells, pNodesOfCellC), {1.0, 0.0})));
         }
       }
-      m_velocity_nplus1(pNodes) =
-          m_velocity_n(pNodes) + dt / (m_node_mass(pNodes)) * reduction2;
+      m_node_velocity_nplus1(pNodes) =
+          m_node_velocity_n(pNodes) + dt / (m_node_mass(pNodes)) * reduction2;
     } else if (cdl->topBC == cdl->imposedVelocity) {
-      m_velocity_nplus1(pNodes) = cdl->topBCValue;
+      m_node_velocity_nplus1(pNodes) = cdl->topBCValue;
     }
   });
   const auto leftNodes(mesh->getLeftNodes());
@@ -95,10 +95,10 @@ void Vnr::updateVelocityBoundaryConditions() noexcept {
                    symmetricVector(m_cqs(cCells, pNodesOfCellC), {0.0, 1.0})));
         }
       }
-      m_velocity_nplus1(pNodes) =
-          m_velocity_n(pNodes) + dt / (m_node_mass(pNodes)) * reduction3;
+      m_node_velocity_nplus1(pNodes) =
+          m_node_velocity_n(pNodes) + dt / (m_node_mass(pNodes)) * reduction3;
     } else if (cdl->leftBC == cdl->imposedVelocity) {
-      m_velocity_nplus1(pNodes) = cdl->leftBCValue;
+      m_node_velocity_nplus1(pNodes) = cdl->leftBCValue;
     }
   });
   const auto rightNodes(mesh->getRightNodes());
@@ -124,10 +124,10 @@ void Vnr::updateVelocityBoundaryConditions() noexcept {
                    symmetricVector(m_cqs(cCells, pNodesOfCellC), {0.0, 1.0})));
         }
       }
-      m_velocity_nplus1(pNodes) =
-          m_velocity_n(pNodes) + dt / (m_node_mass(pNodes)) * reduction4;
+      m_node_velocity_nplus1(pNodes) =
+          m_node_velocity_n(pNodes) + dt / (m_node_mass(pNodes)) * reduction4;
     } else if (cdl->rightBC == cdl->imposedVelocity) {
-      m_velocity_nplus1(pNodes) = cdl->rightBCValue;
+      m_node_velocity_nplus1(pNodes) = cdl->rightBCValue;
     }
   });
   const auto topLeftNode(mesh->getTopLeftNode());
@@ -138,10 +138,10 @@ void Vnr::updateVelocityBoundaryConditions() noexcept {
         int pId(topLeftNode[pTopLeftNode]);
         int pNodes(pId);
         if (cdl->topBC == cdl->symmetry && cdl->leftBC == cdl->symmetry)
-          m_velocity_nplus1(pNodes) = zeroVect;
+          m_node_velocity_nplus1(pNodes) = zeroVect;
         else if (cdl->topBC == cdl->imposedVelocity &&
                  cdl->leftBC == cdl->imposedVelocity)
-          m_velocity_nplus1(pNodes) = cdl->leftBCValue;
+          m_node_velocity_nplus1(pNodes) = cdl->leftBCValue;
       });
   const auto topRightNode(mesh->getTopRightNode());
   const size_t nbTopRightNode(mesh->getNbTopRightNode());
@@ -151,10 +151,10 @@ void Vnr::updateVelocityBoundaryConditions() noexcept {
         int pId(topRightNode[pTopRightNode]);
         int pNodes(pId);
         if (cdl->topBC == cdl->symmetry && cdl->rightBC == cdl->symmetry)
-          m_velocity_nplus1(pNodes) = zeroVect;
+          m_node_velocity_nplus1(pNodes) = zeroVect;
         else if (cdl->topBC == cdl->imposedVelocity &&
                  cdl->rightBC == cdl->imposedVelocity)
-          m_velocity_nplus1(pNodes) = cdl->rightBCValue;
+          m_node_velocity_nplus1(pNodes) = cdl->rightBCValue;
       });
   const auto bottomLeftNode(mesh->getBottomLeftNode());
   const size_t nbBottomLeftNode(mesh->getNbBottomLeftNode());
@@ -164,10 +164,10 @@ void Vnr::updateVelocityBoundaryConditions() noexcept {
         int pId(bottomLeftNode[pBottomLeftNode]);
         int pNodes(pId);
         if (cdl->bottomBC == cdl->symmetry && cdl->leftBC == cdl->symmetry)
-          m_velocity_nplus1(pNodes) = zeroVect;
+          m_node_velocity_nplus1(pNodes) = zeroVect;
         else if (cdl->bottomBC == cdl->imposedVelocity &&
                  cdl->leftBC == cdl->imposedVelocity)
-          m_velocity_nplus1(pNodes) = cdl->leftBCValue;
+          m_node_velocity_nplus1(pNodes) = cdl->leftBCValue;
       });
   const auto bottomRightNode(mesh->getBottomRightNode());
   const size_t nbBottomRightNode(mesh->getNbBottomRightNode());
@@ -177,10 +177,10 @@ void Vnr::updateVelocityBoundaryConditions() noexcept {
         int pId(bottomRightNode[pBottomRightNode]);
         int pNodes(pId);
         if (cdl->bottomBC == cdl->symmetry && cdl->rightBC == cdl->symmetry)
-          m_velocity_nplus1(pNodes) = zeroVect;
+          m_node_velocity_nplus1(pNodes) = zeroVect;
         else if (cdl->bottomBC == cdl->imposedVelocity &&
                  cdl->rightBC == cdl->imposedVelocity)
-          m_velocity_nplus1(pNodes) = cdl->rightBCValue;
+          m_node_velocity_nplus1(pNodes) = cdl->rightBCValue;
       });
 }
 void Vnr::updatePeriodicBoundaryConditions() noexcept {

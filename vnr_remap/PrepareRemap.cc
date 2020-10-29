@@ -54,7 +54,7 @@ void Vnr::computeFaceQuantitesForRemap() noexcept {
                pNodesOfFaceF++) {
             int pId(nodesOfFaceF[pNodesOfFaceF]);
             int pNodes(pId);
-            reduction5 = reduction5 + (m_velocity_nplus1(pNodes));
+            reduction5 = reduction5 + (m_node_velocity_nplus1(pNodes));
           }
         }
 
@@ -103,13 +103,13 @@ void Vnr::computeVariablesForRemap() noexcept {
               m_fracvol_env(cCells)[imat] * varlp->vLagrange(cCells);
 
           // masses matériels (partiels)
-          varlp->ULagrange(cCells)[nbmat + imat] = fracmass(cCells)[imat] *
+          varlp->ULagrange(cCells)[nbmat + imat] = m_mass_fraction_env(cCells)[imat] *
                                                    varlp->vLagrange(cCells) *
                                                    m_density_nplus1(cCells);
 
           // energies matériels (partiels)
           varlp->ULagrange(cCells)[2 * nbmat + imat] =
-              fracmass(cCells)[imat] * varlp->vLagrange(cCells) *
+              m_mass_fraction_env(cCells)[imat] * varlp->vLagrange(cCells) *
               m_density_nplus1(cCells) * m_internal_energy_nplus1(cCells);
         }
         // les vitesses et énergies cinétiques am_x_velocity cCells
@@ -179,33 +179,33 @@ void Vnr::computeVariablesForRemap() noexcept {
     varlp->XLagrange(pNodes) = m_node_coord_nplus1(pNodes);
     // quantité de mouvement
     varlp->UDualLagrange(pNodes)[0] =
-        m_node_mass(pNodes) * m_velocity_nplus1(pNodes)[0];
+        m_node_mass(pNodes) * m_node_velocity_nplus1(pNodes)[0];
     varlp->UDualLagrange(pNodes)[1] =
-        m_node_mass(pNodes) * m_velocity_nplus1(pNodes)[1];
+        m_node_mass(pNodes) * m_node_velocity_nplus1(pNodes)[1];
     // masse nodale
     varlp->UDualLagrange(pNodes)[2] = m_node_mass(pNodes);
     // projection de l'energie cinétique
     if (options->projectionConservative == 1)
       varlp->UDualLagrange(pNodes)[3] =
           m_node_mass(pNodes) *
-          (m_velocity_nplus1(pNodes)[0] * m_velocity_nplus1(pNodes)[0] +
-           m_velocity_nplus1(pNodes)[1] * m_velocity_nplus1(pNodes)[1]);
+          (m_node_velocity_nplus1(pNodes)[0] * m_node_velocity_nplus1(pNodes)[0] +
+           m_node_velocity_nplus1(pNodes)[1] * m_node_velocity_nplus1(pNodes)[1]);
 
-    varlp->DualPhi(pNodes)[0] = m_velocity_nplus1(pNodes)[0];
-    varlp->DualPhi(pNodes)[1] = m_velocity_nplus1(pNodes)[1];
+    varlp->DualPhi(pNodes)[0] = m_node_velocity_nplus1(pNodes)[0];
+    varlp->DualPhi(pNodes)[1] = m_node_velocity_nplus1(pNodes)[1];
     // masse nodale
     varlp->DualPhi(pNodes)[2] = m_node_mass(pNodes);
     // Phi energie cinétique
     if (options->projectionConservative == 1)
       varlp->DualPhi(pNodes)[3] =
-          (m_velocity_nplus1(pNodes)[0] * m_velocity_nplus1(pNodes)[0] +
-           m_velocity_nplus1(pNodes)[1] * m_velocity_nplus1(pNodes)[1]);
+          (m_node_velocity_nplus1(pNodes)[0] * m_node_velocity_nplus1(pNodes)[0] +
+           m_node_velocity_nplus1(pNodes)[1] * m_node_velocity_nplus1(pNodes)[1]);
 
     // if ((pNodes == 600) || (pNodes == 601) || (pNodes == 602))
     //    std::cout << " pNodes " <<  pNodes << " sortie Lagrange "
     //  	    << varlp->UDualLagrange(pNodes)[0]
     //  	    << "  " << varlp->UDualLagrange(pNodes)[1]
     // 	     << "  " << varlp->UDualLagrange(pNodes)[2]
-    // 	     << " vit " << m_velocity_nplus1(pNodes) << std::endl;
+    // 	     << " vit " << m_node_velocity_nplus1(pNodes) << std::endl;
   });
 }

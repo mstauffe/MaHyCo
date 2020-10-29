@@ -66,7 +66,7 @@ void Vnr::remapVariables() noexcept {
         }
         // -----
         for (int imat = 0; imat < nbmat; imat++)
-          fracmass(cCells)[imat] =
+          m_mass_fraction_env(cCells)[imat] =
               varlp->Uremap2(cCells)[nbmat + imat] / masset;
 
         // on enleve les petits fractions de volume aussi sur la fraction
@@ -74,12 +74,12 @@ void Vnr::remapVariables() noexcept {
         double fmasset = 0.;
         for (int imat = 0; imat < nbmat; imat++) {
           if (m_fracvol_env(cCells)[imat] < options->threshold) {
-            fracmass(cCells)[imat] = 0.;
+            m_mass_fraction_env(cCells)[imat] = 0.;
           }
-          fmasset += fracmass(cCells)[imat];
+          fmasset += m_mass_fraction_env(cCells)[imat];
         }
         for (int imat = 0; imat < nbmat; imat++)
-          fracmass(cCells)[imat] /= fmasset;
+          m_mass_fraction_env(cCells)[imat] /= fmasset;
 
         RealArray1D<nbmatmax> density_env_nplus1 = zeroVectmat;
         double density_nplus1 = 0.;
@@ -89,7 +89,7 @@ void Vnr::remapVariables() noexcept {
           if (m_fracvol_env(cCells)[imat] > options->threshold)
             density_env_nplus1[imat] =
                 varlp->Uremap2(cCells)[nbmat + imat] / vol_nplus1[imat];
-          // 1/density_nplus1 += fracmass(cCells)[imat] /
+          // 1/density_nplus1 += m_mass_fraction_env(cCells)[imat] /
           // density_env_nplus1[imat];
           density_nplus1 +=
               m_fracvol_env(cCells)[imat] * density_env_nplus1[imat];
@@ -110,7 +110,7 @@ void Vnr::remapVariables() noexcept {
         m_cell_mass(cCells) = m_euler_volume(cCells) * m_density_nplus1(cCells);
         for (int imat = 0; imat < nbmat; ++imat)
           m_cell_mass_env(cCells)[imat] =
-              fracmass(cCells)[imat] * m_cell_mass(cCells);
+              m_mass_fraction_env(cCells)[imat] * m_cell_mass(cCells);
         // recuperation de la pseudo projetee
         m_pseudo_viscosity_nplus1(cCells) =
             varlp->Uremap2(cCells)[3 * nbmat + 3] / vol;
@@ -133,7 +133,7 @@ void Vnr::remapVariables() noexcept {
           // m_internal_energy_env_nplus1(cCells)[imat] += delta_ec(cCells);
           // energie interne totale
           m_internal_energy_nplus1(cCells) +=
-              fracmass(cCells)[imat] *
+              m_mass_fraction_env(cCells)[imat] *
               m_internal_energy_env_nplus1(cCells)[imat];
         }
 
@@ -155,8 +155,8 @@ void Vnr::remapVariables() noexcept {
             std::cout << " fractionvol   " << m_fracvol_env(cCells)[0] << " "
                       << m_fracvol_env(cCells)[1] << " "
                       << m_fracvol_env(cCells)[2] << std::endl;
-            std::cout << " concentrations   " << fracmass(cCells)[0] << " "
-                      << fracmass(cCells)[1] << " " << fracmass(cCells)[2]
+            std::cout << " concentrations   " << m_mass_fraction_env(cCells)[0] << " "
+                      << m_mass_fraction_env(cCells)[1] << " " << m_mass_fraction_env(cCells)[2]
                       << std::endl;
 #ifdef TEST
             std::cout << "varlp->ULagrange " << varlp->ULagrange(cCells)
@@ -166,7 +166,7 @@ void Vnr::remapVariables() noexcept {
 #endif
             m_density_env_nplus1(cCells)[imat] = 0.;
             m_internal_energy_env_nplus1(cCells)[imat] = 0.;
-            fracmass(cCells)[imat] = 0.;
+            m_mass_fraction_env(cCells)[imat] = 0.;
             m_fracvol_env(cCells)[imat] = 0.;
             // exit(1);
           }
@@ -178,8 +178,8 @@ void Vnr::remapVariables() noexcept {
           std::cout << " densites  " << density_env_nplus1[0] << " "
                     << density_env_nplus1[1] << " " << density_env_nplus1[0]
                     << std::endl;
-          std::cout << " concentrations   " << fracmass(cCells)[0] << " "
-                    << fracmass(cCells)[1] << " " << fracmass(cCells)[2]
+          std::cout << " concentrations   " << m_mass_fraction_env(cCells)[0] << " "
+                    << m_mass_fraction_env(cCells)[1] << " " << m_mass_fraction_env(cCells)[2]
                     << std::endl;
           std::cout << " fractionvol   " << m_fracvol_env(cCells)[0] << " "
                     << m_fracvol_env(cCells)[1] << " "
@@ -207,9 +207,9 @@ void Vnr::remapVariables() noexcept {
   Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
     // Vitesse am_x_velocity noeuds
     double massm_internal_energy_nodale_proj = varlp->UDualremap2(pNodes)[2];
-    m_velocity_nplus1(pNodes)[0] =
+    m_node_velocity_nplus1(pNodes)[0] =
         varlp->UDualremap2(pNodes)[0] / massm_internal_energy_nodale_proj;
-    m_velocity_nplus1(pNodes)[1] =
+    m_node_velocity_nplus1(pNodes)[1] =
         varlp->UDualremap2(pNodes)[1] / massm_internal_energy_nodale_proj;
     // Energie cinétique
 
@@ -227,10 +227,10 @@ void Vnr::remapVariables() noexcept {
     //   	    << " vy " << varlp->UDualremap2(pNodes)[1] /
     //   varlp->UDualremap2(pNodes)[2]
     // 	     << " m " << varlp->UDualremap2(pNodes)[2]
-    // 	     << " vit " << m_velocity_nplus1(pNodes) << std::endl;
+    // 	     << " vit " << m_node_velocity_nplus1(pNodes) << std::endl;
 
-    m_x_velocity(pNodes) = m_velocity_nplus1(pNodes)[0];
-    m_y_velocity(pNodes) = m_velocity_nplus1(pNodes)[1];
+    m_x_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[0];
+    m_y_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[1];
   });
 
   Kokkos::parallel_for(
@@ -244,7 +244,7 @@ void Vnr::remapVariables() noexcept {
           m_global_masse_T(cCells) += m_density_env_nplus1(cCells)[imat] *
                                       m_euler_volume(cCells) *
                                       m_fracvol_env(cCells)[imat];
-        // fracmass(cCells)[imat] * (density_nplus1 * vol) ; //
+        // m_mass_fraction_env(cCells)[imat] * (density_nplus1 * vol) ; //
         // m_density_env_nplus1(cCells)[imat] * vol_nplus1[imat];
       });
   double reductionE(0.), reductionM(0.);
