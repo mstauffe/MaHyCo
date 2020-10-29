@@ -1,7 +1,7 @@
 #include <stdlib.h>  // for std
 
-#include <fstream>        // for ifstream
-#include <iostream>       // for operator<<, endl, basic_o...
+#include <fstream>   // for ifstream
+#include <iostream>  // for operator<<, endl, basic_o...
 #include "LectureDonnees.h"
 
 /**
@@ -9,15 +9,13 @@
  * In variables: fichier
  * Out variables: Options
  */
-void LectureDonneesClass::LectureDonnees(string Fichier,
-		    schemalagrangelib::SchemaLagrangeClass::SchemaLagrange* s,
-		    optionschemalib::OptionsSchema::Options* o,
-		    cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh,
-		    gesttempslib::GestionTempsClass::GestTemps* gt,		 
-		    limiteurslib::LimiteursClass::Limiteurs* l,
-		    eoslib::EquationDetat::Eos* eos,
-		    castestlib::CasTest::Test* test) {
- 
+void LectureDonneesClass::LectureDonnees(
+    string Fichier, schemalagrangelib::SchemaLagrangeClass::SchemaLagrange* s,
+    optionschemalib::OptionsSchema::Options* o,
+    cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh,
+    gesttempslib::GestionTempsClass::GestTemps* gt,
+    limiteurslib::LimiteursClass::Limiteurs* l, eoslib::EquationDetat::Eos* eos,
+    castestlib::CasTest::Test* test) {
   // string Fichier=argv[1];
   ifstream mesdonnees(Fichier);  // Ouverture d'un fichier en lecture
   if (mesdonnees) {
@@ -35,24 +33,27 @@ void LectureDonneesClass::LectureDonnees(string Fichier,
     // on en deduit le nombre de materiaux du calcul
     if (test->Nom < test->BiUnitTestCase)
       o->nbmat = 1;
-    else o->nbmat = 2;
+    else
+      o->nbmat = 2;
     if (test->Nom == test->BiTriplePoint) o->nbmat = 3;
-    if (test->Nom == test->AdvectionX || test->Nom == test->AdvectionY
-	|| test->Nom == test->BiAdvectionX || test->Nom == test->BiAdvectionY
-	|| test->Nom == test->AdvectionVitX || test->Nom == test->AdvectionVitY
-	|| test->Nom == test->BiAdvectionVitX || test->Nom == test->BiAdvectionVitY)
+    if (test->Nom == test->AdvectionX || test->Nom == test->AdvectionY ||
+        test->Nom == test->BiAdvectionX || test->Nom == test->BiAdvectionY ||
+        test->Nom == test->AdvectionVitX || test->Nom == test->AdvectionVitY ||
+        test->Nom == test->BiAdvectionVitX ||
+        test->Nom == test->BiAdvectionVitY)
       o->sansLagrange = 1;
-      
 
     getline(mesdonnees, ligne);  // ligne de commentaire Nombre de Mailles en X
     mesdonnees >> entier;
     cstmesh->X_EDGE_ELEMS = entier;
-    std::cout << " Nombre de Mailles en X " << cstmesh->X_EDGE_ELEMS << std::endl;
+    std::cout << " Nombre de Mailles en X " << cstmesh->X_EDGE_ELEMS
+              << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // ligne de commentaire Nombre de Mailles en Y
     mesdonnees >> cstmesh->Y_EDGE_ELEMS;
-    std::cout << " Nombre de Mailles en Y " << cstmesh->Y_EDGE_ELEMS << std::endl;
+    std::cout << " Nombre de Mailles en Y " << cstmesh->Y_EDGE_ELEMS
+              << std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // ligne de commentaire DELTA_X
@@ -87,24 +88,26 @@ void LectureDonneesClass::LectureDonnees(string Fichier,
     mesdonnees.ignore();
 
     for (int imat = 0; imat < o->nbmat; ++imat) {
-      getline(mesdonnees, ligne); // Equation d'etat
+      getline(mesdonnees, ligne);  // Equation d'etat
       mesdonnees >> mot;
       eos->Nom[imat] = liste_eos[mot];
-      std::cout << " Equation d'etat " << mot << " ( " << eos->Nom[imat] << " ) "
-		<< std::endl; mesdonnees.ignore();
+      std::cout << " Equation d'etat " << mot << " ( " << eos->Nom[imat]
+                << " ) " << std::endl;
+      mesdonnees.ignore();
     }
-    
+
     // getline(mesdonnees, ligne); // Equilibrage des pressions
     // mesdonnees >> mot;
     // o->AvecEquilibrage = equilibrage[mot];
     // std::cout << " Equilibrage des pressions " << mot << " ( " <<
     // o->AvecEquilibrage << " ) " << std::endl; mesdonnees.ignore();
 
-    getline(mesdonnees, ligne); // Schéma Lagrange
+    getline(mesdonnees, ligne);  // Schéma Lagrange
     mesdonnees >> mot;
     s->schema = schema_lagrange[mot];
-    std::cout << " schema Lagrange " << mot << " ( " << s->schema <<
-      " ) " << std::endl; mesdonnees.ignore();
+    std::cout << " schema Lagrange " << mot << " ( " << s->schema << " ) "
+              << std::endl;
+    mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // ordre en espace du schema Lagrange
     mesdonnees >> o->spaceOrder;
@@ -112,11 +115,12 @@ void LectureDonneesClass::LectureDonnees(string Fichier,
               << std::endl;
     mesdonnees.ignore();
 
-    getline(mesdonnees, ligne); // Avec projection
+    getline(mesdonnees, ligne);  // Avec projection
     mesdonnees >> mot;
     o->AvecProjection = ouiOUnon[mot];
     std::cout << " Avec Projection " << mot << " ( " << o->AvecProjection
-              << " ) " << std::endl; mesdonnees.ignore();
+              << " ) " << std::endl;
+    mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // Projection conservative
     mesdonnees >> mot;
@@ -141,11 +145,11 @@ void LectureDonneesClass::LectureDonnees(string Fichier,
     mesdonnees >> mot;
     l->projectionLimiterId = limiteur[mot];
     if ((l->projectionLimiterId != -1) && (l->projectionLimiterId != 0)) {
-      std::cout << " Limiteur  " << mot << " ( " << l->projectionLimiterId << " ) "
-              << std::endl;
+      std::cout << " Limiteur  " << mot << " ( " << l->projectionLimiterId
+                << " ) " << std::endl;
     } else {
-       cout << "ERREUR: Limiteur " << mot << " non prévu " << endl;
-       exit(1);
+      cout << "ERREUR: Limiteur " << mot << " non prévu " << endl;
+      exit(1);
     }
     mesdonnees.ignore();
 
@@ -156,31 +160,33 @@ void LectureDonneesClass::LectureDonnees(string Fichier,
               << l->projectionAvecPlateauPente << " ) " << std::endl;
     mesdonnees.ignore();
 
-    if (l->projectionAvecPlateauPente ==1) {
+    if (l->projectionAvecPlateauPente == 1) {
       getline(mesdonnees, ligne);  // Projection Avec Plateau Pente Mixte
       mesdonnees >> mot;
       l->projectionLimiteurMixte = ouiOUnon[mot];
       std::cout << " Projection Avec Plateau Pente Mixte " << mot << " ( "
-		<< l->projectionLimiteurMixte << " ) " << std::endl;
+                << l->projectionLimiteurMixte << " ) " << std::endl;
       mesdonnees.ignore();
 
       getline(mesdonnees, ligne);  // Projection Limiteur pour Mailles Pures
       mesdonnees >> mot;
       l->projectionLimiterIdPure = limiteur[mot];
       std::cout << " Limiteur pour Mailles Pures " << mot << " ( "
-		<< l->projectionLimiterIdPure << " ) " << std::endl;
+                << l->projectionLimiterIdPure << " ) " << std::endl;
       if ((l->projectionLimiterId == -1) && (l->projectionLimiteurMixte == 1)) {
-	cout << "ERREUR: Limiteur pour mailles pures non défini " <<
-	  " alors que l option projectionLimiteurMixte est demandée" << endl;
-	exit(1);
+        cout << "ERREUR: Limiteur pour mailles pures non défini "
+             << " alors que l option projectionLimiteurMixte est demandée"
+             << endl;
+        exit(1);
       }
       mesdonnees.ignore();
-      
+
       getline(mesdonnees, ligne);  // Projection Plateau-Pente Complet
       mesdonnees >> mot;
-      l->projectionPlateauPenteComplet = ouiOUnon[mot];;
+      l->projectionPlateauPenteComplet = ouiOUnon[mot];
+      ;
       std::cout << " Projection Avec Plateau Pente Complet" << mot << " ( "
-		<< l->projectionPlateauPenteComplet << " ) " << std::endl;
+                << l->projectionPlateauPenteComplet << " ) " << std::endl;
       mesdonnees.ignore();
     }
 
@@ -189,17 +195,17 @@ void LectureDonneesClass::LectureDonnees(string Fichier,
       getline(mesdonnees, ligne);  // pseudo-centree
       mesdonnees >> mot;
       o->pseudo_centree = ouiOUnon[mot];
-      std::cout << " Pseudo_centree : " << mot << " ( "
-		<< o->pseudo_centree << " ) " << std::endl;
+      std::cout << " Pseudo_centree : " << mot << " ( " << o->pseudo_centree
+                << " ) " << std::endl;
       mesdonnees.ignore();
 
       if (o->AvecProjection == 1) {
-	getline(mesdonnees, ligne);  // methode calcul des flux de masses duales
-	mesdonnees >> mot;
-	o->methode_flux_masse = A1OUA2OUPB[mot];
-	std::cout << " Methode Projection Dual : " << mot << " ( "
-		  << o->methode_flux_masse << " ) " << std::endl;
-	mesdonnees.ignore();
+    	  getline(mesdonnees, ligne);  // methode calcul des flux de masses duales
+	      mesdonnees >> mot;
+	      o->methode_flux_masse = A1OUA2OUPB[mot];
+	      std::cout << " Methode Projection Dual : " << mot << " ( "
+		        << o->methode_flux_masse << " ) " << std::endl;
+	      mesdonnees.ignore();
       }
     }
     // getline(mesdonnees, ligne); // Presence de Particules

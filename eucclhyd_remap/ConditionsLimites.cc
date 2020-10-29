@@ -4,17 +4,17 @@
 #include <iostream>   // for operator<<, basic_ostream::operat...
 #include <vector>     // for allocator, vector
 
-#include "Eucclhyd.h"          // for Eucclhyd, Eucclhyd::Opt...
-#include "../remap/UtilesRemap-Impl.h"  // for Remap::computeRemapFlux
-#include "mesh/CartesianMesh2D.h"   // for CartesianMesh2D
-#include "types/MathFunctions.h"    // for dot, matVectProduct, norm
-#include "types/MultiArray.h"       // for operator<<
-#include "utils/Utils.h"            // for indexOf
+#include "../remap/UtilesRemap-Impl.h"  // for Remap::computeRemapFlm_x_velocity
+#include "Eucclhyd.h"                   // for Eucclhyd, Eucclhyd::Opt...
+#include "mesh/CartesianMesh2D.h"       // for CartesianMesh2D
+#include "types/MathFunctions.h"        // for dot, matVectProduct, norm
+#include "types/MultiArray.h"           // for operator<<
+#include "utils/Utils.h"                // for indexOf
 
 /**
  * Job computeBoundaryNodeVelocities called @4.0 in executeTimeLoopN method.
- * In variables: G, Mnode, bottomBC, bottomBCValue, leftBC, leftBCValue,
- * rightBC, rightBCValue, topBC, topBCValue Out variables: Vnode_nplus1
+ * In variables: m_node_G, m_node_dissipation, bottomBC, bottomBCValue, leftBC, leftBCValue,
+ * rightBC, rightBCValue, topBC, topBCValue Out variables: m_node_velocity_nplus1
  */
 void Eucclhyd::computeBoundaryNodeVelocities() noexcept {
   auto leftNodes(mesh->getLeftNodes());
@@ -23,9 +23,9 @@ void Eucclhyd::computeBoundaryNodeVelocities() noexcept {
                        KOKKOS_LAMBDA(const int& pLeftNodes) {
                          int pId(leftNodes[pLeftNodes]);
                          int pNodes(pId);
-                         Vnode_nplus1(pNodes) = nodeVelocityBoundaryCondition(
-                             cdl->leftBC, cdl->leftBCValue, Mnode(pNodes),
-                             G(pNodes));
+                         m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryCondition(
+                             cdl->leftBC, cdl->leftBCValue, m_node_dissipation(pNodes),
+                             m_node_G(pNodes));
                        });
   auto rightNodes(mesh->getRightNodes());
   int nbRightNodes(mesh->getNbRightNodes());
@@ -33,9 +33,9 @@ void Eucclhyd::computeBoundaryNodeVelocities() noexcept {
                        KOKKOS_LAMBDA(const int& pRightNodes) {
                          int pId(rightNodes[pRightNodes]);
                          int pNodes(pId);
-                         Vnode_nplus1(pNodes) = nodeVelocityBoundaryCondition(
-                             cdl->rightBC, cdl->rightBCValue, Mnode(pNodes),
-                             G(pNodes));
+                         m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryCondition(
+                             cdl->rightBC, cdl->rightBCValue, m_node_dissipation(pNodes),
+                             m_node_G(pNodes));
                        });
   auto topNodes(mesh->getTopNodes());
   int nbTopNodes(mesh->getNbTopNodes());
@@ -43,9 +43,9 @@ void Eucclhyd::computeBoundaryNodeVelocities() noexcept {
                        KOKKOS_LAMBDA(const int& pTopNodes) {
                          int pId(topNodes[pTopNodes]);
                          int pNodes(pId);
-                         Vnode_nplus1(pNodes) = nodeVelocityBoundaryCondition(
-                             cdl->topBC, cdl->topBCValue, Mnode(pNodes),
-                             G(pNodes));
+                         m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryCondition(
+                             cdl->topBC, cdl->topBCValue, m_node_dissipation(pNodes),
+                             m_node_G(pNodes));
                        });
   auto bottomNodes(mesh->getBottomNodes());
   int nbBottomNodes(mesh->getNbBottomNodes());
@@ -53,9 +53,9 @@ void Eucclhyd::computeBoundaryNodeVelocities() noexcept {
                        KOKKOS_LAMBDA(const int& pBottomNodes) {
                          int pId(bottomNodes[pBottomNodes]);
                          int pNodes(pId);
-                         Vnode_nplus1(pNodes) = nodeVelocityBoundaryCondition(
-                             cdl->bottomBC, cdl->bottomBCValue, Mnode(pNodes),
-                             G(pNodes));
+                         m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryCondition(
+                             cdl->bottomBC, cdl->bottomBCValue, m_node_dissipation(pNodes),
+                             m_node_G(pNodes));
                        });
   auto topLeftNode(mesh->getTopLeftNode());
   int nbTopLeftNode(mesh->getNbTopLeftNode());
@@ -63,10 +63,11 @@ void Eucclhyd::computeBoundaryNodeVelocities() noexcept {
                        KOKKOS_LAMBDA(const int& pTopLeftNode) {
                          int pId(topLeftNode[pTopLeftNode]);
                          int pNodes(pId);
-                         Vnode_nplus1(pNodes) =
+                         m_node_velocity_nplus1(pNodes) =
                              nodeVelocityBoundaryConditionCorner(
                                  cdl->topBC, cdl->topBCValue, cdl->leftBC,
-                                 cdl->leftBCValue, Mnode(pNodes), G(pNodes));
+                                 cdl->leftBCValue, m_node_dissipation(pNodes),
+				 m_node_G(pNodes));
                        });
   auto topRightNode(mesh->getTopRightNode());
   int nbTopRightNode(mesh->getNbTopRightNode());
@@ -74,10 +75,11 @@ void Eucclhyd::computeBoundaryNodeVelocities() noexcept {
                        KOKKOS_LAMBDA(const int& pTopRightNode) {
                          int pId(topRightNode[pTopRightNode]);
                          int pNodes(pId);
-                         Vnode_nplus1(pNodes) =
+                         m_node_velocity_nplus1(pNodes) =
                              nodeVelocityBoundaryConditionCorner(
                                  cdl->topBC, cdl->topBCValue, cdl->rightBC,
-                                 cdl->rightBCValue, Mnode(pNodes), G(pNodes));
+                                 cdl->rightBCValue, m_node_dissipation(pNodes),
+				 m_node_G(pNodes));
                        });
   auto bottomLeftNode(mesh->getBottomLeftNode());
   int nbBottomLeftNode(mesh->getNbBottomLeftNode());
@@ -85,10 +87,11 @@ void Eucclhyd::computeBoundaryNodeVelocities() noexcept {
                        KOKKOS_LAMBDA(const int& pBottomLeftNode) {
                          int pId(bottomLeftNode[pBottomLeftNode]);
                          int pNodes(pId);
-                         Vnode_nplus1(pNodes) =
+                         m_node_velocity_nplus1(pNodes) =
                              nodeVelocityBoundaryConditionCorner(
                                  cdl->bottomBC, cdl->bottomBCValue, cdl->leftBC,
-                                 cdl->leftBCValue, Mnode(pNodes), G(pNodes));
+                                 cdl->leftBCValue, m_node_dissipation(pNodes),
+				 m_node_G(pNodes));
                        });
   auto bottomRightNode(mesh->getBottomRightNode());
   int nbBottomRightNode(mesh->getNbBottomRightNode());
@@ -97,9 +100,9 @@ void Eucclhyd::computeBoundaryNodeVelocities() noexcept {
       KOKKOS_LAMBDA(const int& pBottomRightNode) {
         int pId(bottomRightNode[pBottomRightNode]);
         int pNodes(pId);
-        Vnode_nplus1(pNodes) = nodeVelocityBoundaryConditionCorner(
+        m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryConditionCorner(
             cdl->bottomBC, cdl->bottomBCValue, cdl->rightBC, cdl->rightBCValue,
-            Mnode(pNodes), G(pNodes));
+            m_node_dissipation(pNodes), m_node_G(pNodes));
       });
 }
 KOKKOS_INLINE_FUNCTION
@@ -108,8 +111,8 @@ RealArray1D<dim> Eucclhyd::nodeVelocityBoundaryCondition(
     RealArray1D<dim> Gp) {
   if (BC == 200)
     return (dot(Gp, BCValue) /
-            (dot(MathFunctions::matVectProduct(Mp, BCValue),
-                                BCValue)) * BCValue);
+            (dot(MathFunctions::matVectProduct(Mp, BCValue), BCValue)) *
+            BCValue);
   else if (BC == 201)
     return BCValue;
   else if (BC == 202)
@@ -123,14 +126,12 @@ RealArray1D<dim> Eucclhyd::nodeVelocityBoundaryConditionCorner(
     int BC1, RealArray1D<dim> BCValue1, int BC2, RealArray1D<dim> BCValue2,
     RealArray2D<dim, dim> Mp, RealArray1D<dim> Gp) {
   if (BC1 == 200 && BC2 == 200) {
-    if (MathFunctions::fabs(
-            MathFunctions::fabs(dot(BCValue1, BCValue2)) -
-            MathFunctions::norm(BCValue1) * MathFunctions::norm(BCValue2)) <
-        1.0E-8)
-      return (
-          dot(Gp, BCValue1) /
-              (dot(MathFunctions::matVectProduct(Mp, BCValue1),
-                                  BCValue1)) * BCValue1);
+    if (MathFunctions::fabs(MathFunctions::fabs(dot(BCValue1, BCValue2)) -
+                            MathFunctions::norm(BCValue1) *
+                                MathFunctions::norm(BCValue2)) < 1.0E-8)
+      return (dot(Gp, BCValue1) /
+              (dot(MathFunctions::matVectProduct(Mp, BCValue1), BCValue1)) *
+              BCValue1);
     else {
       return zeroVect;
     }
@@ -142,5 +143,3 @@ RealArray1D<dim> Eucclhyd::nodeVelocityBoundaryConditionCorner(
     { return zeroVect; }
   }
 }
-
-

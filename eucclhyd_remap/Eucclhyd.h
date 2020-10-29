@@ -57,7 +57,7 @@ class Eucclhyd {
   variableslagremaplib::VariablesLagRemap* varlp;
   Remap* remap;
   PvdFileWriter2D writer;
-  PvdFileWriter2D writerpart;
+  PvdFileWriter2D writem_particle_radius;
   int nbPartMax;
   int nbPart = 0;
   int nbNodes, nbCells, nbFaces, nbCellsOfNode, nbNodesOfCell,
@@ -66,8 +66,8 @@ class Eucclhyd {
   // Global Variables
   int n, nbCalls;
   double lastDump;
-  double ETOTALE_L, ETOTALE_T, ETOTALE_0;
-  double MASSET_L, MASSET_T, MASSET_0;
+  double m_global_total_energy_L, m_global_total_energy_T, m_global_total_energy_0;
+  double m_total_masse_L, m_total_masse_T, m_total_masse_0;
 
   // cells a debuguer
   int dbgcell1 = -389;
@@ -78,107 +78,97 @@ class Eucclhyd {
   int test_debug = 1;
 
   // Connectivity Variables
-  Kokkos::View<RealArray1D<dim>*> X;
-  Kokkos::View<RealArray1D<dim>*> Xc;
-  Kokkos::View<double*> Xc_x;
-  Kokkos::View<double*> Xc_y;
-  Kokkos::View<RealArray1D<dim>**> lpc_n;
-  Kokkos::View<RealArray1D<dim>**> nplus;
-  Kokkos::View<RealArray1D<dim>**> nminus;
-  Kokkos::View<double**> lplus;
-  Kokkos::View<double**> lminus;
-  Kokkos::View<double*> p;
-  Kokkos::View<RealArray1D<nbmatmax>*> pp;
-  Kokkos::View<double*> m;
-  Kokkos::View<RealArray1D<nbmatmax>*> mp;
-  Kokkos::View<double*> volE;
-  Kokkos::View<RealArray1D<nbmatmax>*> vpLagrange;
-  Kokkos::View<double*> perim;
-  Kokkos::View<double*> vitson;
-  Kokkos::View<RealArray1D<nbmatmax>*> vitsonp;
-  Kokkos::View<double*> deltatc;
-  Kokkos::View<RealArray1D<dim>*> Vnode_n;
-  Kokkos::View<RealArray1D<dim>*> Vnode_nplus1;
-  Kokkos::View<RealArray1D<dim>*> Vnode_n0;
-  Kokkos::View<double*> ETOT_0;
-  Kokkos::View<double*> ETOT_T;
-  Kokkos::View<double*> ETOT_L;
-  Kokkos::View<double*> MTOT_0;
-  Kokkos::View<double*> MTOT_T;
-  Kokkos::View<double*> MTOT_L;
-  Kokkos::View<double*> rho_n;
-  Kokkos::View<double*> rho_nplus1;
-  Kokkos::View<double*> rho_n0;
-  Kokkos::View<RealArray1D<nbmatmax>*> rhop_n;
-  Kokkos::View<RealArray1D<nbmatmax>*> rhop_nplus1;
-  Kokkos::View<RealArray1D<nbmatmax>*> rhop_n0;
-  Kokkos::View<RealArray1D<dim>*> V_n;
-  Kokkos::View<RealArray1D<dim>*> V_nplus1;
-  Kokkos::View<RealArray1D<dim>*> V_n0;
-  Kokkos::View<double*> Vxc;
-  Kokkos::View<double*> Vyc;
-  Kokkos::View<double*> e_n;
-  Kokkos::View<double*> e_nplus1;
-  Kokkos::View<double*> e_n0;
-  Kokkos::View<RealArray1D<nbmatmax>*> ep_n;
-  Kokkos::View<RealArray1D<nbmatmax>*> ep_nplus1;
-  Kokkos::View<RealArray1D<nbmatmax>*> ep_n0;
-  Kokkos::View<double**> p_extrap;
-  Kokkos::View<RealArray1D<nbmatmax>**> pp_extrap;
-  Kokkos::View<RealArray1D<dim>**> V_extrap;
-  Kokkos::View<RealArray1D<dim>*> gradp;
-  Kokkos::View<RealArray1D<dim>*> gradp1;
-  Kokkos::View<RealArray1D<dim>*> gradp2;
-  Kokkos::View<RealArray1D<dim>*> gradp3;
-  Kokkos::View<RealArray1D<dim>*> gradf1;
-  Kokkos::View<RealArray1D<dim>*> gradf2;
-  Kokkos::View<RealArray1D<dim>*> gradf3;
-  Kokkos::View<RealArray2D<dim, dim>*> gradV;
-  Kokkos::View<RealArray1D<dim>**> F_n;
-  Kokkos::View<RealArray1D<dim>**> F_nplus1;
-  Kokkos::View<RealArray1D<dim>**> F_n0;
-  Kokkos::View<RealArray1D<dim>**> F1_n;
-  Kokkos::View<RealArray1D<dim>**> F1_nplus1;
-  Kokkos::View<RealArray1D<dim>**> F2_n;
-  Kokkos::View<RealArray1D<dim>**> F2_nplus1;
-  Kokkos::View<RealArray1D<dim>**> F3_n;
-  Kokkos::View<RealArray1D<dim>**> F3_nplus1;
-  Kokkos::View<RealArray1D<dim>*> G;
-  Kokkos::View<RealArray2D<dim, dim>**> M;
-  Kokkos::View<RealArray2D<dim, dim>**> M1;
-  Kokkos::View<RealArray2D<dim, dim>**> M2;
-  Kokkos::View<RealArray2D<dim, dim>**> M3;
-  Kokkos::View<RealArray2D<dim, dim>*> Mnode;
-  Kokkos::View<RealArray1D<nbmatmax>*> fracmass;
-  Kokkos::View<RealArray1D<nbmatmax>*> fracvol;
-  Kokkos::View<RealArray1D<nbmatmax>*> fracvolnode;
-  Kokkos::View<double*> fracvol1;
-  Kokkos::View<double*> fracvol2;
-  Kokkos::View<double*> fracvol3;
-  Kokkos::View<double*> p1;
-  Kokkos::View<double*> p2;
-  Kokkos::View<double*> p3;
+  Kokkos::View<RealArray1D<dim>*> m_node_coord;
+  Kokkos::View<RealArray1D<dim>*> m_cell_coord;
+  Kokkos::View<double*> m_cell_coord_x;
+  Kokkos::View<double*> m_cell_coord_y;
+  Kokkos::View<RealArray1D<dim>**> m_lpc;
+  Kokkos::View<RealArray1D<dim>**> m_nplus;
+  Kokkos::View<RealArray1D<dim>**> m_nminus;
+  Kokkos::View<double**> m_lplus;
+  Kokkos::View<double**> m_lminus;
+  Kokkos::View<double*> m_pressure;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_pressure_env;
+  Kokkos::View<double*> m_cell_mass;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_cell_mass_env;
+  Kokkos::View<double*> m_euler_volume;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_lagrange_volume;
+  Kokkos::View<double*> m_cell_perimeter;
+  Kokkos::View<double*> m_speed_velocity;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_speed_velocity_env;
+  Kokkos::View<double*> m_cell_deltat;
+  Kokkos::View<RealArray1D<dim>*> m_node_velocity_n;
+  Kokkos::View<RealArray1D<dim>*> m_node_velocity_nplus1;
+  Kokkos::View<RealArray1D<dim>*> m_node_velocity_n0;
+  Kokkos::View<double*> m_total_energy_0;
+  Kokkos::View<double*> m_total_energy_T;
+  Kokkos::View<double*> m_total_energy_L;
+  Kokkos::View<double*> m_global_masse_0;
+  Kokkos::View<double*> m_global_masse_T;
+  Kokkos::View<double*> m_global_masse_L;
+  Kokkos::View<double*> m_density_n;
+  Kokkos::View<double*> m_density_nplus1;
+  Kokkos::View<double*> m_density_n0;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_n;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_nplus1;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_n0;
+  Kokkos::View<RealArray1D<dim>*> m_cell_velocity_n;
+  Kokkos::View<RealArray1D<dim>*> m_cell_velocity_nplus1;
+  Kokkos::View<RealArray1D<dim>*> m_cell_velocity_n0;
+  Kokkos::View<double*> m_x_cell_velocity;
+  Kokkos::View<double*> m_y_cell_velocity;
+  Kokkos::View<double*> m_internal_energy_n;
+  Kokkos::View<double*> m_internal_energy_nplus1;
+  Kokkos::View<double*> m_internal_energy_n0;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_n;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_nplus1;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_n0;
+  Kokkos::View<double**> m_pressure_extrap;
+  Kokkos::View<RealArray1D<nbmatmax>**> m_pressure_env_extrap;
+  Kokkos::View<RealArray1D<dim>**> m_cell_velocity_extrap;
+  Kokkos::View<RealArray1D<dim>*> m_pressure_gradient;
+  Kokkos::View<RealArray1D<dim>**> m_pressure_gradient_env;
+  Kokkos::View<RealArray1D<dim>**> m_fracvol_gradient_env;
+  Kokkos::View<RealArray2D<dim, dim>*> m_velocity_gradient;
+  Kokkos::View<RealArray1D<dim>**> m_node_force_n;
+  Kokkos::View<RealArray1D<dim>**> m_node_force_nplus1;
+  Kokkos::View<RealArray1D<dim>**> m_node_force_n0;
+  Kokkos::View<RealArray1D<dim>***> m_node_force_env_n;
+  Kokkos::View<RealArray1D<dim>***> m_node_force_env_nplus1;
+  Kokkos::View<RealArray1D<dim>*> m_node_G;
+  Kokkos::View<RealArray2D<dim, dim>**> m_dissipation_matrix;
+  Kokkos::View<RealArray2D<dim, dim>***> m_dissipation_matrix_env;
+  Kokkos::View<RealArray2D<dim, dim>*> m_node_dissipation;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_mass_fraction_env;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_fracvol_env;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_node_fracvol;
+  Kokkos::View<double*> m_fracvol_env1;
+  Kokkos::View<double*> m_fracvol_env2;
+  Kokkos::View<double*> m_fracvol_env3;
+  Kokkos::View<double*> m_pressure_env1;
+  Kokkos::View<double*> m_pressure_env2;
+  Kokkos::View<double*> m_pressure_env3;
 
-  Kokkos::View<double*> vpart;
-  Kokkos::View<double*> wpart;
-  Kokkos::View<double*> mpart;
-  Kokkos::View<double*> rpart;
-  Kokkos::View<double*> rhopart;
-  Kokkos::View<double*> Cdpart;
-  Kokkos::View<double*> Mcpart;
-  Kokkos::View<double*> Repart;
-  Kokkos::View<double*> Temppart;
-  Kokkos::View<RealArray1D<dim>*> Xpart_n0;
-  Kokkos::View<RealArray1D<dim>*> Xpart_n;
-  Kokkos::View<RealArray1D<dim>*> Xpart_nplus1;
-  Kokkos::View<RealArray1D<dim>*> ForceGradp;
-  Kokkos::View<RealArray1D<dim>*> Vpart_n0;
-  Kokkos::View<RealArray1D<dim>*> Vpart_n;
-  Kokkos::View<RealArray1D<dim>*> Vpart_nplus1;
-  Kokkos::View<int*> ICellp;
-  Kokkos::View<int*> IMatp;
-  Kokkos::View<double*> fracpart;
-  Kokkos::View<vector<int>*> listpart;
+  Kokkos::View<double*> m_particle_volume;
+  Kokkos::View<double*> m_particle_weight;
+  Kokkos::View<double*> m_particle_mass;
+  Kokkos::View<double*> m_particle_radius;
+  Kokkos::View<double*> m_particle_density;
+  Kokkos::View<double*> m_particle_drag;
+  Kokkos::View<double*> m_particle_mac;
+  Kokkos::View<double*> m_particle_reynolds;
+  Kokkos::View<double*> m_particle_temperature;
+  Kokkos::View<RealArray1D<dim>*> m_particle_coord_n0;
+  Kokkos::View<RealArray1D<dim>*> m_particle_coord_n;
+  Kokkos::View<RealArray1D<dim>*> m_particle_coord_nplus1;
+  Kokkos::View<RealArray1D<dim>*> m_particle_pressure_gradient;
+  Kokkos::View<RealArray1D<dim>*> m_particle_velocity_n0;
+  Kokkos::View<RealArray1D<dim>*> m_particle_velocity_n;
+  Kokkos::View<RealArray1D<dim>*> m_particle_velocity_nplus1;
+  Kokkos::View<int*> m_particle_cell;
+  Kokkos::View<int*> m_particle_env;
+  Kokkos::View<double*> m_cell_particle_volume_fraction;
+  Kokkos::View<vector<int>*> m_cell_particle_list;
 
   utils::Timer global_timer;
   utils::Timer cpu_timer;
@@ -211,7 +201,7 @@ class Eucclhyd {
         varlp(avarlp),
         remap(aremap),
         writer("EucclhydRemap", output),
-        writerpart("Particules", output),
+        writem_particle_radius("Particules", output),
         nbNodes(mesh->getNbNodes()),
         nbPartMax(1),
         nbCells(mesh->getNbCells()),
@@ -221,109 +211,99 @@ class Eucclhyd {
         nbNodesOfFace(CartesianMesh2D::MaxNbNodesOfFace),
         nbCalls(0),
         lastDump(0.0),
-        vpart("VolumePart", nbPartMax),
-        wpart("WeightPart", nbPartMax),
-        mpart("MassePart", nbPartMax),
-        rpart("RayonPart", nbPartMax),
-        rhopart("RhoPart", nbPartMax),
-        Repart("RePart", nbPartMax),
-        Cdpart("Cdpart", nbPartMax),
-        Mcpart("Cdpart", nbPartMax),
-        ForceGradp("ForceGradp", nbCells),
-        listpart("listepart", nbCells),
-        fracpart("fracPart", nbCells),
-        Xpart_n0("Xpart_n0", nbPartMax),
-        Xpart_n("Xpart_n", nbPartMax),
-        Xpart_nplus1("Xpart_nplus1", nbPartMax),
-        Vpart_n0("Vpart_n0", nbPartMax),
-        Vpart_n("Vpart_n", nbPartMax),
-        Vpart_nplus1("Vpart_nplus1", nbPartMax),
-        ICellp("Icellp", nbPartMax),
-        IMatp("Imatp", nbPartMax),
-        X("X", nbNodes),
-        Xc("Xc", nbCells),
-        Xc_x("Xc_x", nbCells),
-        Xc_y("Xc_y", nbCells),
-        lpc_n("lpc_n", nbNodes, nbCellsOfNode),
-        nplus("nplus", nbNodes, nbCellsOfNode),
-        nminus("nminus", nbNodes, nbCellsOfNode),
-        lplus("lplus", nbNodes, nbCellsOfNode),
-        lminus("lminus", nbNodes, nbCellsOfNode),
-        p("p", nbCells),
-        p1("p1", nbCells),
-        p2("p2", nbCells),
-        p3("p3", nbCells),
-        pp("pp", nbCells),
-        m("m", nbCells),
-        mp("mp", nbCells),
-        volE("volE", nbCells),
-        fracmass("fracmass", nbCells),
-        fracvol("fracvol", nbCells),
-        fracvolnode("fracvolnode", nbNodes),
-        fracvol1("fracvol1", nbCells),
-        fracvol2("fracvol2", nbCells),
-        fracvol3("fracvol3", nbCells),
-        vpLagrange("vpLagrange", nbCells),
-        perim("perim", nbCells),
-        vitson("vitson", nbCells),
-        vitsonp("vitsonp", nbCells),
-        deltatc("deltatc", nbCells),
-        Vnode_n("Vnode_n", nbNodes),
-        Vnode_nplus1("Vnode_nplus1", nbNodes),
-        Vnode_n0("Vnode_n0", nbNodes),
-        ETOT_0("ETOT_0", nbCells),
-        ETOT_T("ETOT_T", nbCells),
-        ETOT_L("ETOT_L", nbCells),
-        MTOT_0("MTOT_0", nbCells),
-        MTOT_T("MTOT_T", nbCells),
-        MTOT_L("MTOT_L", nbCells),
-        rho_n("rho_n", nbCells),
-        rho_nplus1("rho_nplus1", nbCells),
-        rho_n0("rho_n0", nbCells),
-        rhop_n("rhop_n", nbCells),
-        rhop_nplus1("rhop_nplus1", nbCells),
-        rhop_n0("rhop_n0", nbCells),
-        V_n("V_n", nbCells),
-        V_nplus1("V_nplus1", nbCells),
-        V_n0("V_n0", nbCells),
-        Vxc("Vxc", nbCells),
-        Vyc("Vyc", nbCells),
-        e_n("e_n", nbCells),
-        e_nplus1("e_nplus1", nbCells),
-        e_n0("e_n0", nbCells),
-        ep_n("ep_n", nbCells),
-        ep_nplus1("ep_nplus1", nbCells),
-        ep_n0("ep_n0", nbCells),
-        p_extrap("p_extrap", nbCells, nbNodesOfCell),
-        pp_extrap("pp_extrap", nbCells, nbNodesOfCell),
-        V_extrap("V_extrap", nbCells, nbNodesOfCell),
-        gradp("gradp", nbCells),
-        gradp1("gradp1", nbCells),
-        gradp2("gradp2", nbCells),
-        gradp3("gradp3", nbCells),
-        gradf1("gradf1", nbCells),
-        gradf2("gradf2", nbCells),
-        gradf3("gradf3", nbCells),
-        gradV("gradV", nbCells),
-        F_n("F_n", nbNodes, nbCellsOfNode),
-        F_nplus1("F_nplus1", nbNodes, nbCellsOfNode),
-        F_n0("F_n0", nbNodes, nbCellsOfNode),
-        F1_n("F1_n", nbNodes, nbCellsOfNode),
-        F1_nplus1("F1_nplus1", nbNodes, nbCellsOfNode),
-        F2_n("F2_n", nbNodes, nbCellsOfNode),
-        F2_nplus1("F2_nplus1", nbNodes, nbCellsOfNode),
-        F3_n("F3_n", nbNodes, nbCellsOfNode),
-        F3_nplus1("F3_nplus1", nbNodes, nbCellsOfNode),
-        G("G", nbNodes),
-        M("M", nbNodes, nbCellsOfNode),
-        M1("M1", nbNodes, nbCellsOfNode),
-        M2("M2", nbNodes, nbCellsOfNode),
-        M3("M3", nbNodes, nbCellsOfNode),
-        Mnode("Mnode", nbNodes) {
+        m_particle_volume("particle_volume", nbPartMax),
+        m_particle_weight("particle_weight", nbPartMax),
+        m_particle_mass("particle_mass", nbPartMax),
+        m_particle_radius("particle_radius", nbPartMax),
+        m_particle_density("particle_density", nbPartMax),
+        m_particle_reynolds("particle_reynolds", nbPartMax),
+        m_particle_drag("particle_drag", nbPartMax),
+        m_particle_mac("particle_drag", nbPartMax),
+        m_particle_pressure_gradient("particle_pressure_gradient", nbCells),
+        m_cell_particle_list("listepart", nbCells),
+        m_cell_particle_volume_fraction("fracPart", nbCells),
+        m_particle_coord_n0("particle_coord_n0", nbPartMax),
+        m_particle_coord_n("particle_coord_n", nbPartMax),
+        m_particle_coord_nplus1("particle_coord_nplus1", nbPartMax),
+        m_particle_velocity_n0("particle_velocity_n0", nbPartMax),
+        m_particle_velocity_n("particle_velocity_n", nbPartMax),
+        m_particle_velocity_nplus1("particle_velocity_nplus1", nbPartMax),
+        m_particle_cell("Icellp", nbPartMax),
+        m_particle_env("Imatp", nbPartMax),
+        m_node_coord("node_coord", nbNodes),
+        m_cell_coord("cell_coord", nbCells),
+        m_cell_coord_x("cell_coord_x", nbCells),
+        m_cell_coord_y("cell_coord_y", nbCells),
+        m_lpc("lpc_n", nbNodes, nbCellsOfNode),
+        m_nplus("nplus", nbNodes, nbCellsOfNode),
+        m_nminus("nminus", nbNodes, nbCellsOfNode),
+        m_lplus("lplus", nbNodes, nbCellsOfNode),
+        m_lminus("lminus", nbNodes, nbCellsOfNode),
+        m_pressure("p", nbCells),
+        m_pressure_env1("pressure_env1", nbCells),
+        m_pressure_env2("pressure_env2", nbCells),
+        m_pressure_env3("pressure_env3", nbCells),
+        m_pressure_env("pp", nbCells),
+        m_cell_mass("cell_mass", nbCells),
+        m_cell_mass_env("mp", nbCells),
+        m_euler_volume("euler_volume", nbCells),
+        m_mass_fraction_env("mass_fraction_env", nbCells),
+        m_fracvol_env("fracvol_env", nbCells),
+        m_node_fracvol("node_fracvol", nbNodes),
+        m_fracvol_env1("fracvol_env1", nbCells),
+        m_fracvol_env2("fracvol_env2", nbCells),
+        m_fracvol_env3("fracvol_env3", nbCells),
+        m_lagrange_volume("lagrange_volume", nbCells),
+        m_cell_perimeter("cell_perimeter", nbCells),
+        m_speed_velocity("speed_velocity", nbCells),
+        m_speed_velocity_env("speed_velocity_env", nbCells),
+        m_cell_deltat("cell_deltat", nbCells),
+        m_node_velocity_n("node_velocity_n", nbNodes),
+        m_node_velocity_nplus1("node_velocity_nplus1", nbNodes),
+        m_node_velocity_n0("node_velocity_n0", nbNodes),
+        m_total_energy_0("total_energy_0", nbCells),
+        m_total_energy_T("total_energy_T", nbCells),
+        m_total_energy_L("total_energy_L", nbCells),
+        m_global_masse_0("global_masse_0", nbCells),
+        m_global_masse_T("global_masse_T", nbCells),
+        m_global_masse_L("global_masse_L", nbCells),
+        m_density_n("density_n", nbCells),
+        m_density_nplus1("density_nplus1", nbCells),
+        m_density_n0("density_n0", nbCells),
+        m_density_env_n("density_env_n", nbCells),
+        m_density_env_nplus1("density_env_nplus1", nbCells),
+        m_density_env_n0("density_env_n0", nbCells),
+        m_cell_velocity_n("cell_velocity_n", nbCells),
+        m_cell_velocity_nplus1("cell_velocity_nplus1", nbCells),
+        m_cell_velocity_n0("cell_velocity_n0", nbCells),
+        m_x_cell_velocity("x_cell_velocity", nbCells),
+        m_y_cell_velocity("y_cell_velocity", nbCells),
+        m_internal_energy_n("internal_energy_n", nbCells),
+        m_internal_energy_nplus1("internal_energy_nplus1", nbCells),
+        m_internal_energy_n0("internal_energy_n0", nbCells),
+        m_internal_energy_env_n("internal_energy_env_n", nbCells),
+        m_internal_energy_env_nplus1("internal_energy_env_nplus1", nbCells),
+        m_internal_energy_env_n0("internal_energy_env_n0", nbCells),
+        m_pressure_extrap("pressure_extrap", nbCells, nbNodesOfCell),
+        m_pressure_env_extrap("pressure_env_extrap", nbCells, nbNodesOfCell),
+        m_cell_velocity_extrap("cell_velocity_extrap", nbCells, nbNodesOfCell),
+        m_pressure_gradient("pressure_gradient", nbCells),
+        m_pressure_gradient_env("pressure_gradient_env", nbCells, nbmatmax),
+        m_fracvol_gradient_env("fracvol_gradient_env", nbCells, nbmatmax),
+        m_velocity_gradient("velocity_gradient", nbCells),
+        m_node_force_n("node_force_n", nbNodes, nbCellsOfNode),
+        m_node_force_nplus1("node_force_nplus1", nbNodes, nbCellsOfNode),
+        m_node_force_n0("node_force_n0", nbNodes, nbCellsOfNode),
+        m_node_force_env_n("node_force_env_n", nbNodes, nbCellsOfNode, nbmatmax),
+        m_node_force_env_nplus1("node_force_env_nplus1", nbNodes, nbCellsOfNode, nbmatmax),
+        m_node_G("node_G", nbNodes),
+        m_dissipation_matrix("dissipation_matrix", nbNodes, nbCellsOfNode),
+        m_dissipation_matrix_env("dissipation_matrix_env", nbNodes, nbCellsOfNode, nbmatmax),
+        m_node_dissipation("node_dissipation", nbNodes) {
     // Copy node coordinates
     const auto& gNodes = mesh->getGeometry()->getNodes();
     Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const int& rNodes) {
-      X(rNodes) = gNodes[rNodes];
+      m_node_coord(rNodes) = gNodes[rNodes];
       });
   }
 
@@ -358,7 +338,7 @@ class Eucclhyd {
   void computeGradients() noexcept;
   void computeMass() noexcept;
   void computeDissipationMatrix() noexcept;
-  void computedeltatc() noexcept;
+  void computem_cell_deltat() noexcept;
   void extrapolateValue() noexcept;
   void computeG() noexcept;
   void computeNodeDissipationMatrixAndG() noexcept;
@@ -377,8 +357,8 @@ class Eucclhyd {
   void updateParticleVelocity() noexcept;
   void updateParticleRetroaction() noexcept;
 
-  void switchalpharho_rho() noexcept;
-  void switchrho_alpharho() noexcept;
+  void switchalpham_density_rho() noexcept;
+  void switchm_density_alpharho() noexcept;
 
   RealArray2D<2, 2> inverse(RealArray2D<2, 2> a);
   template <size_t N, size_t M>
@@ -387,33 +367,33 @@ class Eucclhyd {
   
   /**
    * Job dumpVariables called @2.0 in executeTimeLoopN method.
-   * In variables: Xc_x, Xc_y, e_n, m, p, rho_n, t_n, v
+   * In variables: m_cell_coord_x, m_cell_coord_y, m_internal_energy_n, m, p, m_density_n, t_n, v
    * Out variables:
    */
   void dumpVariables() noexcept;
 
   /**
    * Job executeTimeLoopN called @4.0 in simulate method.
-   * In variables: F_n, F_nplus1, G, M, Mnode, ULagrange, Uremap1, Uremap2,
-   * V_extrap, V_n, Vnode_n, Vnode_nplus1, X, XLagrange, Xc, XcLagrange, Xc_x,
-   * Xc_y, Xf, bottomBC, bottomBCValue, c, cfl, deltat_n, deltat_nplus1,
-   * deltatc, deltaxLagrange, eos, eosPerfectGas, e_n, faceLength, faceNormal,
+   * In variables: m_node_force_n, m_node_force_nplus1, G, M, m_node_dissipation, ULagrange, Uremap1, Uremap2,
+   * m_cell_velocity_extrap, m_cell_velocity_n, m_node_velocity_n, m_node_velocity_nplus1, X, XLagrange, m_cell_coord, m_cell_coordLagrange, m_cell_coord_x,
+   * m_cell_coord_y, Xf, bottomBC, bottomBCValue, c, cfl, deltat_n, deltat_nplus1,
+   * m_cell_deltat, deltaxLagrange, eos, eosPerfectGas, m_internal_energy_n, faceLength, faceNormal,
    * faceNormalVelocity, gamma, gradPhi1, gradPhi2, gradPhiFace1, gradPhiFace2,
-   * gradV, gradp, leftBC, leftBCValue, lminus, lpc_n, lplus, m, nminus, nplus,
-   * outerFaceNormal, p, p_extrap, perim, phiFace1, phiFace2,
-   * projectionLimiterId, projectionOrder, rho_n, rightBC, rightBCValue,
+   * m_velocity_gradient, m_pressure_gradient, leftBC, leftBCValue, lminus, m_lpc, lplus, m, nminus, nplus,
+   * outerFaceNormal, p, m_pressure_extrap, m_cell_perimeter, phiFace1, phiFace2,
+   * projectionLimiterId, projectionOrder, m_density_n, rightBC, rightBCValue,
    * spaceOrder, t_n, topBC, topBCValue, v, vLagrange, x_then_y_n Out variables:
-   * F_nplus1, G, M, Mnode, ULagrange, Uremap1, Uremap2, V_extrap, V_nplus1,
-   * Vnode_nplus1, XLagrange, XcLagrange, c, deltat_nplus1, deltatc,
-   * deltaxLagrange, e_nplus1, faceNormalVelocity, gradPhi1, gradPhi2,
-   * gradPhiFace1, gradPhiFace2, gradV, gradp, m, p, p_extrap, phiFace1,
-   * phiFace2, rho_nplus1, t_nplus1, vLagrange, x_then_y_nplus1
+   * m_node_force_nplus1, G, M, m_node_dissipation, ULagrange, Uremap1, Uremap2, m_cell_velocity_extrap, m_cell_velocity_nplus1,
+   * m_node_velocity_nplus1, XLagrange, m_cell_coordLagrange, c, deltat_nplus1, m_cell_deltat,
+   * deltaxLagrange, m_internal_energy_nplus1, faceNormalVelocity, gradPhi1, gradPhi2,
+   * gradPhiFace1, gradPhiFace2, m_velocity_gradient, m_pressure_gradient, m, p, m_pressure_extrap, phiFace1,
+   * phiFace2, m_density_nplus1, t_nplus1, vLagrange, x_then_y_nplus1
    */
   void executeTimeLoopN() noexcept;
 
   /**
    * Job computedeltat called @3.0 in executeTimeLoopN method.
-   * In variables: cfl, deltat_n, deltatc
+   * In variables: cfl, deltat_n, m_cell_deltat
    * Out variables: deltat_nplus1
    */
   void computedeltat() noexcept;

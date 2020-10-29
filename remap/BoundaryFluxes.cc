@@ -4,15 +4,15 @@
 #include <iostream>   // for operator<<, basic_ostream::operat...
 #include <vector>     // for allocator, vector
 
-#include "Remap.h"          // for Remap, Remap::Opt...
 #include "../remap/UtilesRemap-Impl.h"  // for Remap::computeRemapFlux
-#include "mesh/CartesianMesh2D.h"   // for CartesianMesh2D
-#include "types/MathFunctions.h"    // for dot, matVectProduct, norm
-#include "types/MultiArray.h"       // for operator<<
-#include "utils/Utils.h"            // for indexOf
+#include "Remap.h"                      // for Remap, Remap::Opt...
+#include "mesh/CartesianMesh2D.h"       // for CartesianMesh2D
+#include "types/MathFunctions.h"        // for dot, matVectProduct, norm
+#include "types/MultiArray.h"           // for operator<<
+#include "utils/Utils.h"                // for indexOf
 
-RealArray1D<nbequamax> Remap::computeBoundaryFluxes(
-    int proj, int cCells, RealArray1D<dim> exy) {
+RealArray1D<nbequamax> Remap::computeBoundaryFluxes(int proj, int cCells,
+                                                    RealArray1D<dim> exy) {
   RealArray1D<nbequamax> phiFace_fFaces = Uzero;
   int nbCellX = cstmesh->X_EDGE_ELEMS;
   int nbCellY = cstmesh->Y_EDGE_ELEMS;
@@ -34,12 +34,9 @@ RealArray1D<nbequamax> Remap::computeBoundaryFluxes(
     if (proj == 2) phiFace_fFaces = phiFace2(ftFaces);
     return Remap::computeRemapFlux(
         options->projectionOrder, limiteurs->projectionAvecPlateauPente,
-        varlp->faceNormalVelocity(fbFaces),
-	varlp->faceNormal(fbFaces),
-	varlp->faceLength(fbFaces),
-        phiFace_fFaces,
-	varlp->outerFaceNormal(cCells, fbFacesOfCellC), exy,
-        gt->deltat_n);
+        varlp->faceNormalVelocity(fbFaces), varlp->faceNormal(fbFaces),
+        varlp->faceLength(fbFaces), phiFace_fFaces,
+        varlp->outerFaceNormal(cCells, fbFacesOfCellC), exy, gt->deltat_n);
   }
   if (cdl->topFluxBC == 1 && cCells <= nbCellX * (nbCellY - 1) &&
       cCells < nbCellX * nbCellY && exy[1] == 1) {
@@ -60,12 +57,9 @@ RealArray1D<nbequamax> Remap::computeBoundaryFluxes(
     if (proj == 2) phiFace_fFaces = phiFace2(fbFaces);
     return Remap::computeRemapFlux(
         options->projectionOrder, limiteurs->projectionAvecPlateauPente,
-        varlp->faceNormalVelocity(ftFaces),
-	varlp->faceNormal(ftFaces),
-	varlp->faceLength(ftFaces),
-        phiFace_fFaces,
-	varlp->outerFaceNormal(cCells, ftFacesOfCellC), exy,
-        gt->deltat_n);
+        varlp->faceNormalVelocity(ftFaces), varlp->faceNormal(ftFaces),
+        varlp->faceLength(ftFaces), phiFace_fFaces,
+        varlp->outerFaceNormal(cCells, ftFacesOfCellC), exy, gt->deltat_n);
   }
   if (cdl->leftFluxBC == 1 && exy[0] == 1) {
     // cellules de gauche - a optimiser
@@ -89,8 +83,7 @@ RealArray1D<nbequamax> Remap::computeBoundaryFluxes(
         if (proj == 2) phiFace_fFaces = phiFace2(frFaces);
         return Remap::computeRemapFlux(
             options->projectionOrder, limiteurs->projectionAvecPlateauPente,
-            varlp->faceNormalVelocity(flFaces),
-	    varlp->faceNormal(flFaces),
+            varlp->faceNormalVelocity(flFaces), varlp->faceNormal(flFaces),
             varlp->faceLength(flFaces), phiFace_fFaces,
             varlp->outerFaceNormal(cCells, flFacesOfCellC), exy, gt->deltat_n);
       }
@@ -113,15 +106,13 @@ RealArray1D<nbequamax> Remap::computeBoundaryFluxes(
         int flFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), flId));
 
         if (proj == 1) phiFace_fFaces = phiFace1(flFaces);
-        if (proj == 2) phiFace_fFaces = phiFace2(flFaces);      
+        if (proj == 2) phiFace_fFaces = phiFace2(flFaces);
         //
         return Remap::computeRemapFlux(
             options->projectionOrder, limiteurs->projectionAvecPlateauPente,
-            varlp->faceNormalVelocity(frFaces),
-	    varlp->faceNormal(frFaces),
+            varlp->faceNormalVelocity(frFaces), varlp->faceNormal(frFaces),
             varlp->faceLength(frFaces), phiFace_fFaces,
-            varlp->outerFaceNormal(cCells, frFacesOfCellC),
-	    exy, gt->deltat_n);
+            varlp->outerFaceNormal(cCells, frFacesOfCellC), exy, gt->deltat_n);
       }
     }
   }
