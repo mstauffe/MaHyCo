@@ -1,6 +1,5 @@
 #include <Kokkos_Core.hpp>
 
-
 #include "Vnr.h"                   // for VnrRemap
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D
 #include "utils/Utils.h"           // for Indexof
