@@ -197,9 +197,9 @@ void Eucclhyd::computeGradients() noexcept {
                                          m_lpc(pNodes, cCellsOfNodeP));
           }
         }
-        m_fracvol_gradient_env(cCells, 0) = reductionF1 / m_euler_volume(cCells);
-        m_fracvol_gradient_env(cCells, 1) = reductionF2 / m_euler_volume(cCells);
-        m_fracvol_gradient_env(cCells, 2) = reductionF3 / m_euler_volume(cCells);
+        particules->m_particlecell_fracvol_gradient_env(cCells, 0) = reductionF1 / m_euler_volume(cCells);
+        particules->m_particlecell_fracvol_gradient_env(cCells, 1) = reductionF2 / m_euler_volume(cCells);
+        particules->m_particlecell_fracvol_gradient_env(cCells, 2) = reductionF3 / m_euler_volume(cCells);
       });
   if (options->spaceOrder == 2)
     Kokkos::parallel_for(
@@ -774,7 +774,7 @@ void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
             reduction3 = reduction3 + m_node_force_nplus1(pNodes, cCellsOfNodeP);
           }
         }
-        m_particle_pressure_gradient(cCells) = reduction3 / m_euler_volume(cCells);
+        particules->m_particlecell_pressure_gradient(cCells) = reduction3 / m_euler_volume(cCells);
         RealArray1D<dim> cell_velocity_L =
             m_cell_velocity_n(cCells) + reduction3 * gt->deltat_n / m_cell_mass(cCells);
 
@@ -1008,4 +1008,35 @@ void Eucclhyd::updateCellCenteredLagrangeVariables() noexcept {
   }
   m_global_total_energy_L = reductionE;
   m_total_masse_L = reductionM;
+}
+void Eucclhyd::switchalpharho_rho() noexcept {
+  Kokkos::parallel_for("updateParticleCoefficient", nbCells,
+                       KOKKOS_LAMBDA(const int& cCells) {
+                         m_density_n(cCells) /= particules->m_cell_particle_volume_fraction(cCells);
+                         for (int imat = 0; imat < nbmatmax; imat++)
+                           m_density_env_n(cCells)[imat] /= particules->m_cell_particle_volume_fraction(cCells);
+                       });
+}
+
+void Eucclhyd::switchrho_alpharho() noexcept {
+  Kokkos::parallel_for("updateParticleCoefficient", nbCells,
+                       KOKKOS_LAMBDA(const int& cCells) {
+                         m_density_n(cCells) *= particules->m_cell_particle_volume_fraction(cCells);
+                         for (int imat = 0; imat < nbmatmax; imat++)
+                           m_density_env_n(cCells)[imat] *= particules->m_cell_particle_volume_fraction(cCells);
+                       });
+}
+void Eucclhyd::PreparecellvariablesForParticles() noexcept {
+  Kokkos::parallel_for("copycellvariables", nbCells,
+        KOKKOS_LAMBDA(const int& cCells) {
+	for (int imat = 0; imat < nbmatmax; imat++) {
+	  particules->m_particlecell_fracvol_env(cCells)[imat] = m_fracvol_env(cCells)[imat];
+	  particules->m_particlecell_density_env_n(cCells)[imat] = m_density_env_n(cCells)[imat];
+	}
+	particules->m_particlecell_density_n(cCells) = m_density_n(cCells);
+	particules->m_particlecell_euler_volume(cCells) = m_euler_volume(cCells);
+	particules->m_particlecell_velocity_n(cCells) = m_cell_velocity_n(cCells);
+	particules->m_particlecell_velocity_nplus1(cCells) = m_cell_velocity_nplus1(cCells);
+	particules->m_particlecell_mass(cCells) = m_cell_mass(cCells);
+ });	
 }

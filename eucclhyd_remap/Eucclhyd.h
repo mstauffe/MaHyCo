@@ -21,7 +21,7 @@
 #include "../includes/Eos.h"
 #include "../includes/GestionTemps.h"
 #include "../includes/Limiteurs.h"
-#include "../includes/SchemaParticules.h"
+#include "../particle_scheme/SchemaParticules.h"
 #include "../includes/VariablesLagRemap.h"
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D, CartesianM...
 #include "mesh/MeshGeometry.h"     // for MeshGeometry
@@ -44,11 +44,12 @@ class Eucclhyd {
   };
 
   
- private:
+  // private:
+ public:
   CartesianMesh2D* mesh;
   optionschemalib::OptionsSchema::Options* options;
   castestlib::CasTest::Test* test;
-  particulelib::SchemaParticules::Particules* particules;
+  particleslib::SchemaParticules* particules;
   conditionslimiteslib::ConditionsLimites::Cdl* cdl;
   limiteurslib::LimiteursClass::Limiteurs* limiteurs;
   eoslib::EquationDetat::Eos* eos;
@@ -57,7 +58,7 @@ class Eucclhyd {
   variableslagremaplib::VariablesLagRemap* varlp;
   Remap* remap;
   PvdFileWriter2D writer;
-  PvdFileWriter2D writem_particle_radius;
+  PvdFileWriter2D writer_particle;
   int nbPartMax;
   int nbPart = 0;
   int nbNodes, nbCells, nbFaces, nbCellsOfNode, nbNodesOfCell,
@@ -77,7 +78,7 @@ class Eucclhyd {
   int face_debug2 = -410;
   int test_debug = 1;
 
-  // Connectivity Variables
+  // Variables
   Kokkos::View<RealArray1D<dim>*> m_node_coord;
   Kokkos::View<RealArray1D<dim>*> m_cell_coord;
   Kokkos::View<double*> m_cell_coord_x;
@@ -128,7 +129,6 @@ class Eucclhyd {
   Kokkos::View<RealArray1D<dim>**> m_cell_velocity_extrap;
   Kokkos::View<RealArray1D<dim>*> m_pressure_gradient;
   Kokkos::View<RealArray1D<dim>**> m_pressure_gradient_env;
-  Kokkos::View<RealArray1D<dim>**> m_fracvol_gradient_env;
   Kokkos::View<RealArray2D<dim, dim>*> m_velocity_gradient;
   Kokkos::View<RealArray1D<dim>**> m_node_force_n;
   Kokkos::View<RealArray1D<dim>**> m_node_force_nplus1;
@@ -149,26 +149,7 @@ class Eucclhyd {
   Kokkos::View<double*> m_pressure_env2;
   Kokkos::View<double*> m_pressure_env3;
 
-  Kokkos::View<double*> m_particle_volume;
-  Kokkos::View<double*> m_particle_weight;
-  Kokkos::View<double*> m_particle_mass;
-  Kokkos::View<double*> m_particle_radius;
-  Kokkos::View<double*> m_particle_density;
-  Kokkos::View<double*> m_particle_drag;
-  Kokkos::View<double*> m_particle_mac;
-  Kokkos::View<double*> m_particle_reynolds;
-  Kokkos::View<double*> m_particle_temperature;
-  Kokkos::View<RealArray1D<dim>*> m_particle_coord_n0;
-  Kokkos::View<RealArray1D<dim>*> m_particle_coord_n;
-  Kokkos::View<RealArray1D<dim>*> m_particle_coord_nplus1;
-  Kokkos::View<RealArray1D<dim>*> m_particle_pressure_gradient;
-  Kokkos::View<RealArray1D<dim>*> m_particle_velocity_n0;
-  Kokkos::View<RealArray1D<dim>*> m_particle_velocity_n;
-  Kokkos::View<RealArray1D<dim>*> m_particle_velocity_nplus1;
-  Kokkos::View<int*> m_particle_cell;
-  Kokkos::View<int*> m_particle_env;
-  Kokkos::View<double*> m_cell_particle_volume_fraction;
-  Kokkos::View<vector<int>*> m_cell_particle_list;
+
 
   utils::Timer global_timer;
   utils::Timer cpu_timer;
@@ -184,8 +165,9 @@ class Eucclhyd {
       castestlib::CasTest::Test* aTest,
       conditionslimiteslib::ConditionsLimites::Cdl* aCdl,
       limiteurslib::LimiteursClass::Limiteurs* aLimiteurs,
-      particulelib::SchemaParticules::Particules* aParticules,
-      eoslib::EquationDetat::Eos* aEos, CartesianMesh2D* aCartesianMesh2D,
+      particleslib::SchemaParticules* aParticules,
+      eoslib::EquationDetat::Eos* aEos,
+      CartesianMesh2D* aCartesianMesh2D,
       variableslagremaplib::VariablesLagRemap* avarlp,
       Remap* aremap,
       string output)
@@ -201,7 +183,7 @@ class Eucclhyd {
         varlp(avarlp),
         remap(aremap),
         writer("EucclhydRemap", output),
-        writem_particle_radius("Particules", output),
+        writer_particle("Particules", output),
         nbNodes(mesh->getNbNodes()),
         nbPartMax(1),
         nbCells(mesh->getNbCells()),
@@ -211,25 +193,6 @@ class Eucclhyd {
         nbNodesOfFace(CartesianMesh2D::MaxNbNodesOfFace),
         nbCalls(0),
         lastDump(0.0),
-        m_particle_volume("particle_volume", nbPartMax),
-        m_particle_weight("particle_weight", nbPartMax),
-        m_particle_mass("particle_mass", nbPartMax),
-        m_particle_radius("particle_radius", nbPartMax),
-        m_particle_density("particle_density", nbPartMax),
-        m_particle_reynolds("particle_reynolds", nbPartMax),
-        m_particle_drag("particle_drag", nbPartMax),
-        m_particle_mac("particle_drag", nbPartMax),
-        m_particle_pressure_gradient("particle_pressure_gradient", nbCells),
-        m_cell_particle_list("listepart", nbCells),
-        m_cell_particle_volume_fraction("fracPart", nbCells),
-        m_particle_coord_n0("particle_coord_n0", nbPartMax),
-        m_particle_coord_n("particle_coord_n", nbPartMax),
-        m_particle_coord_nplus1("particle_coord_nplus1", nbPartMax),
-        m_particle_velocity_n0("particle_velocity_n0", nbPartMax),
-        m_particle_velocity_n("particle_velocity_n", nbPartMax),
-        m_particle_velocity_nplus1("particle_velocity_nplus1", nbPartMax),
-        m_particle_cell("Icellp", nbPartMax),
-        m_particle_env("Imatp", nbPartMax),
         m_node_coord("node_coord", nbNodes),
         m_cell_coord("cell_coord", nbCells),
         m_cell_coord_x("cell_coord_x", nbCells),
@@ -289,7 +252,6 @@ class Eucclhyd {
         m_cell_velocity_extrap("cell_velocity_extrap", nbCells, nbNodesOfCell),
         m_pressure_gradient("pressure_gradient", nbCells),
         m_pressure_gradient_env("pressure_gradient_env", nbCells, nbmatmax),
-        m_fracvol_gradient_env("fracvol_gradient_env", nbCells, nbmatmax),
         m_velocity_gradient("velocity_gradient", nbCells),
         m_node_force_n("node_force_n", nbNodes, nbCellsOfNode),
         m_node_force_nplus1("node_force_nplus1", nbNodes, nbCellsOfNode),
@@ -324,7 +286,6 @@ class Eucclhyd {
   void initCellVelocity() noexcept;
   void initDensity() noexcept;
   void initMeshGeometryForFaces() noexcept;
-  void initPart() noexcept;
   void setUpTimeLoopN() noexcept;
 
   void computeCornerNormal() noexcept;
@@ -352,14 +313,10 @@ class Eucclhyd {
 
   void remapCellcenteredVariable() noexcept;
 
-  void updateParticlePosition() noexcept;
-  void updateParticleCoefficients() noexcept;
-  void updateParticleVelocity() noexcept;
-  void updateParticleRetroaction() noexcept;
-
-  void switchalpham_density_rho() noexcept;
-  void switchm_density_alpharho() noexcept;
-
+  void switchalpharho_rho() noexcept;
+  void switchrho_alpharho() noexcept;
+  void PreparecellvariablesForParticles() noexcept;
+  
   RealArray2D<2, 2> inverse(RealArray2D<2, 2> a);
   template <size_t N, size_t M>
   RealArray2D<N, M> tensProduct(RealArray1D<N> a, RealArray1D<M> b);

@@ -18,7 +18,6 @@ int main(int argc, char* argv[]) {
   auto o = new optionschemalib::OptionsSchema::Options();
   auto cl = new conditionslimiteslib::ConditionsLimites::Cdl();
   auto lim = new limiteurslib::LimiteursClass::Limiteurs();
-  auto part = new particulelib::SchemaParticules::Particules();
   auto eos = new eoslib::EquationDetat::Eos();
   auto test = new castestlib::CasTest::Test();
   auto cstmesh =
@@ -42,26 +41,29 @@ int main(int argc, char* argv[]) {
   // appel au schéma Lagrange Eucclhyd + schéma de projection ADI (en option)
   if (scheme->schema == scheme->Eucclhyd) {
     auto varlp = new variableslagremaplib::VariablesLagRemap(nm);
+    auto part = new particleslib::SchemaParticules(nm, cstmesh, gt, test);
     auto proj =  new Remap(o, cstmesh, gt, cl, lim, nm, varlp);
     auto c =
       new Eucclhyd(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, output);
     c->simulate();
     delete varlp;
+    delete part;
     //delete c;
   
   } else if (scheme->schema == scheme->VNR) {
     auto varlp = new variableslagremaplib::VariablesLagRemap(nm);
+    auto part = new particleslib::SchemaParticules(nm, cstmesh, gt, test);
     auto proj =  new Remap(o, cstmesh, gt, cl, lim, nm, varlp);
     auto c = new Vnr(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, output);
     c->simulate();
     delete varlp;
+    delete part;
     //delete c;
   }
   delete o;
   // delete nm;
   delete cl;
   delete lim;
-  delete part;
   delete eos;
   delete test;
   delete cstmesh;

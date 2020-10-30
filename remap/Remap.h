@@ -21,7 +21,6 @@
 #include "../includes/Eos.h"
 #include "../includes/GestionTemps.h"
 #include "../includes/Limiteurs.h"
-#include "../includes/SchemaParticules.h"
 #include "../includes/VariablesLagRemap.h"
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D, CartesianM...
 #include "mesh/MeshGeometry.h"     // for MeshGeometry
@@ -51,8 +50,6 @@ class Remap {
   limiteurslib::LimiteursClass::Limiteurs* limiteurs;
   gesttempslib::GestionTempsClass::GestTemps* gt;
   variableslagremaplib::VariablesLagRemap* varlp;
-  int nbPartMax;
-  int nbPart = 0;
   int nbNodes, nbCells, nbFaces, nbCellsOfNode, nbNodesOfCell,
     nbNodesOfFace, nbCellsOfFace, nbFacesOfCell;
 
@@ -118,7 +115,6 @@ class Remap {
         mesh(aCartesianMesh2D),
         varlp(avarlp),
         nbNodes(mesh->getNbNodes()),
-        nbPartMax(1),
         nbCells(mesh->getNbCells()),
         nbFaces(mesh->getNbFaces()),
         nbCellsOfNode(CartesianMesh2D::MaxNbCellsOfNode),

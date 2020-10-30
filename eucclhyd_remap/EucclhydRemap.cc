@@ -48,14 +48,14 @@ void Eucclhyd::dumpVariables() noexcept {
     cellVariables.insert(pair<string, double*>("VelocityX", m_x_cell_velocity.data()));
     cellVariables.insert(pair<string, double*>("VelocityY", m_y_cell_velocity.data()));
     cellVariables.insert(pair<string, double*>("Energy", m_internal_energy_n.data()));
-    partVariables.insert(pair<string, double*>("VolumePart", m_particle_volume.data()));
-    partVariables.insert(pair<string, double*>("VxPart", m_particle_velocity_n[0].data()));
-    partVariables.insert(pair<string, double*>("VyPart", m_particle_velocity_n[1].data()));
+    partVariables.insert(pair<string, double*>("VolumePart", particules->m_particle_volume.data()));
+    partVariables.insert(pair<string, double*>("VxPart", particules->m_particle_velocity_n[0].data()));
+    partVariables.insert(pair<string, double*>("VyPart", particules->m_particle_velocity_n[1].data()));
     auto quads = mesh->getGeometry()->getQuads();
     writer.writeFile(nbCalls, gt->t_n, nbNodes, m_node_coord.data(), nbCells,
                      quads.data(), cellVariables, nodeVariables);
-    writem_particle_radius.writeFile(nbCalls, gt->t_n, nbPart, m_particle_coord_n.data(), 0,
-                         quads.data(), cellVariables, partVariables);
+    writer_particle.writeFile(nbCalls, gt->t_n, nbPart, particules->m_particle_coord_n.data(), 0,
+                          quads.data(), cellVariables, partVariables);
     lastDump = gt->t_n;
     std::cout << " time = " << gt->t_n << " sortie demandée " << std::endl;
     io_timer.stop();
@@ -94,10 +94,10 @@ void Eucclhyd::executeTimeLoopN() noexcept {
                 << setiosflags(std::ios::scientific) << setprecision(8)
                 << setw(16) << gt->t_n << __RESET__;
 
-    if (options->AvecParticules == 1) switchalpham_density_rho();
+    if (options->AvecParticules == 1) switchalpharho_rho();
     computeEOS();
     computePressionMoyenne();
-    if (options->AvecParticules == 1) switchm_density_alpharho();
+    if (options->AvecParticules == 1) switchrho_alpharho();
     computeGradients();                         // @1.0
     computeMass();                              // @1.0
     computeDissipationMatrix();                 // @2.0
@@ -117,6 +117,13 @@ void Eucclhyd::executeTimeLoopN() noexcept {
     computeFacedeltaxLagrange();                // @7.0
     updateCellCenteredLagrangeVariables();      // @7.0
 
+    if (options->AvecParticules == 1) {
+      PreparecellvariablesForParticles();
+      particules->updateParticlePosition();
+      particules->updateParticleCoefficients();
+      particules->updateParticleVelocity();
+      particules->updateParticleRetroaction();
+    }
     if (options->AvecProjection == 1) {
       remap->computeGradPhiFace1();                        // @8.0
       remap->computeGradPhi1();                            // @9.0
@@ -127,12 +134,6 @@ void Eucclhyd::executeTimeLoopN() noexcept {
       remap->computeUpwindFaceQuantitiesForProjection2();  // @14.0
       remap->computeUremap2();                             // @15.0
       remapCellcenteredVariable();                         // @16.0
-    }
-    if (options->AvecParticules == 1) {
-      updateParticlePosition();
-      updateParticleCoefficients();
-      updateParticleVelocity();
-      updateParticleRetroaction();
     }
 
     // Evaluate loop condition with variables at time n
@@ -153,8 +154,8 @@ void Eucclhyd::executeTimeLoopN() noexcept {
       std::swap(m_node_force_nplus1, m_node_force_n);
       std::swap(m_node_force_env_nplus1, m_node_force_env_n);
       if (options->AvecParticules == 1) {
-        std::swap(m_particle_velocity_nplus1, m_particle_velocity_n);
-        std::swap(m_particle_coord_nplus1, m_particle_coord_n);
+        std::swap(particules->m_particle_velocity_nplus1, particules->m_particle_velocity_n);
+        std::swap(particules->m_particle_coord_nplus1, particules->m_particle_coord_n);
       }
       if (options->AvecProjection == 0) {
         std::swap(varlp->vLagrange, m_euler_volume);
@@ -278,9 +279,9 @@ void Eucclhyd::simulate() {
   initDensity();               // @2.0
   initMeshGeometryForFaces();  // @2.0
   if (options->AvecParticules == 1) {
-    initPart();
-    updateParticleCoefficients();
-    switchm_density_alpharho();  // on travaille avec alpharho sauf pour l'EOS
+    particules->initPart();
+    particules->updateParticleCoefficients();
+    switchrho_alpharho();  // on travaille avec alpharho sauf pour l'EOS
   }
   setUpTimeLoopN();    // @3.0
   executeTimeLoopN();  // @4.0

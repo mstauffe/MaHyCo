@@ -145,6 +145,7 @@ void Eucclhyd::initMeshGeometryForCells() noexcept {
         m_cell_coord_x(cCells) = xc[0];
         m_cell_coord_y(cCells) = xc[1];
         m_euler_volume(cCells) = vol;
+	particules->m_particlecell_euler_volume(cCells) = vol;
         double reduction13 = 0.0;
         {
           auto nodesOfCellC(mesh->getNodesOfCell(cId));
@@ -712,71 +713,6 @@ void Eucclhyd::initMeshGeometryForFaces() noexcept {
         //	  <<  varlp->faceNormal(fFaces) << std::endl;
       });
 }
-
-void Eucclhyd::initPart() noexcept {
-  Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
-    m_particle_velocity_n0(ipart) = zeroVect;
-
-    m_particle_radius(ipart) = 5.e-6;
-    m_particle_density(ipart) = 1110.;
-    m_particle_weight(ipart) = 1.e7;
-    m_particle_volume(ipart) = 4. * Pi * m_particle_radius(ipart) * m_particle_radius(ipart) * m_particle_radius(ipart) / 3.;
-    m_particle_mass(ipart) = m_particle_density(ipart) * m_particle_volume(ipart);
-  });
-
-  if (test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY ||
-      test->Nom == test->SodCaseX || test->Nom == test->SodCaseY)
-    Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
-      m_particle_coord_n0(ipart)[1] = (ipart % 10) * 0.01 + ipart * 0.0001;
-
-      if (ipart < nbPart / 6)
-        m_particle_coord_n0(ipart)[0] = 0.545;
-      else if (ipart >= nbPart / 6 && ipart < 2 * nbPart / 6)
-        m_particle_coord_n0(ipart)[0] = 0.595;
-      else if (ipart >= 2 * nbPart / 6 && ipart < 3 * nbPart / 6)
-        m_particle_coord_n0(ipart)[0] = 0.645;
-      else if (ipart >= 3 * nbPart / 6 && ipart < 4 * nbPart / 6)
-        m_particle_coord_n0(ipart)[0] = 0.695;
-      else if (ipart >= 4 * nbPart / 6 && ipart < 5 * nbPart / 6)
-        m_particle_coord_n0(ipart)[0] = 0.745;
-      else if (ipart >= 5 * nbPart / 6)
-        m_particle_coord_n0(ipart)[0] = 0.795;
-
-      int icell = MathFunctions::max(
-          floor(m_particle_coord_n0(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
-      int jcell = MathFunctions::max(
-          floor(m_particle_coord_n0(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
-      m_particle_cell(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
-      m_cell_particle_list(m_particle_cell(ipart)).push_back(ipart);
-      m_particle_env(ipart) = 1;
-      // std::cout << " Part  " << ipart << "  xp= " <<
-      // m_particle_coord_n0(ipart)[0]
-      //          << "  yp= " << m_particle_coord_n0(ipart)[1] << "  " <<
-      //          m_particle_cell(ipart)
-      //          << std::endl;
-    });
-  else if (test->Nom == test->BiTriplePoint)
-    Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
-      m_particle_coord_n0(ipart)[1] = (ipart % 20) * 0.00075 + 0.00060;
-      int section = nbPart / 20;
-      for (int i = 0; i < section; i++)
-        if (ipart >= i * nbPart / section && ipart < (i + 1) * nbPart / section)
-          m_particle_coord_n0(ipart)[0] = 0.01 + 0.0005 * (i + 1);
-
-      int icell = MathFunctions::max(
-          floor(m_particle_coord_n0(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
-      int jcell = MathFunctions::max(
-          floor(m_particle_coord_n0(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
-      m_particle_cell(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
-      m_cell_particle_list(m_particle_cell(ipart)).push_back(ipart);
-      m_particle_env(ipart) = 1;
-      // std::cout << " Part  " << ipart << "  xp= " <<
-      // m_particle_coord_n0(ipart)[0]
-      //          << "  yp= " << m_particle_coord_n0(ipart)[1] << "  " <<
-      //          m_particle_cell(ipart)
-      //          << std::endl;
-    });
-}
 /**
  * Job setUpTimeLoopN called @3.0 in simulate method.
  * In variables: m_node_force_n0, m_cell_velocity_n0, m_node_velocity_n0, m_internal_energy_n0, m_density_n0
@@ -790,7 +726,6 @@ void Eucclhyd::setUpTimeLoopN() noexcept {
   deep_copy(m_internal_energy_n, m_internal_energy_n0);
   deep_copy(m_internal_energy_env_n, m_internal_energy_env_n0);
   deep_copy(m_node_force_n, m_node_force_n0);
-  deep_copy(m_particle_coord_n, m_particle_coord_n0);
 
   if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY ||
       test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {

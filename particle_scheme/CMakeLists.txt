@@ -1,4 +1,4 @@
-set( LIBRARY_NAME "eucclhydremap" )
+set( LIBRARY_NAME "particles" )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR
       CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
@@ -8,12 +8,7 @@ endif()
 add_library( ${LIBRARY_NAME} )
 target_sources( ${LIBRARY_NAME} 
     PRIVATE
-        EucclhydRemap.cc
-        ConditionsLimites.cc
-        Init.cc
-        PhaseLagrange.cc
-        PhaseRemapFinal.cc
-        Utiles.cc
+        SchemaParticules.cc
 )
 target_include_directories( ${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} )
 if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
