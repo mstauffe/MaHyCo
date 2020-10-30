@@ -25,7 +25,7 @@
 #include "../includes/Eos.h"
 #include "../includes/GestionTemps.h"
 #include "../includes/Limiteurs.h"
-#include "../includes/SchemaParticules.h"
+#include "../particle_scheme/SchemaParticules.h"
 #include "../includes/VariablesLagRemap.h"
 
 #include "mesh/CartesianMesh2D.h" // for CartesianMesh2D, CartesianM...
@@ -79,7 +79,7 @@ private:
 	CartesianMesh2D* mesh;
         optionschemalib::OptionsSchema::Options* options;
 	castestlib::CasTest::Test* test;
-	particulelib::SchemaParticules::Particules* particules;
+	particleslib::SchemaParticules* particules;
 	conditionslimiteslib::ConditionsLimites::Cdl* cdl;
 	limiteurslib::LimiteursClass::Limiteurs* limiteurs;
 	eoslib::EquationDetat::Eos* eos;
@@ -188,7 +188,7 @@ private:
       castestlib::CasTest::Test* aTest,
       conditionslimiteslib::ConditionsLimites::Cdl* aCdl,
       limiteurslib::LimiteursClass::Limiteurs* aLimiteurs,
-      particulelib::SchemaParticules::Particules* aParticules,
+      particleslib::SchemaParticules* aParticules,
       eoslib::EquationDetat::Eos* aEos, CartesianMesh2D* aCartesianMesh2D,
       variableslagremaplib::VariablesLagRemap* avarlp,
       Remap* aremap,
