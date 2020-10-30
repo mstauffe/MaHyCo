@@ -13,22 +13,22 @@
 #include <array>
 #include "types/MultiArray.h"
 
-using namespace std;
-
 namespace nablalib
 {
+// Type alias
+using Id = size_t;
 
-template<size_t N> using IntArray1D = array<int, N>;
-template<size_t N, size_t M> using IntArray2D = array<IntArray1D<M>, N>;
-template<size_t N> using  RealArray1D = array<double, N>;
-template<size_t N, size_t M> using RealArray2D = array<RealArray1D<M>, N>;
+template<size_t N>
+using IntArray1D = MultiArray<int, N>;
 
-/*
-template<size_t N> using IntArray1D = MultiArray<int, N>;
-template<size_t N, size_t M> using IntArray2D = MultiArray<int, M, N>;
-template<size_t N> using  RealArray1D = MultiArray<double, N>;
-template<size_t N, size_t M> using RealArray2D = MultiArray<double, M, N>;
-*/
+template<size_t M, size_t N>
+using IntArray2D = MultiArray<int, M, N>;
+
+template<size_t N>
+using  RealArray1D = MultiArray<double, N>;
+
+template<size_t M, size_t N>
+using RealArray2D = MultiArray<double, M, N>;
 
 }  // namespace nablalib
   

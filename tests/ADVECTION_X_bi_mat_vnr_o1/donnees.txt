@@ -1,0 +1,46 @@
+# Cas test
+BiAdvectionX
+# Nombre de Mailles en X
+300
+# Nombre de Mailles en Y
+5
+# DELTA_X
+0.005
+# DELTA_Y
+0.02
+# temps final
+1.
+# Temps entre deux sorties
+1.e-1
+# Pas de temps initial
+1.e-3
+# Pas de temps minimal
+1.e-12
+# equation d'etat
+PerfectGas
+# equation d'etat
+PerfectGas
+# schéma Lagrange
+VNR
+# ordre en espace du schéma Lagrange
+2
+# avec projection (mode euler)
+oui
+# projection conservative
+non
+# Limite fraction volumique
+1.e-16
+# Ordre de la projection
+1
+# Limiteurs
+minmod
+# option Pente Borne
+non
+# option Pente Borne Mixte
+oui
+# limiteur Pente Borne Pure
+minmod
+# option Pente Borne Complet
+non
+# pseudo_centree
+non

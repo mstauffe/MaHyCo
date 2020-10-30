@@ -1,5 +1,10 @@
 set( LIBRARY_NAME "eucclhydremap" )
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR
+      CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
+    string(APPEND CMAKE_CXX_FLAGS " -Wno-c++11-narrowing")
+endif()
+
 add_library( ${LIBRARY_NAME} )
 target_sources( ${LIBRARY_NAME} 
     PRIVATE
@@ -7,13 +12,8 @@ target_sources( ${LIBRARY_NAME}
         ConditionsLimites.cc
         Init.cc
         PhaseLagrange.cc
-        PhaseRemap1.cc
-        PhaseRemap2.cc
         PhaseRemapFinal.cc
-        SchemaParticules.cc
         Utiles.cc
-        UtilesRemap.cc
-	UtilesMesh.cc
 )
 target_include_directories( ${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} )
 if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )

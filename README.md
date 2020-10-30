@@ -91,17 +91,7 @@ In this new directory adds :
 Then register the new test in the `CMakeLists.txt` file by adding it to the `TEST_NAMES` variable :
 
 ```
-set( TEST_NAMES "SOD_X_bi_mat_Superbee_PenteBorne_mix"
-                "SOD_X_bi_mat_MinMod_simple"
-                "SOD_X_bi_mat_Superbee_PenteBorne_simple"
-                "SOD_X_bi_mat_Superbee_simple"
-                "SOD_Y_bi_mat_MinMod_simple"
-                "SOD_Y_bi_mat_Superbee_PenteBorne_mixte"
-                "SOD_Y_bi_mat_Superbee_PenteBorne_pure"
-                "SOD_Y_bi_mat_VanLeer_PenteBorne_pure"
-                "SOD_X_Mono_mat_MinModG_simple"
-                "SOD_X_Mono_mat_MinMod_simple"
-                "SOD_X_Mono_mat_SuperBee_simple"
+set( TEST_NAMES "SOD_X_Mono_mat_SuperBee_simple"
                 "SOD_X_Mono_mat_VanLeer_simple"
                 "test_name" )
 ```
