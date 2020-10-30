@@ -656,45 +656,51 @@ void Remap::getRightAndLeftFluxMassePB1(const int nbmat, const size_t pNodes) {
   RightFluxMasse(pNodes) = 0.;
   LeftFluxMasse(pNodes) = 0.;
   for (int imat = 0; imat < nbmat; imat++) {
-	  
     RightFluxMassePartielle(pNodes)[imat] = 0;
     LeftFluxMassePartielle(pNodes)[imat] = 0;
     int nbcell(0);
-	  
+
     if (VerticalFaceOfNode(pNodes)[0] != -1) {
-      RightFluxMassePartielle(pNodes)[imat] += DualphiFlux1(cfCell1)[nbmat + imat];
-      LeftFluxMassePartielle(pNodes)[imat] += DualphiFlux1(cbCell1)[nbmat +imat];
+      RightFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux1(cfCell1)[nbmat + imat];
+      LeftFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux1(cbCell1)[nbmat + imat];
       nbcell++;
     }
-	  
+
     if (VerticalFaceOfNode(pNodes)[1] != -1) {
-      RightFluxMassePartielle(pNodes)[imat] += DualphiFlux1(cfCell2)[nbmat + imat];
-      LeftFluxMassePartielle(pNodes)[imat] += DualphiFlux1(cbCell2)[nbmat + imat];
+      RightFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux1(cfCell2)[nbmat + imat];
+      LeftFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux1(cbCell2)[nbmat + imat];
       nbcell++;
     }
- 
-    if (nbcell !=0) {
+
+    if (nbcell != 0) {
       RightFluxMassePartielle(pNodes)[imat] /= nbcell;
       LeftFluxMassePartielle(pNodes)[imat] /= nbcell;
     }
-	  
-    RightFluxMasse(pNodes) +=  RightFluxMassePartielle(pNodes)[imat];  
-    LeftFluxMasse(pNodes) +=  LeftFluxMassePartielle(pNodes)[imat];
+
+    RightFluxMasse(pNodes) += RightFluxMassePartielle(pNodes)[imat];
+    LeftFluxMasse(pNodes) += LeftFluxMassePartielle(pNodes)[imat];
 
     // if (pNodes == 300 || pNodes == 301 || pNodes == 302) {
     // std::cout << " H1 pNode " <<  pNodes << " left " << LeftFluxMasse(pNodes)
-    // 	      << " FluxFace1(cfCell1, fOfcfCell1)[nbmat+imat] " << FluxFace1(cfCell1, fOfcfCell1)[nbmat+imat]
-    // 	      << " FluxFace1(cfCell1, frOfcfCell1)[nbmat+imat] " << FluxFace1(cfCell1, frOfcfCell1)[nbmat+imat]
+    // 	      << " FluxFace1(cfCell1, fOfcfCell1)[nbmat+imat] " <<
+    // FluxFace1(cfCell1, fOfcfCell1)[nbmat+imat]
+    // 	      << " FluxFace1(cfCell1, frOfcfCell1)[nbmat+imat] " <<
+    // FluxFace1(cfCell1, frOfcfCell1)[nbmat+imat]
     // 	      << std::endl;
-    // std::cout << " H1 pNode " <<  pNodes << " FluxFace1(cfCell2, fOfcfCell2)[nbmat+imat] "
+    // std::cout << " H1 pNode " <<  pNodes << " FluxFace1(cfCell2,
+    // fOfcfCell2)[nbmat+imat] "
     // 	      << FluxFace1(cfCell2, fOfcfCell2)[nbmat+imat]
     // 	      << std::endl;
-    // std::cout << " H1 pNode " <<  pNodes << " FluxFace1(cfCell2, frOfcfCell2)[nbmat+imat] "
+    // std::cout << " H1 pNode " <<  pNodes << " FluxFace1(cfCell2,
+    // frOfcfCell2)[nbmat+imat] "
     // 	      << FluxFace1(cfCell2, frOfcfCell2)[nbmat+imat]
     // 	      << std::endl;
     // }
   }
-
 }
 void Remap::getRightAndLeftFluxMassePB2(const int nbmat, const size_t pNodes) {
   // construction des mailles et faces associées pour recuperer les
@@ -707,44 +713,49 @@ void Remap::getRightAndLeftFluxMassePB2(const int nbmat, const size_t pNodes) {
   RightFluxMasse(pNodes) = 0.;
   LeftFluxMasse(pNodes) = 0.;
   for (int imat = 0; imat < nbmat; imat++) {
-	  
     RightFluxMassePartielle(pNodes)[imat] = 0;
     LeftFluxMassePartielle(pNodes)[imat] = 0;
     int nbcell(0);
-	  
+
     if (VerticalFaceOfNode(pNodes)[0] != -1) {
-      RightFluxMassePartielle(pNodes)[imat] += DualphiFlux2(cfCell1)[nbmat + imat];
-      LeftFluxMassePartielle(pNodes)[imat] += DualphiFlux2(cbCell1)[nbmat + imat];
+      RightFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux2(cfCell1)[nbmat + imat];
+      LeftFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux2(cbCell1)[nbmat + imat];
       nbcell++;
     }
-	  
+
     if (VerticalFaceOfNode(pNodes)[1] != -1) {
-      RightFluxMassePartielle(pNodes)[imat] += DualphiFlux2(cfCell2)[nbmat + imat];
-      LeftFluxMassePartielle(pNodes)[imat] += DualphiFlux2(cbCell2)[nbmat + imat];
+      RightFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux2(cfCell2)[nbmat + imat];
+      LeftFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux2(cbCell2)[nbmat + imat];
       nbcell++;
     }
     // if (pNodes == 300 || pNodes == 301 || pNodes == 302) {
     // std::cout << " H2 pNode " <<  pNodes << " left " << LeftFluxMasse(pNodes)
-    // 	      << " FluxFace2(cfCell1, fOfcfCell1)[nbmat+imat] " << FluxFace2(cfCell1, fOfcfCell1)[nbmat+imat]
-    // 	      << " FluxFace2(cfCell1, frOfcfCell1)[nbmat+imat] " << FluxFace2(cfCell1, frOfcfCell1)[nbmat+imat]
+    // 	      << " FluxFace2(cfCell1, fOfcfCell1)[nbmat+imat] " <<
+    // FluxFace2(cfCell1, fOfcfCell1)[nbmat+imat]
+    // 	      << " FluxFace2(cfCell1, frOfcfCell1)[nbmat+imat] " <<
+    // FluxFace2(cfCell1, frOfcfCell1)[nbmat+imat]
     // 	      << std::endl;
-    // std::cout << " H1 pNode " <<  pNodes << " FluxFace2(cfCell2, fOfcfCell2)[nbmat+imat] "
+    // std::cout << " H1 pNode " <<  pNodes << " FluxFace2(cfCell2,
+    // fOfcfCell2)[nbmat+imat] "
     // 	      << FluxFace2(cfCell2, fOfcfCell2)[nbmat+imat]
     // 	      << std::endl;
-    // std::cout << " H1 pNode " <<  pNodes << " FluxFace2(cfCell2, frOfcfCell2)[nbmat+imat] "
+    // std::cout << " H1 pNode " <<  pNodes << " FluxFace2(cfCell2,
+    // frOfcfCell2)[nbmat+imat] "
     // 	      << FluxFace2(cfCell2, frOfcfCell2)[nbmat+imat]
     // 	      << std::endl;
-    // }  
-    if (nbcell !=0) {
+    // }
+    if (nbcell != 0) {
       RightFluxMassePartielle(pNodes)[imat] /= nbcell;
       LeftFluxMassePartielle(pNodes)[imat] /= nbcell;
     }
-	  
-    RightFluxMasse(pNodes) +=  RightFluxMassePartielle(pNodes)[imat];  
-    LeftFluxMasse(pNodes) +=  LeftFluxMassePartielle(pNodes)[imat];
-    
-  }
 
+    RightFluxMasse(pNodes) += RightFluxMassePartielle(pNodes)[imat];
+    LeftFluxMasse(pNodes) += LeftFluxMassePartielle(pNodes)[imat];
+  }
 }
 
 void Remap::getTopAndBottomFluxMassePB1(const int nbmat, const size_t pNodes) {
@@ -755,7 +766,7 @@ void Remap::getTopAndBottomFluxMassePB1(const int nbmat, const size_t pNodes) {
   // des 4 faces verticales des 2 mailles à droite du noeud
   // ou
   // des 4 faces verticales des 2 mailles à gauche du noeud
-	
+
   TopFluxMasse(pNodes) = 0.;
   BottomFluxMasse(pNodes) = 0;
   for (int imat = 0; imat < nbmat; imat++) {
@@ -763,23 +774,27 @@ void Remap::getTopAndBottomFluxMassePB1(const int nbmat, const size_t pNodes) {
     BottomFluxMassePartielle(pNodes)[imat] = 0;
     int nbcell(0);
 
-    if (HorizontalFaceOfNode(pNodes)[0] !=-1) {
-      TopFluxMassePartielle(pNodes)[imat] += DualphiFlux1(cbCell1)[nbmat + imat];
-      BottomFluxMassePartielle(pNodes)[imat] += DualphiFlux1(cfCell1)[nbmat + imat];
+    if (HorizontalFaceOfNode(pNodes)[0] != -1) {
+      TopFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux1(cbCell1)[nbmat + imat];
+      BottomFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux1(cfCell1)[nbmat + imat];
       nbcell++;
     }
-    if (HorizontalFaceOfNode(pNodes)[1] !=-1) {
-      TopFluxMassePartielle(pNodes)[imat] += DualphiFlux1(cbCell2)[nbmat + imat];
-      BottomFluxMassePartielle(pNodes)[imat] += DualphiFlux1(cfCell2)[nbmat + imat];
+    if (HorizontalFaceOfNode(pNodes)[1] != -1) {
+      TopFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux1(cbCell2)[nbmat + imat];
+      BottomFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux1(cfCell2)[nbmat + imat];
       nbcell++;
     }
-    if (nbcell !=0) {
+    if (nbcell != 0) {
       TopFluxMassePartielle(pNodes)[imat] /= nbcell;
       BottomFluxMassePartielle(pNodes)[imat] /= nbcell;
     }
-	  
-    TopFluxMasse(pNodes) +=  TopFluxMassePartielle(pNodes)[imat];	     
-    BottomFluxMasse(pNodes) +=  BottomFluxMassePartielle(pNodes)[imat];
+
+    TopFluxMasse(pNodes) += TopFluxMassePartielle(pNodes)[imat];
+    BottomFluxMasse(pNodes) += BottomFluxMassePartielle(pNodes)[imat];
   }
 }
 void Remap::getTopAndBottomFluxMassePB2(const int nbmat, const size_t pNodes) {
@@ -797,22 +812,26 @@ void Remap::getTopAndBottomFluxMassePB2(const int nbmat, const size_t pNodes) {
     BottomFluxMassePartielle(pNodes)[imat] = 0;
     int nbcell(0);
 
-    if (HorizontalFaceOfNode(pNodes)[0] !=-1) {
-      TopFluxMassePartielle(pNodes)[imat] += DualphiFlux2(cbCell1)[nbmat + imat];
-      BottomFluxMassePartielle(pNodes)[imat] +=  DualphiFlux2(cfCell1)[nbmat + imat];
+    if (HorizontalFaceOfNode(pNodes)[0] != -1) {
+      TopFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux2(cbCell1)[nbmat + imat];
+      BottomFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux2(cfCell1)[nbmat + imat];
       nbcell++;
     }
-    if (HorizontalFaceOfNode(pNodes)[1] !=-1) {
-      TopFluxMassePartielle(pNodes)[imat] += DualphiFlux2(cbCell2)[nbmat + imat];
-      BottomFluxMassePartielle(pNodes)[imat] += DualphiFlux2(cfCell2)[nbmat + imat];
+    if (HorizontalFaceOfNode(pNodes)[1] != -1) {
+      TopFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux2(cbCell2)[nbmat + imat];
+      BottomFluxMassePartielle(pNodes)[imat] +=
+          DualphiFlux2(cfCell2)[nbmat + imat];
       nbcell++;
     }
-    if (nbcell !=0) {
+    if (nbcell != 0) {
       TopFluxMassePartielle(pNodes)[imat] /= nbcell;
       BottomFluxMassePartielle(pNodes)[imat] /= nbcell;
     }
-	  
-    TopFluxMasse(pNodes) +=  TopFluxMassePartielle(pNodes)[imat];	     
-    BottomFluxMasse(pNodes) +=  BottomFluxMassePartielle(pNodes)[imat];
+
+    TopFluxMasse(pNodes) += TopFluxMassePartielle(pNodes)[imat];
+    BottomFluxMasse(pNodes) += BottomFluxMassePartielle(pNodes)[imat];
   }
 }

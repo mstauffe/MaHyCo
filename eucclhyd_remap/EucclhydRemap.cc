@@ -1,6 +1,3 @@
-#include "../remap/Remap.h"
-#include "Eucclhyd.h"
-
 #include <stdlib.h>  // for exit
 
 #include <Kokkos_Core.hpp>  // for finalize
@@ -10,6 +7,8 @@
 #include <map>              // for map
 #include <utility>          // for pair, swap
 
+#include "../remap/Remap.h"
+#include "Eucclhyd.h"
 #include "types/MathFunctions.h"  // for min
 #include "utils/Utils.h"          // for __RESET__, __BOLD__, __GREEN__
 
@@ -17,8 +16,8 @@ using namespace nablalib;
 
 /**
  * Job dumpVariables called @2.0 in executeTimeLoopN method.
- * In variables: m_cell_coord_x, m_cell_coord_y, m_internal_energy_n, m, p, m_density_n, t_n, v
- * Out variables:
+ * In variables: m_cell_coord_x, m_cell_coord_y, m_internal_energy_n, m, p,
+ * m_density_n, t_n, v Out variables:
  */
 KOKKOS_INLINE_FUNCTION
 void Eucclhyd::dumpVariables() noexcept {
@@ -45,17 +44,24 @@ void Eucclhyd::dumpVariables() noexcept {
     cellVariables.insert(pair<string, double*>("F1", m_fracvol_env1.data()));
     cellVariables.insert(pair<string, double*>("F2", m_fracvol_env2.data()));
     cellVariables.insert(pair<string, double*>("F3", m_fracvol_env3.data()));
-    cellVariables.insert(pair<string, double*>("VelocityX", m_x_cell_velocity.data()));
-    cellVariables.insert(pair<string, double*>("VelocityY", m_y_cell_velocity.data()));
-    cellVariables.insert(pair<string, double*>("Energy", m_internal_energy_n.data()));
-    partVariables.insert(pair<string, double*>("VolumePart", particules->m_particle_volume.data()));
-    partVariables.insert(pair<string, double*>("VxPart", particules->m_particle_velocity_n[0].data()));
-    partVariables.insert(pair<string, double*>("VyPart", particules->m_particle_velocity_n[1].data()));
+    cellVariables.insert(
+        pair<string, double*>("VelocityX", m_x_cell_velocity.data()));
+    cellVariables.insert(
+        pair<string, double*>("VelocityY", m_y_cell_velocity.data()));
+    cellVariables.insert(
+        pair<string, double*>("Energy", m_internal_energy_n.data()));
+    partVariables.insert(pair<string, double*>(
+        "VolumePart", particules->m_particle_volume.data()));
+    partVariables.insert(pair<string, double*>(
+        "VxPart", particules->m_particle_velocity_n[0].data()));
+    partVariables.insert(pair<string, double*>(
+        "VyPart", particules->m_particle_velocity_n[1].data()));
     auto quads = mesh->getGeometry()->getQuads();
     writer.writeFile(nbCalls, gt->t_n, nbNodes, m_node_coord.data(), nbCells,
                      quads.data(), cellVariables, nodeVariables);
-    writer_particle.writeFile(nbCalls, gt->t_n, nbPart, particules->m_particle_coord_n.data(), 0,
-                          quads.data(), cellVariables, partVariables);
+    writer_particle.writeFile(nbCalls, gt->t_n, particules->nbPart,
+                              particules->m_particle_coord_n.data(), 0,
+                              quads.data(), cellVariables, partVariables);
     lastDump = gt->t_n;
     std::cout << " time = " << gt->t_n << " sortie demandée " << std::endl;
     io_timer.stop();
@@ -65,20 +71,24 @@ void Eucclhyd::dumpVariables() noexcept {
 
 /**
  * Job executeTimeLoopN called @4.0 in simulate method.
- * In variables: m_node_force_n, m_node_force_nplus1, G, M, m_node_dissipation, ULagrange, Uremap1, Uremap2,
- * m_cell_velocity_extrap, m_cell_velocity_n, m_node_velocity_n, m_node_velocity_nplus1, X, XLagrange, m_cell_coord,
+ * In variables: m_node_force_n, m_node_force_nplus1, G, M, m_node_dissipation,
+ * ULagrange, Uremap1, Uremap2, m_cell_velocity_extrap, m_cell_velocity_n,
+ * m_node_velocity_n, m_node_velocity_nplus1, X, XLagrange, m_cell_coord,
  * m_cell_coordLagrange, m_cell_coord_x, m_cell_coord_y, Xf, bottomBC,
- * bottomBCValue, c, cfl, deltat_n, deltat_nplus1, m_cell_deltat, deltaxLagrange, eos,
- * eosPerfectGas, m_internal_energy_n, faceLength, faceNormal, faceNormalVelocity, gamma,
- * gradPhi1, gradPhi2, gradPhiFace1, gradPhiFace2, m_velocity_gradient, m_pressure_gradient, leftBC,
- * leftBCValue, lminus, m_lpc, lplus, m, nminus, nplus, outerFaceNormal, p,
- * m_pressure_extrap, m_cell_perimeter, phiFace1, phiFace2, projectionLimiterId, projectionOrder,
- * m_density_n, rightBC, rightBCValue, spaceOrder, t_n, topBC, topBCValue, v,
- * vLagrange, x_then_y_n Out variables: m_node_force_nplus1, G, M, m_node_dissipation, ULagrange,
- * Uremap1, Uremap2, m_cell_velocity_extrap, m_cell_velocity_nplus1, m_node_velocity_nplus1, XLagrange, XcLagrange, c,
- * deltat_nplus1, m_cell_deltat, deltaxLagrange, m_internal_energy_nplus1, faceNormalVelocity,
- * gradPhi1, gradPhi2, gradPhiFace1, gradPhiFace2, m_velocity_gradient, m_pressure_gradient, m, p, m_pressure_extrap,
- * phiFace1, phiFace2, m_density_nplus1, t_nplus1, vLagrange, x_then_y_nplus1
+ * bottomBCValue, c, cfl, deltat_n, deltat_nplus1, m_cell_deltat,
+ * deltaxLagrange, eos, eosPerfectGas, m_internal_energy_n, faceLength,
+ * faceNormal, faceNormalVelocity, gamma, gradPhi1, gradPhi2, gradPhiFace1,
+ * gradPhiFace2, m_velocity_gradient, m_pressure_gradient, leftBC, leftBCValue,
+ * lminus, m_lpc, lplus, m, nminus, nplus, outerFaceNormal, p,
+ * m_pressure_extrap, m_cell_perimeter, phiFace1, phiFace2, projectionLimiterId,
+ * projectionOrder, m_density_n, rightBC, rightBCValue, spaceOrder, t_n, topBC,
+ * topBCValue, v, vLagrange, x_then_y_n Out variables: m_node_force_nplus1, G,
+ * M, m_node_dissipation, ULagrange, Uremap1, Uremap2, m_cell_velocity_extrap,
+ * m_cell_velocity_nplus1, m_node_velocity_nplus1, XLagrange, XcLagrange, c,
+ * deltat_nplus1, m_cell_deltat, deltaxLagrange, m_internal_energy_nplus1,
+ * faceNormalVelocity, gradPhi1, gradPhi2, gradPhiFace1, gradPhiFace2,
+ * m_velocity_gradient, m_pressure_gradient, m, p, m_pressure_extrap, phiFace1,
+ * phiFace2, m_density_nplus1, t_nplus1, vLagrange, x_then_y_nplus1
  */
 KOKKOS_INLINE_FUNCTION
 void Eucclhyd::executeTimeLoopN() noexcept {
@@ -101,7 +111,7 @@ void Eucclhyd::executeTimeLoopN() noexcept {
     computeGradients();                         // @1.0
     computeMass();                              // @1.0
     computeDissipationMatrix();                 // @2.0
-    computem_cell_deltat();                           // @2.0
+    computem_cell_deltat();                     // @2.0
     dumpVariables();                            // @2.0
     extrapolateValue();                         // @2.0
     computeG();                                 // @3.0
@@ -154,8 +164,10 @@ void Eucclhyd::executeTimeLoopN() noexcept {
       std::swap(m_node_force_nplus1, m_node_force_n);
       std::swap(m_node_force_env_nplus1, m_node_force_env_n);
       if (options->AvecParticules == 1) {
-        std::swap(particules->m_particle_velocity_nplus1, particules->m_particle_velocity_n);
-        std::swap(particules->m_particle_coord_nplus1, particules->m_particle_coord_n);
+        std::swap(particules->m_particle_velocity_nplus1,
+                  particules->m_particle_velocity_n);
+        std::swap(particules->m_particle_coord_nplus1,
+                  particules->m_particle_coord_n);
       }
       if (options->AvecProjection == 0) {
         std::swap(varlp->vLagrange, m_euler_volume);
@@ -204,11 +216,12 @@ void Eucclhyd::computedeltat() noexcept {
   double reduction10(numeric_limits<double>::max());
   {
     Kokkos::Min<double> reducer(reduction10);
-    Kokkos::parallel_reduce("reduction10", nbCells,
-                            KOKKOS_LAMBDA(const int& cCells, double& x) {
-                              reducer.join(x, m_cell_deltat(cCells));
-                            },
-                            reducer);
+    Kokkos::parallel_reduce(
+        "reduction10", nbCells,
+        KOKKOS_LAMBDA(const int& cCells, double& x) {
+          reducer.join(x, m_cell_deltat(cCells));
+        },
+        reducer);
   }
   gt->deltat_nplus1 =
       MathFunctions::min(gt->cfl * reduction10, gt->deltat_n * 1.05);

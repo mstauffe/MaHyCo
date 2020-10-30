@@ -13,23 +13,21 @@
 #include <string>                         // for allocator, string
 #include <vector>                         // for vector
 
-#include "../includes/Constantes.h"
-#include "../includes/Options.h"
 #include "../includes/CasTest.h"
 #include "../includes/ConditionsLimites.h"
+#include "../includes/Constantes.h"
 #include "../includes/CstMesh.h"
 #include "../includes/Eos.h"
+#include "../includes/Freefunctions.h"
 #include "../includes/GestionTemps.h"
 #include "../includes/Limiteurs.h"
+#include "../includes/Options.h"
 #include "../includes/VariablesLagRemap.h"
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D, CartesianM...
 #include "mesh/MeshGeometry.h"     // for MeshGeometry
 #include "mesh/PvdFileWriter2D.h"  // for PvdFileWriter2D
-
-#include "types/Types.h"  // for RealArray1D, RealArray2D
-#include "utils/Timer.h"  // for Timer
-
-#include "../includes/Freefunctions.h"
+#include "types/Types.h"           // for RealArray1D, RealArray2D
+#include "utils/Timer.h"           // for Timer
 
 /*---------------------------------------*/
 /*---------------------------------------*/
@@ -41,7 +39,6 @@ class Remap {
     double inf, sup;
   };
 
-  
  private:
   CartesianMesh2D* mesh;
   optionschemalib::OptionsSchema::Options* options;
@@ -50,9 +47,8 @@ class Remap {
   limiteurslib::LimiteursClass::Limiteurs* limiteurs;
   gesttempslib::GestionTempsClass::GestTemps* gt;
   variableslagremaplib::VariablesLagRemap* varlp;
-  int nbNodes, nbCells, nbFaces, nbCellsOfNode, nbNodesOfCell,
-    nbNodesOfFace, nbCellsOfFace, nbFacesOfCell;
-
+  int nbNodes, nbCells, nbFaces, nbCellsOfNode, nbNodesOfCell, nbNodesOfFace,
+      nbCellsOfFace, nbFacesOfCell;
 
   // cells a debuguer
   int dbgcell1 = -389;
@@ -97,16 +93,15 @@ class Remap {
   Kokkos::View<RealArray1D<dim>*> LeftupwindVelocity;
   Kokkos::View<RealArray1D<nbequamax>*> gradDualPhi1;
   Kokkos::View<RealArray1D<nbequamax>*> gradDualPhi2;
-  
+
  public:
-  Remap(
-      optionschemalib::OptionsSchema::Options* aOptions,
-      cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* acstmesh,
-      gesttempslib::GestionTempsClass::GestTemps* agt,
-      conditionslimiteslib::ConditionsLimites::Cdl* aCdl,
-      limiteurslib::LimiteursClass::Limiteurs* aLimiteurs,
-      CartesianMesh2D* aCartesianMesh2D,
-      variableslagremaplib::VariablesLagRemap* avarlp)
+  Remap(optionschemalib::OptionsSchema::Options* aOptions,
+        cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* acstmesh,
+        gesttempslib::GestionTempsClass::GestTemps* agt,
+        conditionslimiteslib::ConditionsLimites::Cdl* aCdl,
+        limiteurslib::LimiteursClass::Limiteurs* aLimiteurs,
+        CartesianMesh2D* aCartesianMesh2D,
+        variableslagremaplib::VariablesLagRemap* avarlp)
       : options(aOptions),
         cstmesh(acstmesh),
         gt(agt),
@@ -154,9 +149,7 @@ class Remap {
         TopupwindVelocity("upwindVelocity", nbNodes),
         BottomupwindVelocity("upwindVelocity", nbNodes),
         RightupwindVelocity("upwindVelocity", nbNodes),
-        LeftupwindVelocity("upwindVelocity", nbNodes)  {}
-  
- 
+        LeftupwindVelocity("upwindVelocity", nbNodes) {}
 
   void computeGradPhiFace1() noexcept;
   void computeGradPhi1() noexcept;
@@ -170,7 +163,7 @@ class Remap {
   void computeUremap2() noexcept;
   void computeDualUremap2() noexcept;
   void FacesOfNode();
-  
+
   template <size_t d>
   RealArray1D<d> computeRemapFlux(int projectionOrder,
                                   int projectionAvecPlateauPente,
@@ -179,12 +172,11 @@ class Remap {
                                   double face_length, RealArray1D<d> phi_face,
                                   RealArray1D<dim> outer_face_normal,
                                   RealArray1D<dim> exy, double deltat_n);
-  
+
   RealArray1D<nbequamax> computeBoundaryFluxes(int proj, int cCells,
                                                RealArray1D<dim> exy);
 
  private:
-
   int getLeftCells(const int cells);
   int getRightCells(const int cells);
   int getBottomCells(const int cells);
@@ -207,7 +199,6 @@ class Remap {
   void getTopAndBottomFluxMassePB1(const int nbmat, const size_t pNodes);
   void getTopAndBottomFluxMassePB2(const int nbmat, const size_t pNodes);
 
-  
   double fluxLimiter(int projectionLimiterId, double r);
   double fluxLimiterPP(int projectionLimiterId, double gradplus,
                        double gradmoins, double y0, double yplus, double ymoins,
@@ -222,20 +213,30 @@ class Remap {
   double INTY(double X, double x0, double y0, double x1, double y1);
   double INT2Y(double X, double x0, double y0, double x1, double y1);
 
-  void getTopUpwindVelocity(const size_t TopNode, const size_t pNode, RealArray1D<nbequamax> gradDualPhiT, RealArray1D<nbequamax> gradDualPhi);
-  
-  void getRightUpwindVelocity(const size_t RightNode, const size_t pNode, RealArray1D<nbequamax> gradDualPhiR, RealArray1D<nbequamax> gradDualPhi);
-  
-  void getBottomUpwindVelocity(const size_t BottomNode, const size_t pNode, RealArray1D<nbequamax> gradDualPhiB, RealArray1D<nbequamax> gradDualPhi);
-  
-  void getLeftUpwindVelocity(const size_t LeftNode, const size_t pNode, RealArray1D<nbequamax> gradDualPhiL, RealArray1D<nbequamax> gradDualPhi);
-  
+  void getTopUpwindVelocity(const size_t TopNode, const size_t pNode,
+                            RealArray1D<nbequamax> gradDualPhiT,
+                            RealArray1D<nbequamax> gradDualPhi);
+
+  void getRightUpwindVelocity(const size_t RightNode, const size_t pNode,
+                              RealArray1D<nbequamax> gradDualPhiR,
+                              RealArray1D<nbequamax> gradDualPhi);
+
+  void getBottomUpwindVelocity(const size_t BottomNode, const size_t pNode,
+                               RealArray1D<nbequamax> gradDualPhiB,
+                               RealArray1D<nbequamax> gradDualPhi);
+
+  void getLeftUpwindVelocity(const size_t LeftNode, const size_t pNode,
+                             RealArray1D<nbequamax> gradDualPhiL,
+                             RealArray1D<nbequamax> gradDualPhi);
+
   template <size_t d>
-    RealArray1D<d> computeDualHorizontalGradPhi(RealArray1D<d> gradphiplus,
-				      RealArray1D<d> gradphimoins, const size_t pNode);
+  RealArray1D<d> computeDualHorizontalGradPhi(RealArray1D<d> gradphiplus,
+                                              RealArray1D<d> gradphimoins,
+                                              const size_t pNode);
   template <size_t d>
-    RealArray1D<d> computeDualVerticalGradPhi(RealArray1D<d> gradphiplus,
-				      RealArray1D<d> gradphimoins, const size_t pNode);
+  RealArray1D<d> computeDualVerticalGradPhi(RealArray1D<d> gradphiplus,
+                                            RealArray1D<d> gradphimoins,
+                                            const size_t pNode);
   template <size_t d>
   RealArray1D<d> computeAndLimitGradPhi(
       int projectionLimiterId, RealArray1D<d> gradphiplus,
@@ -243,25 +244,23 @@ class Remap {
       RealArray1D<d> phimoins, double h0, double hplus, double hmoins);
 
   template <size_t d>
-    void computeFluxPP(RealArray1D<d> gradphi, RealArray1D<d> phi,
-                               RealArray1D<d> phiplus, RealArray1D<d> phimoins,
-                               double h0, double hplus, double hmoins,
-                               double face_normal_velocity, double deltat_n,
-                               int type, int cell, double flux_threhold,
-		               int projectionPlateauPenteComplet,
-			       double dual_normal_velocity, int calcul_flux_dual,
-			       RealArray1D<d> *Flux,  RealArray1D<d> *Flux_dual);
-  
+  void computeFluxPP(RealArray1D<d> gradphi, RealArray1D<d> phi,
+                     RealArray1D<d> phiplus, RealArray1D<d> phimoins, double h0,
+                     double hplus, double hmoins, double face_normal_velocity,
+                     double deltat_n, int type, int cell, double flux_threhold,
+                     int projectionPlateauPenteComplet,
+                     double dual_normal_velocity, int calcul_flux_dual,
+                     RealArray1D<d>* Flux, RealArray1D<d>* Flux_dual);
+
   template <size_t d>
-    void computeFluxPPPure(RealArray1D<d> gradphi, RealArray1D<d> phi,
-                                   RealArray1D<d> phiplus,
-                                   RealArray1D<d> phimoins, double h0,
-                                   double hplus, double hmoins,
-                                   double face_normal_velocity, double deltat_n,
-                                   int type, int cell, double flux_threhold,
-				   int projectionPlateauPenteComplet,
-				   double dual_normal_velocity, int calcul_flux_dual,
-				   RealArray1D<d> *Flux,  RealArray1D<d> *Flux_dual);
+  void computeFluxPPPure(RealArray1D<d> gradphi, RealArray1D<d> phi,
+                         RealArray1D<d> phiplus, RealArray1D<d> phimoins,
+                         double h0, double hplus, double hmoins,
+                         double face_normal_velocity, double deltat_n, int type,
+                         int cell, double flux_threhold,
+                         int projectionPlateauPenteComplet,
+                         double dual_normal_velocity, int calcul_flux_dual,
+                         RealArray1D<d>* Flux, RealArray1D<d>* Flux_dual);
   template <size_t d>
   RealArray1D<d> computeUpwindFaceQuantities(
       RealArray1D<dim> face_normal, double face_normal_velocity, double delta_x,

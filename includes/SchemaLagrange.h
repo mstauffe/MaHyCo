@@ -1,7 +1,6 @@
 #ifndef SCHEMALAGRANGE_H
 #define SCHEMALAGRANGE_H
 
-
 namespace schemalagrangelib {
 
 class SchemaLagrangeClass {

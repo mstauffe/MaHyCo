@@ -103,9 +103,9 @@ void Vnr::computeVariablesForRemap() noexcept {
               m_fracvol_env(cCells)[imat] * varlp->vLagrange(cCells);
 
           // masses matériels (partiels)
-          varlp->ULagrange(cCells)[nbmat + imat] = m_mass_fraction_env(cCells)[imat] *
-                                                   varlp->vLagrange(cCells) *
-                                                   m_density_nplus1(cCells);
+          varlp->ULagrange(cCells)[nbmat + imat] =
+              m_mass_fraction_env(cCells)[imat] * varlp->vLagrange(cCells) *
+              m_density_nplus1(cCells);
 
           // energies matériels (partiels)
           varlp->ULagrange(cCells)[2 * nbmat + imat] =
@@ -174,38 +174,41 @@ void Vnr::computeVariablesForRemap() noexcept {
         }
         varlp->rLagrange(cCells) = m_density_nplus1(cCells);
       });
-  Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
-    // Position fin de phase Lagrange
-    varlp->XLagrange(pNodes) = m_node_coord_nplus1(pNodes);
-    // quantité de mouvement
-    varlp->UDualLagrange(pNodes)[0] =
-        m_node_mass(pNodes) * m_node_velocity_nplus1(pNodes)[0];
-    varlp->UDualLagrange(pNodes)[1] =
-        m_node_mass(pNodes) * m_node_velocity_nplus1(pNodes)[1];
-    // masse nodale
-    varlp->UDualLagrange(pNodes)[2] = m_node_mass(pNodes);
-    // projection de l'energie cinétique
-    if (options->projectionConservative == 1)
-      varlp->UDualLagrange(pNodes)[3] =
-          m_node_mass(pNodes) *
-          (m_node_velocity_nplus1(pNodes)[0] * m_node_velocity_nplus1(pNodes)[0] +
-           m_node_velocity_nplus1(pNodes)[1] * m_node_velocity_nplus1(pNodes)[1]);
+  Kokkos::parallel_for(
+      nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
+        // Position fin de phase Lagrange
+        varlp->XLagrange(pNodes) = m_node_coord_nplus1(pNodes);
+        // quantité de mouvement
+        varlp->UDualLagrange(pNodes)[0] =
+            m_node_mass(pNodes) * m_node_velocity_nplus1(pNodes)[0];
+        varlp->UDualLagrange(pNodes)[1] =
+            m_node_mass(pNodes) * m_node_velocity_nplus1(pNodes)[1];
+        // masse nodale
+        varlp->UDualLagrange(pNodes)[2] = m_node_mass(pNodes);
+        // projection de l'energie cinétique
+        if (options->projectionConservative == 1)
+          varlp->UDualLagrange(pNodes)[3] =
+              m_node_mass(pNodes) * (m_node_velocity_nplus1(pNodes)[0] *
+                                         m_node_velocity_nplus1(pNodes)[0] +
+                                     m_node_velocity_nplus1(pNodes)[1] *
+                                         m_node_velocity_nplus1(pNodes)[1]);
 
-    varlp->DualPhi(pNodes)[0] = m_node_velocity_nplus1(pNodes)[0];
-    varlp->DualPhi(pNodes)[1] = m_node_velocity_nplus1(pNodes)[1];
-    // masse nodale
-    varlp->DualPhi(pNodes)[2] = m_node_mass(pNodes);
-    // Phi energie cinétique
-    if (options->projectionConservative == 1)
-      varlp->DualPhi(pNodes)[3] =
-          (m_node_velocity_nplus1(pNodes)[0] * m_node_velocity_nplus1(pNodes)[0] +
-           m_node_velocity_nplus1(pNodes)[1] * m_node_velocity_nplus1(pNodes)[1]);
+        varlp->DualPhi(pNodes)[0] = m_node_velocity_nplus1(pNodes)[0];
+        varlp->DualPhi(pNodes)[1] = m_node_velocity_nplus1(pNodes)[1];
+        // masse nodale
+        varlp->DualPhi(pNodes)[2] = m_node_mass(pNodes);
+        // Phi energie cinétique
+        if (options->projectionConservative == 1)
+          varlp->DualPhi(pNodes)[3] = (m_node_velocity_nplus1(pNodes)[0] *
+                                           m_node_velocity_nplus1(pNodes)[0] +
+                                       m_node_velocity_nplus1(pNodes)[1] *
+                                           m_node_velocity_nplus1(pNodes)[1]);
 
-    // if ((pNodes == 600) || (pNodes == 601) || (pNodes == 602))
-    //    std::cout << " pNodes " <<  pNodes << " sortie Lagrange "
-    //  	    << varlp->UDualLagrange(pNodes)[0]
-    //  	    << "  " << varlp->UDualLagrange(pNodes)[1]
-    // 	     << "  " << varlp->UDualLagrange(pNodes)[2]
-    // 	     << " vit " << m_node_velocity_nplus1(pNodes) << std::endl;
-  });
+        // if ((pNodes == 600) || (pNodes == 601) || (pNodes == 602))
+        //    std::cout << " pNodes " <<  pNodes << " sortie Lagrange "
+        //  	    << varlp->UDualLagrange(pNodes)[0]
+        //  	    << "  " << varlp->UDualLagrange(pNodes)[1]
+        // 	     << "  " << varlp->UDualLagrange(pNodes)[2]
+        // 	     << " vit " << m_node_velocity_nplus1(pNodes) << std::endl;
+      });
 }

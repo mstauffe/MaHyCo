@@ -13,86 +13,88 @@
 
 /**
  * Job computeBoundaryNodeVelocities called @4.0 in executeTimeLoopN method.
- * In variables: m_node_G, m_node_dissipation, bottomBC, bottomBCValue, leftBC, leftBCValue,
- * rightBC, rightBCValue, topBC, topBCValue Out variables: m_node_velocity_nplus1
+ * In variables: m_node_G, m_node_dissipation, bottomBC, bottomBCValue, leftBC,
+ * leftBCValue, rightBC, rightBCValue, topBC, topBCValue Out variables:
+ * m_node_velocity_nplus1
  */
 void Eucclhyd::computeBoundaryNodeVelocities() noexcept {
   auto leftNodes(mesh->getLeftNodes());
   int nbLeftNodes(mesh->getNbLeftNodes());
-  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbLeftNodes,
-                       KOKKOS_LAMBDA(const int& pLeftNodes) {
-                         int pId(leftNodes[pLeftNodes]);
-                         int pNodes(pId);
-                         m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryCondition(
-                             cdl->leftBC, cdl->leftBCValue, m_node_dissipation(pNodes),
-                             m_node_G(pNodes));
-                       });
+  Kokkos::parallel_for(
+      "computeBoundaryNodeVelocities", nbLeftNodes,
+      KOKKOS_LAMBDA(const int& pLeftNodes) {
+        int pId(leftNodes[pLeftNodes]);
+        int pNodes(pId);
+        m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryCondition(
+            cdl->leftBC, cdl->leftBCValue, m_node_dissipation(pNodes),
+            m_node_G(pNodes));
+      });
   auto rightNodes(mesh->getRightNodes());
   int nbRightNodes(mesh->getNbRightNodes());
-  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbRightNodes,
-                       KOKKOS_LAMBDA(const int& pRightNodes) {
-                         int pId(rightNodes[pRightNodes]);
-                         int pNodes(pId);
-                         m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryCondition(
-                             cdl->rightBC, cdl->rightBCValue, m_node_dissipation(pNodes),
-                             m_node_G(pNodes));
-                       });
+  Kokkos::parallel_for(
+      "computeBoundaryNodeVelocities", nbRightNodes,
+      KOKKOS_LAMBDA(const int& pRightNodes) {
+        int pId(rightNodes[pRightNodes]);
+        int pNodes(pId);
+        m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryCondition(
+            cdl->rightBC, cdl->rightBCValue, m_node_dissipation(pNodes),
+            m_node_G(pNodes));
+      });
   auto topNodes(mesh->getTopNodes());
   int nbTopNodes(mesh->getNbTopNodes());
-  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbTopNodes,
-                       KOKKOS_LAMBDA(const int& pTopNodes) {
-                         int pId(topNodes[pTopNodes]);
-                         int pNodes(pId);
-                         m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryCondition(
-                             cdl->topBC, cdl->topBCValue, m_node_dissipation(pNodes),
-                             m_node_G(pNodes));
-                       });
+  Kokkos::parallel_for(
+      "computeBoundaryNodeVelocities", nbTopNodes,
+      KOKKOS_LAMBDA(const int& pTopNodes) {
+        int pId(topNodes[pTopNodes]);
+        int pNodes(pId);
+        m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryCondition(
+            cdl->topBC, cdl->topBCValue, m_node_dissipation(pNodes),
+            m_node_G(pNodes));
+      });
   auto bottomNodes(mesh->getBottomNodes());
   int nbBottomNodes(mesh->getNbBottomNodes());
-  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbBottomNodes,
-                       KOKKOS_LAMBDA(const int& pBottomNodes) {
-                         int pId(bottomNodes[pBottomNodes]);
-                         int pNodes(pId);
-                         m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryCondition(
-                             cdl->bottomBC, cdl->bottomBCValue, m_node_dissipation(pNodes),
-                             m_node_G(pNodes));
-                       });
+  Kokkos::parallel_for(
+      "computeBoundaryNodeVelocities", nbBottomNodes,
+      KOKKOS_LAMBDA(const int& pBottomNodes) {
+        int pId(bottomNodes[pBottomNodes]);
+        int pNodes(pId);
+        m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryCondition(
+            cdl->bottomBC, cdl->bottomBCValue, m_node_dissipation(pNodes),
+            m_node_G(pNodes));
+      });
   auto topLeftNode(mesh->getTopLeftNode());
   int nbTopLeftNode(mesh->getNbTopLeftNode());
-  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbTopLeftNode,
-                       KOKKOS_LAMBDA(const int& pTopLeftNode) {
-                         int pId(topLeftNode[pTopLeftNode]);
-                         int pNodes(pId);
-                         m_node_velocity_nplus1(pNodes) =
-                             nodeVelocityBoundaryConditionCorner(
-                                 cdl->topBC, cdl->topBCValue, cdl->leftBC,
-                                 cdl->leftBCValue, m_node_dissipation(pNodes),
-				 m_node_G(pNodes));
-                       });
+  Kokkos::parallel_for(
+      "computeBoundaryNodeVelocities", nbTopLeftNode,
+      KOKKOS_LAMBDA(const int& pTopLeftNode) {
+        int pId(topLeftNode[pTopLeftNode]);
+        int pNodes(pId);
+        m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryConditionCorner(
+            cdl->topBC, cdl->topBCValue, cdl->leftBC, cdl->leftBCValue,
+            m_node_dissipation(pNodes), m_node_G(pNodes));
+      });
   auto topRightNode(mesh->getTopRightNode());
   int nbTopRightNode(mesh->getNbTopRightNode());
-  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbTopRightNode,
-                       KOKKOS_LAMBDA(const int& pTopRightNode) {
-                         int pId(topRightNode[pTopRightNode]);
-                         int pNodes(pId);
-                         m_node_velocity_nplus1(pNodes) =
-                             nodeVelocityBoundaryConditionCorner(
-                                 cdl->topBC, cdl->topBCValue, cdl->rightBC,
-                                 cdl->rightBCValue, m_node_dissipation(pNodes),
-				 m_node_G(pNodes));
-                       });
+  Kokkos::parallel_for(
+      "computeBoundaryNodeVelocities", nbTopRightNode,
+      KOKKOS_LAMBDA(const int& pTopRightNode) {
+        int pId(topRightNode[pTopRightNode]);
+        int pNodes(pId);
+        m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryConditionCorner(
+            cdl->topBC, cdl->topBCValue, cdl->rightBC, cdl->rightBCValue,
+            m_node_dissipation(pNodes), m_node_G(pNodes));
+      });
   auto bottomLeftNode(mesh->getBottomLeftNode());
   int nbBottomLeftNode(mesh->getNbBottomLeftNode());
-  Kokkos::parallel_for("computeBoundaryNodeVelocities", nbBottomLeftNode,
-                       KOKKOS_LAMBDA(const int& pBottomLeftNode) {
-                         int pId(bottomLeftNode[pBottomLeftNode]);
-                         int pNodes(pId);
-                         m_node_velocity_nplus1(pNodes) =
-                             nodeVelocityBoundaryConditionCorner(
-                                 cdl->bottomBC, cdl->bottomBCValue, cdl->leftBC,
-                                 cdl->leftBCValue, m_node_dissipation(pNodes),
-				 m_node_G(pNodes));
-                       });
+  Kokkos::parallel_for(
+      "computeBoundaryNodeVelocities", nbBottomLeftNode,
+      KOKKOS_LAMBDA(const int& pBottomLeftNode) {
+        int pId(bottomLeftNode[pBottomLeftNode]);
+        int pNodes(pId);
+        m_node_velocity_nplus1(pNodes) = nodeVelocityBoundaryConditionCorner(
+            cdl->bottomBC, cdl->bottomBCValue, cdl->leftBC, cdl->leftBCValue,
+            m_node_dissipation(pNodes), m_node_G(pNodes));
+      });
   auto bottomRightNode(mesh->getBottomRightNode());
   int nbBottomRightNode(mesh->getNbBottomRightNode());
   Kokkos::parallel_for(

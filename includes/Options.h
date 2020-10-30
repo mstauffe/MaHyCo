@@ -15,15 +15,14 @@ class OptionsSchema {
     int AvecParticules = 0;
     int Adiabatique = 1;
     int Isotherme = 2;
-    int AvecEquilibrage = -1;   
+    int AvecEquilibrage = -1;
     int pseudo_centree = 1;
     int methode_flux_masse = 0;
     int sansLagrange = 0;
   };
   Options* options;
+
  private:
-  
 };
-}  // namespace 
+}  // namespace optionschemalib
 #endif  // OPTIONSSCHEMA_H
-  
