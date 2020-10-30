@@ -204,35 +204,33 @@ void Vnr::remapVariables() noexcept {
         m_pressure_env3(cCells) = m_pressure_env_nplus1(cCells)[2];
       });
   // variables am_x_velocity noeuds
-  Kokkos::parallel_for(
-      nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
-        // Vitesse am_x_velocity noeuds
-        double massm_internal_energy_nodale_proj =
-            varlp->UDualremap2(pNodes)[2];
-        m_node_velocity_nplus1(pNodes)[0] =
-            varlp->UDualremap2(pNodes)[0] / massm_internal_energy_nodale_proj;
-        m_node_velocity_nplus1(pNodes)[1] =
-            varlp->UDualremap2(pNodes)[1] / massm_internal_energy_nodale_proj;
-        // Energie cinétique
+  Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
+    // Vitesse am_x_velocity noeuds
+    double massm_internal_energy_nodale_proj = varlp->UDualremap2(pNodes)[2];
+    m_node_velocity_nplus1(pNodes)[0] =
+        varlp->UDualremap2(pNodes)[0] / massm_internal_energy_nodale_proj;
+    m_node_velocity_nplus1(pNodes)[1] =
+        varlp->UDualremap2(pNodes)[1] / massm_internal_energy_nodale_proj;
+    // Energie cinétique
 
-        // conservation energie totale avec (density_nplus1 * vol) au lieu de
-        // masset idem double delta_ec(0.); if (options->projectionConservative
-        // == 1)
-        //  delta_ec = varlp->Uremap2(cCells)[3 * nbmat + 2] / masset -
-        //                     0.5 * (V_nplus1[0] * V_nplus1[0] + V_nplus1[1] *
-        //                     V_nplus1[1]);
-        // if ((pNodes == 600) || (pNodes == 601) || (pNodes == 602))
-        //    std::cout << " pNodes " <<  pNodes << " sortie 2 remaillage  vx "
-        //    	    << varlp->UDualremap2(pNodes)[0] /
-        //    varlp->UDualremap2(pNodes)[2]
-        //   	    << " vy " << varlp->UDualremap2(pNodes)[1] /
-        //   varlp->UDualremap2(pNodes)[2]
-        // 	     << " m " << varlp->UDualremap2(pNodes)[2]
-        // 	     << " vit " << m_node_velocity_nplus1(pNodes) << std::endl;
+    // conservation energie totale avec (density_nplus1 * vol) au lieu de
+    // masset idem double delta_ec(0.); if (options->projectionConservative
+    // == 1)
+    //  delta_ec = varlp->Uremap2(cCells)[3 * nbmat + 2] / masset -
+    //                     0.5 * (V_nplus1[0] * V_nplus1[0] + V_nplus1[1] *
+    //                     V_nplus1[1]);
+    // if ((pNodes == 600) || (pNodes == 601) || (pNodes == 602))
+    //    std::cout << " pNodes " <<  pNodes << " sortie 2 remaillage  vx "
+    //    	    << varlp->UDualremap2(pNodes)[0] /
+    //    varlp->UDualremap2(pNodes)[2]
+    //   	    << " vy " << varlp->UDualremap2(pNodes)[1] /
+    //   varlp->UDualremap2(pNodes)[2]
+    // 	     << " m " << varlp->UDualremap2(pNodes)[2]
+    // 	     << " vit " << m_node_velocity_nplus1(pNodes) << std::endl;
 
-        m_x_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[0];
-        m_y_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[1];
-      });
+    m_x_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[0];
+    m_y_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[1];
+  });
 
   Kokkos::parallel_for(
       "remapVariables", nbCells, KOKKOS_LAMBDA(const int& cCells) {
@@ -251,19 +249,17 @@ void Vnr::remapVariables() noexcept {
   double reductionE(0.), reductionM(0.);
   {
     Kokkos::Sum<double> reducerE(reductionE);
-    Kokkos::parallel_reduce(
-        "reductionE", nbCells,
-        KOKKOS_LAMBDA(const int& cCells, double& x) {
-          reducerE.join(x, m_total_energy_T(cCells));
-        },
-        reducerE);
+    Kokkos::parallel_reduce("reductionE", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerE.join(x, m_total_energy_T(cCells));
+                            },
+                            reducerE);
     Kokkos::Sum<double> reducerM(reductionM);
-    Kokkos::parallel_reduce(
-        "reductionM", nbCells,
-        KOKKOS_LAMBDA(const int& cCells, double& x) {
-          reducerM.join(x, m_global_masse_0(cCells));
-        },
-        reducerM);
+    Kokkos::parallel_reduce("reductionM", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerM.join(x, m_global_masse_0(cCells));
+                            },
+                            reducerM);
   }
   m_global_total_energy_T = reductionE;
   m_total_masse_T = reductionM;

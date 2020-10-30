@@ -51,14 +51,13 @@ int Remap::getTopCells(const int cells) {
 }
 
 void Remap::FacesOfNode() {
-  Kokkos::parallel_for(
-      nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
-        const Id pId(pNodes);
-        VerticalFaceOfNode(pNodes)[0] = -1;
-        VerticalFaceOfNode(pNodes)[1] = -1;
-        HorizontalFaceOfNode(pNodes)[0] = -1;
-        HorizontalFaceOfNode(pNodes)[1] = -1;
-      });
+  Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
+    const Id pId(pNodes);
+    VerticalFaceOfNode(pNodes)[0] = -1;
+    VerticalFaceOfNode(pNodes)[1] = -1;
+    HorizontalFaceOfNode(pNodes)[0] = -1;
+    HorizontalFaceOfNode(pNodes)[1] = -1;
+  });
   auto innerVerticalFaces(mesh->getInnerVerticalFaces());
   int nbInnerVerticalFaces(mesh->getNbInnerVerticalFaces());
   Kokkos::parallel_for(

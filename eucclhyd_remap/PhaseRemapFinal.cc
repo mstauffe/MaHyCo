@@ -230,19 +230,17 @@ void Eucclhyd::remapCellcenteredVariable() noexcept {
   double reductionE(0.), reductionM(0.);
   {
     Kokkos::Sum<double> reducerE(reductionE);
-    Kokkos::parallel_reduce(
-        "reductionE", nbCells,
-        KOKKOS_LAMBDA(const int& cCells, double& x) {
-          reducerE.join(x, m_total_energy_T(cCells));
-        },
-        reducerE);
+    Kokkos::parallel_reduce("reductionE", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerE.join(x, m_total_energy_T(cCells));
+                            },
+                            reducerE);
     Kokkos::Sum<double> reducerM(reductionM);
-    Kokkos::parallel_reduce(
-        "reductionM", nbCells,
-        KOKKOS_LAMBDA(const int& cCells, double& x) {
-          reducerM.join(x, m_global_masse_0(cCells));
-        },
-        reducerM);
+    Kokkos::parallel_reduce("reductionM", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerM.join(x, m_global_masse_0(cCells));
+                            },
+                            reducerM);
   }
   m_global_total_energy_T = reductionE;
   m_total_masse_T = reductionM;

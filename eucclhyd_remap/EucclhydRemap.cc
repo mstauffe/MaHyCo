@@ -216,12 +216,11 @@ void Eucclhyd::computedeltat() noexcept {
   double reduction10(numeric_limits<double>::max());
   {
     Kokkos::Min<double> reducer(reduction10);
-    Kokkos::parallel_reduce(
-        "reduction10", nbCells,
-        KOKKOS_LAMBDA(const int& cCells, double& x) {
-          reducer.join(x, m_cell_deltat(cCells));
-        },
-        reducer);
+    Kokkos::parallel_reduce("reduction10", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducer.join(x, m_cell_deltat(cCells));
+                            },
+                            reducer);
   }
   gt->deltat_nplus1 =
       MathFunctions::min(gt->cfl * reduction10, gt->deltat_n * 1.05);

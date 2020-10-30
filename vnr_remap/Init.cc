@@ -101,41 +101,40 @@ void Vnr::initBoundaryConditions() noexcept {
  * m_node_velocity_n0
  */
 void Vnr::init() noexcept {
-  Kokkos::parallel_for(
-      "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-        for (int imat = 0; imat < nbmatmax; imat++) {
-          m_fracvol_env(cCells)[imat] = 0.0;
-          m_mass_fraction_env(cCells)[imat] = 0.0;
-          m_density_env_n0(cCells)[imat] = 0.0;
-          m_pressure_env_n0(cCells)[imat] = 0.0;
-        }
-      });
+  Kokkos::parallel_for("initDensity", nbCells,
+                       KOKKOS_LAMBDA(const int& cCells) {
+                         for (int imat = 0; imat < nbmatmax; imat++) {
+                           m_fracvol_env(cCells)[imat] = 0.0;
+                           m_mass_fraction_env(cCells)[imat] = 0.0;
+                           m_density_env_n0(cCells)[imat] = 0.0;
+                           m_pressure_env_n0(cCells)[imat] = 0.0;
+                         }
+                       });
   if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY) {
-    Kokkos::parallel_for(
-        nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-          double r(0.);
-          if (test->Nom == test->SodCaseX) r = m_cell_coord_n0(cCells)[0];
-          if (test->Nom == test->SodCaseY) r = m_cell_coord_n0(cCells)[1];
-          if (r < 0.5) {
-            m_fracvol_env(cCells)[0] = 1.;
-            m_mass_fraction_env(cCells)[0] = 1.;
-            m_density_n0(cCells) = 1.0;
-            m_pressure_n0(cCells) = 1.0;
-            m_density_env_n0(cCells)[0] = 1.0;
-            m_pressure_env_n0(cCells)[0] = 1.0;
-          } else {
-            m_fracvol_env(cCells)[0] = 1.;
-            m_mass_fraction_env(cCells)[0] = 1.;
-            m_density_n0(cCells) = 0.125;
-            m_pressure_n0(cCells) = 0.1;
-            m_density_env_n0(cCells)[0] = 0.125;
-            m_pressure_env_n0(cCells)[0] = 0.1;
-          }
-          m_speed_velocity_env_n0(cCells)[0] =
-              std::sqrt(eos->gamma * m_density_env_n0(cCells)[0] /
-                        m_pressure_env_n0(cCells)[0]);
-          m_speed_velocity_n0(cCells) = m_speed_velocity_env_n0(cCells)[0];
-        });
+    Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
+      double r(0.);
+      if (test->Nom == test->SodCaseX) r = m_cell_coord_n0(cCells)[0];
+      if (test->Nom == test->SodCaseY) r = m_cell_coord_n0(cCells)[1];
+      if (r < 0.5) {
+        m_fracvol_env(cCells)[0] = 1.;
+        m_mass_fraction_env(cCells)[0] = 1.;
+        m_density_n0(cCells) = 1.0;
+        m_pressure_n0(cCells) = 1.0;
+        m_density_env_n0(cCells)[0] = 1.0;
+        m_pressure_env_n0(cCells)[0] = 1.0;
+      } else {
+        m_fracvol_env(cCells)[0] = 1.;
+        m_mass_fraction_env(cCells)[0] = 1.;
+        m_density_n0(cCells) = 0.125;
+        m_pressure_n0(cCells) = 0.1;
+        m_density_env_n0(cCells)[0] = 0.125;
+        m_pressure_env_n0(cCells)[0] = 0.1;
+      }
+      m_speed_velocity_env_n0(cCells)[0] =
+          std::sqrt(eos->gamma * m_density_env_n0(cCells)[0] /
+                    m_pressure_env_n0(cCells)[0]);
+      m_speed_velocity_n0(cCells) = m_speed_velocity_env_n0(cCells)[0];
+    });
     for (size_t pNodes = 0; pNodes < nbNodes; pNodes++) {
       m_node_velocity_n0(pNodes) = {0.0, 0.0};
 
@@ -143,39 +142,38 @@ void Vnr::init() noexcept {
       m_y_velocity(pNodes) = m_node_velocity_n0(pNodes)[1];
     }
   } else if (test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
-    Kokkos::parallel_for(
-        nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-          double r(0.);
-          if (test->Nom == test->BiSodCaseX) r = m_cell_coord_n0(cCells)[0];
-          if (test->Nom == test->BiSodCaseY) r = m_cell_coord_n0(cCells)[1];
-          if (r < 0.5) {
-            m_fracvol_env(cCells)[0] = 1.;
-            m_fracvol_env(cCells)[1] = 0.;
-            m_mass_fraction_env(cCells)[0] = 1.;
-            m_mass_fraction_env(cCells)[1] = 0.;
-            m_density_n0(cCells) = 1.0;
-            m_pressure_n0(cCells) = 1.0;
-            m_density_env_n0(cCells)[0] = 1.0;
-            m_pressure_env_n0(cCells)[0] = 1.0;
-          } else {
-            m_fracvol_env(cCells)[0] = 0.;
-            m_fracvol_env(cCells)[1] = 1.;
-            m_mass_fraction_env(cCells)[0] = 0.;
-            m_mass_fraction_env(cCells)[1] = 1.;
-            m_density_n0(cCells) = 0.125;
-            m_pressure_n0(cCells) = 0.1;
-            m_density_env_n0(cCells)[1] = 0.125;
-            m_pressure_env_n0(cCells)[1] = 0.1;
-          }
-          m_speed_velocity_env_n0(cCells)[0] =
-              std::sqrt(eos->gamma * m_density_env_n0(cCells)[0] /
-                        m_pressure_env_n0(cCells)[0]);
-          m_speed_velocity_env_n0(cCells)[1] =
-              std::sqrt(eos->gamma * m_density_env_n0(cCells)[1] /
-                        m_pressure_env_n0(cCells)[1]);
-          m_speed_velocity_n0(cCells) = min(m_speed_velocity_env_n0(cCells)[0],
-                                            m_speed_velocity_env_n0(cCells)[1]);
-        });
+    Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
+      double r(0.);
+      if (test->Nom == test->BiSodCaseX) r = m_cell_coord_n0(cCells)[0];
+      if (test->Nom == test->BiSodCaseY) r = m_cell_coord_n0(cCells)[1];
+      if (r < 0.5) {
+        m_fracvol_env(cCells)[0] = 1.;
+        m_fracvol_env(cCells)[1] = 0.;
+        m_mass_fraction_env(cCells)[0] = 1.;
+        m_mass_fraction_env(cCells)[1] = 0.;
+        m_density_n0(cCells) = 1.0;
+        m_pressure_n0(cCells) = 1.0;
+        m_density_env_n0(cCells)[0] = 1.0;
+        m_pressure_env_n0(cCells)[0] = 1.0;
+      } else {
+        m_fracvol_env(cCells)[0] = 0.;
+        m_fracvol_env(cCells)[1] = 1.;
+        m_mass_fraction_env(cCells)[0] = 0.;
+        m_mass_fraction_env(cCells)[1] = 1.;
+        m_density_n0(cCells) = 0.125;
+        m_pressure_n0(cCells) = 0.1;
+        m_density_env_n0(cCells)[1] = 0.125;
+        m_pressure_env_n0(cCells)[1] = 0.1;
+      }
+      m_speed_velocity_env_n0(cCells)[0] =
+          std::sqrt(eos->gamma * m_density_env_n0(cCells)[0] /
+                    m_pressure_env_n0(cCells)[0]);
+      m_speed_velocity_env_n0(cCells)[1] =
+          std::sqrt(eos->gamma * m_density_env_n0(cCells)[1] /
+                    m_pressure_env_n0(cCells)[1]);
+      m_speed_velocity_n0(cCells) = min(m_speed_velocity_env_n0(cCells)[0],
+                                        m_speed_velocity_env_n0(cCells)[1]);
+    });
     for (size_t pNodes = 0; pNodes < nbNodes; pNodes++) {
       m_node_velocity_n0(pNodes) = {0.0, 0.0};
 
@@ -183,41 +181,40 @@ void Vnr::init() noexcept {
       m_y_velocity(pNodes) = m_node_velocity_n0(pNodes)[1];
     }
   } else if (test->Nom == test->AdvectionX || test->Nom == test->AdvectionY) {
-    Kokkos::parallel_for(
-        nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-          double r(0.);
-          if (test->Nom == test->AdvectionX) r = m_cell_coord_n0(cCells)[0];
-          if (test->Nom == test->AdvectionY) r = m_cell_coord_n0(cCells)[1];
-          if (r < 0.3) {
-            m_fracvol_env(cCells)[0] = 1.;
-            m_mass_fraction_env(cCells)[0] = 1.;
-            m_density_n0(cCells) = 1.;
-            m_pressure_n0(cCells) = 0.0;
-            m_density_env_n0(cCells)[0] = 1.;
-            m_pressure_env_n0(cCells)[0] = 0.0;
-          } else if ((r > 0.3) && (r < 0.5)) {
-            m_fracvol_env(cCells)[0] = 1.;
-            m_mass_fraction_env(cCells)[0] = 1.;
-            m_density_n0(cCells) = 10.;
-            m_pressure_n0(cCells) = 0.0;
-            m_density_env_n0(cCells)[0] = 10.0;
-            m_pressure_env_n0(cCells)[0] = 0.0;
-          } else if (r > 0.5) {
-            m_fracvol_env(cCells)[0] = 1.;
-            m_mass_fraction_env(cCells)[0] = 1.;
-            m_density_n0(cCells) = 1.;
-            m_pressure_n0(cCells) = 0.0;
-            m_density_env_n0(cCells)[0] = 1.;
-            m_pressure_env_n0(cCells)[0] = 0.0;
-          }
-          m_speed_velocity_env_n0(cCells)[0] = 1.;
-          m_speed_velocity_env_n0(cCells)[1] = 1.;
-          m_speed_velocity_n0(cCells) = min(m_speed_velocity_env_n0(cCells)[0],
-                                            m_speed_velocity_env_n0(cCells)[1]);
-          m_internal_energy_env_n0(cCells)[0] = 1.;
-          m_internal_energy_env_n0(cCells)[1] = 1.;
-          m_internal_energy_n0(cCells) = 1.;
-        });
+    Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
+      double r(0.);
+      if (test->Nom == test->AdvectionX) r = m_cell_coord_n0(cCells)[0];
+      if (test->Nom == test->AdvectionY) r = m_cell_coord_n0(cCells)[1];
+      if (r < 0.3) {
+        m_fracvol_env(cCells)[0] = 1.;
+        m_mass_fraction_env(cCells)[0] = 1.;
+        m_density_n0(cCells) = 1.;
+        m_pressure_n0(cCells) = 0.0;
+        m_density_env_n0(cCells)[0] = 1.;
+        m_pressure_env_n0(cCells)[0] = 0.0;
+      } else if ((r > 0.3) && (r < 0.5)) {
+        m_fracvol_env(cCells)[0] = 1.;
+        m_mass_fraction_env(cCells)[0] = 1.;
+        m_density_n0(cCells) = 10.;
+        m_pressure_n0(cCells) = 0.0;
+        m_density_env_n0(cCells)[0] = 10.0;
+        m_pressure_env_n0(cCells)[0] = 0.0;
+      } else if (r > 0.5) {
+        m_fracvol_env(cCells)[0] = 1.;
+        m_mass_fraction_env(cCells)[0] = 1.;
+        m_density_n0(cCells) = 1.;
+        m_pressure_n0(cCells) = 0.0;
+        m_density_env_n0(cCells)[0] = 1.;
+        m_pressure_env_n0(cCells)[0] = 0.0;
+      }
+      m_speed_velocity_env_n0(cCells)[0] = 1.;
+      m_speed_velocity_env_n0(cCells)[1] = 1.;
+      m_speed_velocity_n0(cCells) = min(m_speed_velocity_env_n0(cCells)[0],
+                                        m_speed_velocity_env_n0(cCells)[1]);
+      m_internal_energy_env_n0(cCells)[0] = 1.;
+      m_internal_energy_env_n0(cCells)[1] = 1.;
+      m_internal_energy_n0(cCells) = 1.;
+    });
     const RealArray1D<dim> ex = {{1.0, 0.0}};
     const RealArray1D<dim> ey = {{0.0, 1.0}};
     RealArray1D<dim> u;
@@ -231,41 +228,40 @@ void Vnr::init() noexcept {
     }
   } else if (test->Nom == test->BiAdvectionX ||
              test->Nom == test->BiAdvectionY) {
-    Kokkos::parallel_for(
-        nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-          double r(0.);
-          if (test->Nom == test->BiAdvectionX) r = m_cell_coord_n0(cCells)[0];
-          if (test->Nom == test->BiAdvectionY) r = m_cell_coord_n0(cCells)[1];
-          if (r < 0.3) {
-            m_fracvol_env(cCells)[0] = 1.;
-            m_mass_fraction_env(cCells)[0] = 1.;
-            m_density_n0(cCells) = 1.;
-            m_pressure_n0(cCells) = 0.0;
-            m_density_env_n0(cCells)[0] = 1.0;
-            m_pressure_env_n0(cCells)[0] = 0.0;
-          } else if ((r > 0.3) && (r < 0.5)) {
-            m_fracvol_env(cCells)[1] = 1.;
-            m_mass_fraction_env(cCells)[1] = 1.;
-            m_density_n0(cCells) = 1.;
-            m_pressure_n0(cCells) = 0.0;
-            m_density_env_n0(cCells)[1] = 1.0;
-            m_pressure_env_n0(cCells)[1] = 0.0;
-          } else if (r > 0.5) {
-            m_fracvol_env(cCells)[0] = 1.;
-            m_mass_fraction_env(cCells)[0] = 1.;
-            m_density_n0(cCells) = 1.;
-            m_pressure_n0(cCells) = 0.0;
-            m_density_env_n0(cCells)[0] = 1.0;
-            m_pressure_env_n0(cCells)[0] = 0.0;
-          }
-          m_speed_velocity_env_n0(cCells)[0] = 1.;
-          m_speed_velocity_env_n0(cCells)[1] = 1.;
-          m_speed_velocity_n0(cCells) = min(m_speed_velocity_env_n0(cCells)[0],
-                                            m_speed_velocity_env_n0(cCells)[1]);
-          m_internal_energy_env_n0(cCells)[0] = 1.;
-          m_internal_energy_env_n0(cCells)[1] = 1.;
-          m_internal_energy_n0(cCells) = 1.;
-        });
+    Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
+      double r(0.);
+      if (test->Nom == test->BiAdvectionX) r = m_cell_coord_n0(cCells)[0];
+      if (test->Nom == test->BiAdvectionY) r = m_cell_coord_n0(cCells)[1];
+      if (r < 0.3) {
+        m_fracvol_env(cCells)[0] = 1.;
+        m_mass_fraction_env(cCells)[0] = 1.;
+        m_density_n0(cCells) = 1.;
+        m_pressure_n0(cCells) = 0.0;
+        m_density_env_n0(cCells)[0] = 1.0;
+        m_pressure_env_n0(cCells)[0] = 0.0;
+      } else if ((r > 0.3) && (r < 0.5)) {
+        m_fracvol_env(cCells)[1] = 1.;
+        m_mass_fraction_env(cCells)[1] = 1.;
+        m_density_n0(cCells) = 1.;
+        m_pressure_n0(cCells) = 0.0;
+        m_density_env_n0(cCells)[1] = 1.0;
+        m_pressure_env_n0(cCells)[1] = 0.0;
+      } else if (r > 0.5) {
+        m_fracvol_env(cCells)[0] = 1.;
+        m_mass_fraction_env(cCells)[0] = 1.;
+        m_density_n0(cCells) = 1.;
+        m_pressure_n0(cCells) = 0.0;
+        m_density_env_n0(cCells)[0] = 1.0;
+        m_pressure_env_n0(cCells)[0] = 0.0;
+      }
+      m_speed_velocity_env_n0(cCells)[0] = 1.;
+      m_speed_velocity_env_n0(cCells)[1] = 1.;
+      m_speed_velocity_n0(cCells) = min(m_speed_velocity_env_n0(cCells)[0],
+                                        m_speed_velocity_env_n0(cCells)[1]);
+      m_internal_energy_env_n0(cCells)[0] = 1.;
+      m_internal_energy_env_n0(cCells)[1] = 1.;
+      m_internal_energy_n0(cCells) = 1.;
+    });
     const RealArray1D<dim> ex = {{1.0, 0.0}};
     const RealArray1D<dim> ey = {{0.0, 1.0}};
     RealArray1D<dim> u;
@@ -279,43 +275,40 @@ void Vnr::init() noexcept {
     }
   } else if (test->Nom == test->BiAdvectionVitX ||
              test->Nom == test->BiAdvectionVitY) {
-    Kokkos::parallel_for(
-        nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-          double r(0.);
-          if (test->Nom == test->BiAdvectionVitX)
-            r = m_cell_coord_n0(cCells)[0];
-          if (test->Nom == test->BiAdvectionVitY)
-            r = m_cell_coord_n0(cCells)[1];
-          if (r < 0.3) {
-            m_fracvol_env(cCells)[0] = 1.;
-            m_mass_fraction_env(cCells)[0] = 1.;
-            m_density_n0(cCells) = 4.;
-            m_pressure_n0(cCells) = 0.0;
-            m_density_env_n0(cCells)[0] = 4.0;
-            m_pressure_env_n0(cCells)[0] = 0.0;
-          } else if ((r > 0.3) && (r < 0.5)) {
-            m_fracvol_env(cCells)[1] = 1.;
-            m_mass_fraction_env(cCells)[1] = 1.;
-            m_density_n0(cCells) = 4.;
-            m_pressure_n0(cCells) = 0.0;
-            m_density_env_n0(cCells)[1] = 1.0;
-            m_pressure_env_n0(cCells)[1] = 0.0;
-          } else if (r > 0.5) {
-            m_fracvol_env(cCells)[0] = 1.;
-            m_mass_fraction_env(cCells)[0] = 1.;
-            m_density_n0(cCells) = 4.;
-            m_pressure_n0(cCells) = 0.0;
-            m_density_env_n0(cCells)[0] = 4.0;
-            m_pressure_env_n0(cCells)[0] = 0.0;
-          }
-          m_speed_velocity_env_n0(cCells)[0] = 1.;
-          m_speed_velocity_env_n0(cCells)[1] = 1.;
-          m_speed_velocity_n0(cCells) = min(m_speed_velocity_env_n0(cCells)[0],
-                                            m_speed_velocity_env_n0(cCells)[1]);
-          m_internal_energy_env_n0(cCells)[0] = 1.;
-          m_internal_energy_env_n0(cCells)[1] = 1.;
-          m_internal_energy_n0(cCells) = 1.;
-        });
+    Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
+      double r(0.);
+      if (test->Nom == test->BiAdvectionVitX) r = m_cell_coord_n0(cCells)[0];
+      if (test->Nom == test->BiAdvectionVitY) r = m_cell_coord_n0(cCells)[1];
+      if (r < 0.3) {
+        m_fracvol_env(cCells)[0] = 1.;
+        m_mass_fraction_env(cCells)[0] = 1.;
+        m_density_n0(cCells) = 4.;
+        m_pressure_n0(cCells) = 0.0;
+        m_density_env_n0(cCells)[0] = 4.0;
+        m_pressure_env_n0(cCells)[0] = 0.0;
+      } else if ((r > 0.3) && (r < 0.5)) {
+        m_fracvol_env(cCells)[1] = 1.;
+        m_mass_fraction_env(cCells)[1] = 1.;
+        m_density_n0(cCells) = 4.;
+        m_pressure_n0(cCells) = 0.0;
+        m_density_env_n0(cCells)[1] = 1.0;
+        m_pressure_env_n0(cCells)[1] = 0.0;
+      } else if (r > 0.5) {
+        m_fracvol_env(cCells)[0] = 1.;
+        m_mass_fraction_env(cCells)[0] = 1.;
+        m_density_n0(cCells) = 4.;
+        m_pressure_n0(cCells) = 0.0;
+        m_density_env_n0(cCells)[0] = 4.0;
+        m_pressure_env_n0(cCells)[0] = 0.0;
+      }
+      m_speed_velocity_env_n0(cCells)[0] = 1.;
+      m_speed_velocity_env_n0(cCells)[1] = 1.;
+      m_speed_velocity_n0(cCells) = min(m_speed_velocity_env_n0(cCells)[0],
+                                        m_speed_velocity_env_n0(cCells)[1]);
+      m_internal_energy_env_n0(cCells)[0] = 1.;
+      m_internal_energy_env_n0(cCells)[1] = 1.;
+      m_internal_energy_n0(cCells) = 1.;
+    });
     const RealArray1D<dim> ex = {{1.0, 0.0}};
     const RealArray1D<dim> ey = {{0.0, 1.0}};
     RealArray1D<dim> u;
@@ -337,33 +330,32 @@ void Vnr::init() noexcept {
     }
   } else if (test->Nom == test->UnitTestCase ||
              test->Nom == test->BiUnitTestCase) {
-    Kokkos::parallel_for(
-        nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-          m_fracvol_env(cCells)[0] = 1.;
-          m_fracvol_env(cCells)[1] = 0.;
-          m_mass_fraction_env(cCells)[0] = 1.;
-          m_mass_fraction_env(cCells)[1] = 0.;
-          m_pressure_n0(cCells) = 1.0;
-          m_pressure_env_n0(cCells)[0] = 1.0;
-          m_pressure_env_n0(cCells)[1] = 0.0;
-          m_speed_velocity_n0(cCells) = std::sqrt(eos->gamma);
-          m_speed_velocity_env_n0(cCells)[0] = std::sqrt(eos->gamma);
-          m_speed_velocity_env_n0(cCells)[1] = std::sqrt(eos->gamma);
-          m_density_env_n0(cCells)[1] = 0.;
-          double r(0.);
-          r = m_cell_coord_n0(cCells)[0];
-          if (r < 0.4) {
-            m_density_n0(cCells) = 1.;
-            m_density_env_n0(cCells)[0] = 1.;
-          } else if (r > 0.4) {
-            m_density_n0(cCells) = 0.1;
-            m_density_env_n0(cCells)[0] = 0.1;
-          }
-          if (r > 0.6) {
-            m_density_n0(cCells) = 0.1;
-            m_density_env_n0(cCells)[0] = 0.1;
-          }
-        });
+    Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
+      m_fracvol_env(cCells)[0] = 1.;
+      m_fracvol_env(cCells)[1] = 0.;
+      m_mass_fraction_env(cCells)[0] = 1.;
+      m_mass_fraction_env(cCells)[1] = 0.;
+      m_pressure_n0(cCells) = 1.0;
+      m_pressure_env_n0(cCells)[0] = 1.0;
+      m_pressure_env_n0(cCells)[1] = 0.0;
+      m_speed_velocity_n0(cCells) = std::sqrt(eos->gamma);
+      m_speed_velocity_env_n0(cCells)[0] = std::sqrt(eos->gamma);
+      m_speed_velocity_env_n0(cCells)[1] = std::sqrt(eos->gamma);
+      m_density_env_n0(cCells)[1] = 0.;
+      double r(0.);
+      r = m_cell_coord_n0(cCells)[0];
+      if (r < 0.4) {
+        m_density_n0(cCells) = 1.;
+        m_density_env_n0(cCells)[0] = 1.;
+      } else if (r > 0.4) {
+        m_density_n0(cCells) = 0.1;
+        m_density_env_n0(cCells)[0] = 0.1;
+      }
+      if (r > 0.6) {
+        m_density_n0(cCells) = 0.1;
+        m_density_env_n0(cCells)[0] = 0.1;
+      }
+    });
     for (size_t pNodes = 0; pNodes < nbNodes; pNodes++) {
       if (m_node_coord_n0(pNodes)[0] < 0.5)
         m_node_velocity_n0(pNodes) = {1.0, 0.0};
@@ -377,29 +369,28 @@ void Vnr::init() noexcept {
     std::cout << "Cas test inconnu " << std::endl;
     exit(1);
   }
-  Kokkos::parallel_for(
-      "init", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-        // pour les sorties au temps 0:
-        m_fracvol_env1(cCells) = m_fracvol_env(cCells)[0];
-        m_fracvol_env2(cCells) = m_fracvol_env(cCells)[1];
-        m_fracvol_env3(cCells) = m_fracvol_env(cCells)[2];
-        // indicateur mailles mixtes
-        int matcell(0);
-        int imatpure(-1);
-        for (int imat = 0; imat < nbmatmax; imat++)
-          if (m_fracvol_env(cCells)[imat] > options->threshold) {
-            matcell++;
-            imatpure = imat;
-          }
+  Kokkos::parallel_for("init", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+    // pour les sorties au temps 0:
+    m_fracvol_env1(cCells) = m_fracvol_env(cCells)[0];
+    m_fracvol_env2(cCells) = m_fracvol_env(cCells)[1];
+    m_fracvol_env3(cCells) = m_fracvol_env(cCells)[2];
+    // indicateur mailles mixtes
+    int matcell(0);
+    int imatpure(-1);
+    for (int imat = 0; imat < nbmatmax; imat++)
+      if (m_fracvol_env(cCells)[imat] > options->threshold) {
+        matcell++;
+        imatpure = imat;
+      }
 
-        if (matcell > 1) {
-          varlp->mixte(cCells) = 1;
-          varlp->pure(cCells) = -1;
-        } else {
-          varlp->mixte(cCells) = 0;
-          varlp->pure(cCells) = imatpure;
-        }
-      });
+    if (matcell > 1) {
+      varlp->mixte(cCells) = 1;
+      varlp->pure(cCells) = -1;
+    } else {
+      varlp->mixte(cCells) = 0;
+      varlp->pure(cCells) = imatpure;
+    }
+  });
 }
 /**
  * Job initSubVol called @2.0 in simulate method.
@@ -407,37 +398,34 @@ void Vnr::init() noexcept {
  * Out variables: m_node_cellvolume_n0
  */
 void Vnr::initSubVol() noexcept {
-  Kokkos::parallel_for(
-      nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-        const Id cId(cCells);
-        {
-          const auto nodesOfCellC(mesh->getNodesOfCell(cId));
-          const size_t nbNodesOfCellC(nodesOfCellC.size());
-          for (size_t pNodesOfCellC = 0; pNodesOfCellC < nbNodesOfCellC;
-               pNodesOfCellC++) {
-            const Id pMinus1Id(
-                nodesOfCellC[(pNodesOfCellC - 1 + nbNodesOfCell) %
-                             nbNodesOfCell]);
-            const Id pId(nodesOfCellC[pNodesOfCellC]);
-            const Id pPlus1Id(nodesOfCellC[(pNodesOfCellC + 1 + nbNodesOfCell) %
-                                           nbNodesOfCell]);
-            const size_t pMinus1Nodes(pMinus1Id);
-            const size_t pNodes(pId);
-            const size_t pPlus1Nodes(pPlus1Id);
-            const RealArray1D<2> x1(m_cell_coord_n0(cCells));
-            const RealArray1D<2> x2(0.5 * (m_node_coord_n0(pMinus1Nodes) +
-                                           m_node_coord_n0(pNodes)));
-            const RealArray1D<2> x3(m_node_coord_n0(pNodes));
-            const RealArray1D<2> x4(
-                0.5 * (m_node_coord_n0(pPlus1Nodes) + m_node_coord_n0(pNodes)));
-            m_node_cellvolume_n0(cCells, pNodesOfCellC) =
-                0.5 * (crossProduct2d(x1, x2) + crossProduct2d(x2, x3) +
-                       crossProduct2d(x3, x4) + crossProduct2d(x4, x1));
-          }
-        }
-        m_euler_volume(cCells) =
-            cstmesh->X_EDGE_LENGTH * cstmesh->Y_EDGE_LENGTH;
-      });
+  Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
+    const Id cId(cCells);
+    {
+      const auto nodesOfCellC(mesh->getNodesOfCell(cId));
+      const size_t nbNodesOfCellC(nodesOfCellC.size());
+      for (size_t pNodesOfCellC = 0; pNodesOfCellC < nbNodesOfCellC;
+           pNodesOfCellC++) {
+        const Id pMinus1Id(
+            nodesOfCellC[(pNodesOfCellC - 1 + nbNodesOfCell) % nbNodesOfCell]);
+        const Id pId(nodesOfCellC[pNodesOfCellC]);
+        const Id pPlus1Id(
+            nodesOfCellC[(pNodesOfCellC + 1 + nbNodesOfCell) % nbNodesOfCell]);
+        const size_t pMinus1Nodes(pMinus1Id);
+        const size_t pNodes(pId);
+        const size_t pPlus1Nodes(pPlus1Id);
+        const RealArray1D<2> x1(m_cell_coord_n0(cCells));
+        const RealArray1D<2> x2(
+            0.5 * (m_node_coord_n0(pMinus1Nodes) + m_node_coord_n0(pNodes)));
+        const RealArray1D<2> x3(m_node_coord_n0(pNodes));
+        const RealArray1D<2> x4(
+            0.5 * (m_node_coord_n0(pPlus1Nodes) + m_node_coord_n0(pNodes)));
+        m_node_cellvolume_n0(cCells, pNodesOfCellC) =
+            0.5 * (crossProduct2d(x1, x2) + crossProduct2d(x2, x3) +
+                   crossProduct2d(x3, x4) + crossProduct2d(x4, x1));
+      }
+    }
+    m_euler_volume(cCells) = cstmesh->X_EDGE_LENGTH * cstmesh->Y_EDGE_LENGTH;
+  });
 }
 /**
  * Job initDeltaT called @3.0 in simulate method.
@@ -473,15 +461,14 @@ void Vnr::initDeltaT() noexcept {
  * Out variables: m_internal_energy_n0
  */
 void Vnr::initInternalEnergy() noexcept {
-  Kokkos::parallel_for(
-      nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-        for (int imat = 0; imat < nbmatmax; imat++)
-          m_internal_energy_env_n0(cCells)[imat] =
-              m_pressure_env_n0(cCells)[imat] /
-              ((eos->gammap[imat] - 1.0) * m_density_env_n0(cCells)[imat]);
-        m_internal_energy_n0(cCells) =
-            m_pressure_n0(cCells) / ((eos->gamma - 1.0) * m_density_n0(cCells));
-      });
+  Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
+    for (int imat = 0; imat < nbmatmax; imat++)
+      m_internal_energy_env_n0(cCells)[imat] =
+          m_pressure_env_n0(cCells)[imat] /
+          ((eos->gammap[imat] - 1.0) * m_density_env_n0(cCells)[imat]);
+    m_internal_energy_n0(cCells) =
+        m_pressure_n0(cCells) / ((eos->gamma - 1.0) * m_density_n0(cCells));
+  });
 }
 
 /**
@@ -490,17 +477,15 @@ void Vnr::initInternalEnergy() noexcept {
  * Out variables: m_divu_n0, m_tau_density_n0
  */
 void Vnr::initPseudo() noexcept {
-  Kokkos::parallel_for(
-      nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-        m_tau_density_n0(cCells) = 1 / m_density_n0(cCells);
-        m_divu_n0(cCells) = 0.0;
-        m_pseudo_viscosity_n0(cCells) = 0.0;
-        for (int imat = 0; imat < nbmatmax; imat++) {
-          m_tau_density_env_n0(cCells)[imat] =
-              1 / m_density_env_n0(cCells)[imat];
-          m_pseudo_viscosity_env_n0(cCells)[imat] = 0.0;
-        }
-      });
+  Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
+    m_tau_density_n0(cCells) = 1 / m_density_n0(cCells);
+    m_divu_n0(cCells) = 0.0;
+    m_pseudo_viscosity_n0(cCells) = 0.0;
+    for (int imat = 0; imat < nbmatmax; imat++) {
+      m_tau_density_env_n0(cCells)[imat] = 1 / m_density_env_n0(cCells)[imat];
+      m_pseudo_viscosity_env_n0(cCells)[imat] = 0.0;
+    }
+  });
 }
 /**
  * Job initCellPos called @1.0 in simulate method.
@@ -508,22 +493,21 @@ void Vnr::initPseudo() noexcept {
  * Out variables: m_cell_coord_n0
  */
 void Vnr::initCellPos() noexcept {
-  Kokkos::parallel_for(
-      nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-        const Id cId(cCells);
-        RealArray1D<2> reduction0({0.0, 0.0});
-        {
-          const auto nodesOfCellC(mesh->getNodesOfCell(cId));
-          const size_t nbNodesOfCellC(nodesOfCellC.size());
-          for (size_t pNodesOfCellC = 0; pNodesOfCellC < nbNodesOfCellC;
-               pNodesOfCellC++) {
-            const Id pId(nodesOfCellC[pNodesOfCellC]);
-            const size_t pNodes(pId);
-            reduction0 = sumR1(reduction0, m_node_coord_n0(pNodes));
-          }
-        }
-        m_cell_coord_n0(cCells) = 0.25 * reduction0;
-      });
+  Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
+    const Id cId(cCells);
+    RealArray1D<2> reduction0({0.0, 0.0});
+    {
+      const auto nodesOfCellC(mesh->getNodesOfCell(cId));
+      const size_t nbNodesOfCellC(nodesOfCellC.size());
+      for (size_t pNodesOfCellC = 0; pNodesOfCellC < nbNodesOfCellC;
+           pNodesOfCellC++) {
+        const Id pId(nodesOfCellC[pNodesOfCellC]);
+        const size_t pNodes(pId);
+        reduction0 = sumR1(reduction0, m_node_coord_n0(pNodes));
+      }
+    }
+    m_cell_coord_n0(cCells) = 0.25 * reduction0;
+  });
 }
 /**
  * Job initMeshGeometryForFaces called @2.0 in simulate method.
