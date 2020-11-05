@@ -101,7 +101,8 @@ void Eucclhyd::initBoundaryConditions() noexcept {
 /**
  * Job initMeshGeometryForCells called @1.0 in simulate method.
  * In variables: X
- * Out variables: m_cell_coord, m_cell_coord_x, m_cell_coord_y, m_cell_perimeter, v
+ * Out variables: m_cell_coord, m_cell_coord_x, m_cell_coord_y,
+ * m_cell_perimeter, v
  */
 void Eucclhyd::initMeshGeometryForCells() noexcept {
   Kokkos::parallel_for(
@@ -145,7 +146,7 @@ void Eucclhyd::initMeshGeometryForCells() noexcept {
         m_cell_coord_x(cCells) = xc[0];
         m_cell_coord_y(cCells) = xc[1];
         m_euler_volume(cCells) = vol;
-	particules->m_particlecell_euler_volume(cCells) = vol;
+        particules->m_particlecell_euler_volume(cCells) = vol;
         double reduction13 = 0.0;
         {
           auto nodesOfCellC(mesh->getNodesOfCell(cId));
@@ -256,7 +257,9 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
                              m_internal_energy_n0(cCells) = eInit;
                              // std::cout << " cell " << cCells << "  e1= " <<
                              // m_internal_energy_env_n0(cCells)[0]
-                             // << "  e2= " << m_internal_energy_env_n0(cCells)[0] << std::endl;
+                             // << "  e2= " <<
+                             // m_internal_energy_env_n0(cCells)[0] <<
+                             // std::endl;
                            } else {
                              pInit = 0.1;
                              rhoInit = 0.125;
@@ -266,7 +269,9 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
                              m_internal_energy_n0(cCells) = eInit;
                              // std::cout << " cell " << cCells << "  e1= " <<
                              // m_internal_energy_env_n0(cCells)[0]
-                             // << "  e2= " << m_internal_energy_env_n0(cCells)[0] << std::endl;
+                             // << "  e2= " <<
+                             // m_internal_energy_env_n0(cCells)[0] <<
+                             // std::endl;
                            }
                          });
   } else if (test->Nom == test->BiShockBubble) {
@@ -324,7 +329,8 @@ void Eucclhyd::initCellInternalEnergy() noexcept {
             double total_energy_deposit = 0.244816;
             double dx = cstmesh->X_EDGE_LENGTH;
             double dy = cstmesh->Y_EDGE_LENGTH;
-            m_internal_energy_n0(cCells) = e1 + total_energy_deposit / (dx * dy);
+            m_internal_energy_n0(cCells) =
+                e1 + total_energy_deposit / (dx * dy);
           } else {
             m_internal_energy_n0(cCells) = e1;
           }
@@ -715,8 +721,9 @@ void Eucclhyd::initMeshGeometryForFaces() noexcept {
 }
 /**
  * Job setUpTimeLoopN called @3.0 in simulate method.
- * In variables: m_node_force_n0, m_cell_velocity_n0, m_node_velocity_n0, m_internal_energy_n0, m_density_n0
- * Out variables: m_node_force_n, m_cell_velocity_n, m_node_velocity_n, m_internal_energy_n, m_density_n
+ * In variables: m_node_force_n0, m_cell_velocity_n0, m_node_velocity_n0,
+ * m_internal_energy_n0, m_density_n0 Out variables: m_node_force_n,
+ * m_cell_velocity_n, m_node_velocity_n, m_internal_energy_n, m_density_n
  */
 void Eucclhyd::setUpTimeLoopN() noexcept {
   deep_copy(m_node_velocity_n, m_node_velocity_n0);
@@ -752,15 +759,18 @@ void Eucclhyd::setUpTimeLoopN() noexcept {
     gt->deltat_n = 1.0e-5;
   }
   m_global_total_energy_0 = 0.;
-  Kokkos::parallel_for(
-      "init_m_global_total_energy_0", nbCells,
-      KOKKOS_LAMBDA(const int& cCells) {
-        m_total_energy_0(cCells) =
-            (m_density_n0(cCells) * m_euler_volume(cCells)) *
-            (m_internal_energy_n0(cCells) + 0.5 * (m_cell_velocity_n0(cCells)[0] * m_cell_velocity_n0(cCells)[0] +
-                                   m_cell_velocity_n0(cCells)[1] * m_cell_velocity_n0(cCells)[1]));
-        m_global_masse_0(cCells) = (m_density_n0(cCells) * m_euler_volume(cCells));
-      });
+  Kokkos::parallel_for("init_m_global_total_energy_0", nbCells,
+                       KOKKOS_LAMBDA(const int& cCells) {
+                         m_total_energy_0(cCells) =
+                             (m_density_n0(cCells) * m_euler_volume(cCells)) *
+                             (m_internal_energy_n0(cCells) +
+                              0.5 * (m_cell_velocity_n0(cCells)[0] *
+                                         m_cell_velocity_n0(cCells)[0] +
+                                     m_cell_velocity_n0(cCells)[1] *
+                                         m_cell_velocity_n0(cCells)[1]));
+                         m_global_masse_0(cCells) =
+                             (m_density_n0(cCells) * m_euler_volume(cCells));
+                       });
   double reductionE(0.), reductionM(0.);
   {
     Kokkos::Sum<double> reducerE(reductionE);

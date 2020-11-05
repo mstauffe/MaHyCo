@@ -1,8 +1,10 @@
 #include <Kokkos_Core.hpp>
+
 #include "Vnr.h"                   // for VnrRemap
-#include "../includes/Freefunctions.h"
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D
 #include "utils/Utils.h"           // for Indexof
+// placer apres car a besoin des précédents
+#include "../includes/Freefunctions.h"
 
 /**
  * Job updateVelocity called @2.0 in executeTimeLoopN method.

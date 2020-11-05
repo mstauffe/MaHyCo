@@ -155,9 +155,9 @@ void Vnr::remapVariables() noexcept {
             std::cout << " fractionvol   " << m_fracvol_env(cCells)[0] << " "
                       << m_fracvol_env(cCells)[1] << " "
                       << m_fracvol_env(cCells)[2] << std::endl;
-            std::cout << " concentrations   " << m_mass_fraction_env(cCells)[0] << " "
-                      << m_mass_fraction_env(cCells)[1] << " " << m_mass_fraction_env(cCells)[2]
-                      << std::endl;
+            std::cout << " concentrations   " << m_mass_fraction_env(cCells)[0]
+                      << " " << m_mass_fraction_env(cCells)[1] << " "
+                      << m_mass_fraction_env(cCells)[2] << std::endl;
 #ifdef TEST
             std::cout << "varlp->ULagrange " << varlp->ULagrange(cCells)
                       << std::endl;
@@ -178,9 +178,9 @@ void Vnr::remapVariables() noexcept {
           std::cout << " densites  " << density_env_nplus1[0] << " "
                     << density_env_nplus1[1] << " " << density_env_nplus1[0]
                     << std::endl;
-          std::cout << " concentrations   " << m_mass_fraction_env(cCells)[0] << " "
-                    << m_mass_fraction_env(cCells)[1] << " " << m_mass_fraction_env(cCells)[2]
-                    << std::endl;
+          std::cout << " concentrations   " << m_mass_fraction_env(cCells)[0]
+                    << " " << m_mass_fraction_env(cCells)[1] << " "
+                    << m_mass_fraction_env(cCells)[2] << std::endl;
           std::cout << " fractionvol   " << m_fracvol_env(cCells)[0] << " "
                     << m_fracvol_env(cCells)[1] << " "
                     << m_fracvol_env(cCells)[2] << std::endl;
@@ -213,10 +213,9 @@ void Vnr::remapVariables() noexcept {
         varlp->UDualremap2(pNodes)[1] / massm_internal_energy_nodale_proj;
     // Energie cinétique
 
-    // conservation energie totale avec (density_nplus1 * vol) au lieu de masset
-    // idem
-    // double delta_ec(0.);
-    // if (options->projectionConservative == 1)
+    // conservation energie totale avec (density_nplus1 * vol) au lieu de
+    // masset idem double delta_ec(0.); if (options->projectionConservative
+    // == 1)
     //  delta_ec = varlp->Uremap2(cCells)[3 * nbmat + 2] / masset -
     //                     0.5 * (V_nplus1[0] * V_nplus1[0] + V_nplus1[1] *
     //                     V_nplus1[1]);

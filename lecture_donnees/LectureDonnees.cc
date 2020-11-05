@@ -3,7 +3,6 @@
 #include <fstream>   // for ifstream
 #include <iostream>  // for operator<<, endl, basic_o...
 #include "LectureDonnees.h"
-
 /**
  * Job LectureDonnees called by main.
  * In variables: fichier
@@ -200,24 +199,26 @@ void LectureDonneesClass::LectureDonnees(
       mesdonnees.ignore();
 
       if (o->AvecProjection == 1) {
-    	  getline(mesdonnees, ligne);  // methode calcul des flux de masses duales
-	      mesdonnees >> mot;
-	      o->methode_flux_masse = A1OUA2OUPB[mot];
-	      std::cout << " Methode Projection Dual : " << mot << " ( "
-		        << o->methode_flux_masse << " ) " << std::endl;
-	      mesdonnees.ignore();
+        getline(mesdonnees, ligne);  // methode calcul des flux de masses duales
+        mesdonnees >> mot;
+        o->methode_flux_masse = A1OUA2OUPB[mot];
+        std::cout << " Methode Projection Dual : " << mot << " ( "
+                  << o->methode_flux_masse << " ) " << std::endl;
+        mesdonnees.ignore();
       }
     }
-    // getline(mesdonnees, ligne); // Presence de Particules
-    // mesdonnees >> mot;
-    // o->AvecParticules = ouiOUnon[mot];
-    // std::cout << " Presence de Particules " << mot << " ( " <<
-    // o->AvecParticules << " ) " << std::endl; mesdonnees.ignore();
+    getline(mesdonnees, ligne);  // Presence de Particules
+    mesdonnees >> mot;
+    o->AvecParticules = ouiOUnon[mot];
+    std::cout << " Presence de Particules " << mot << " ( " << o->AvecParticules
+              << " ) " << std::endl;
+    mesdonnees.ignore();
 
-    // getline(mesdonnees, ligne); // Nombre de Particules
-    // mesdonnees >> nbPart;
-    // std::cout << " Nombre de Particules " << nbPart << std::endl;
-    // mesdonnees.ignore();
+    getline(mesdonnees, ligne);  // Nombre de Particules
+    mesdonnees >> cstmesh->Nombre_Particules;
+    std::cout << " Nombre de Particules " << cstmesh->Nombre_Particules
+              << std::endl;
+    mesdonnees.ignore();
 
   } else {
     cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;

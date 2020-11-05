@@ -203,7 +203,8 @@ void Vnr::updateVelocity() noexcept {
 void Vnr::updatePosition() noexcept {
   Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
     m_node_coord_nplus1(pNodes) =
-        m_node_coord_n(pNodes) + gt->deltat_nplus1 * m_node_velocity_nplus1(pNodes);
+        m_node_coord_n(pNodes) +
+        gt->deltat_nplus1 * m_node_velocity_nplus1(pNodes);
   });
 }
 /**
@@ -354,7 +355,8 @@ void Vnr::updateEnergy() noexcept {
                               1.0 / m_density_env_n(cCells)[imat]));
         m_internal_energy_env_nplus1(cCells)[imat] = num / den;
         m_internal_energy_nplus1(cCells) +=
-            m_mass_fraction_env(cCells)[imat] * m_internal_energy_env_nplus1(cCells)[imat];
+            m_mass_fraction_env(cCells)[imat] *
+            m_internal_energy_env_nplus1(cCells)[imat];
         if (abs(m_internal_energy_env_nplus1(cCells)[imat]) > 5.) {
           std::cout << cCells << " energie "
                     << m_internal_energy_env_nplus1(cCells)[imat]
@@ -383,7 +385,8 @@ void Vnr::computeDivU() noexcept {
         1.0 / gt->deltat_nplus1 *
         (1.0 / m_density_nplus1(cCells) - 1.0 / m_density_n(cCells)) /
         m_tau_density_nplus1(cCells);
-    // a changer comme le calcul du DV, utiliser les m_cqs(cCells,pNodesOfCellC)
+    // a changer comme le calcul du DV, utiliser les
+    // m_cqs(cCells,pNodesOfCellC)
   });
 }
 /**
@@ -480,6 +483,7 @@ void Vnr::computePressionMoyenne() noexcept {
     for (int imat = 0; imat < options->nbmat; ++imat)
       if (eos->Nom[imat] == eos->Void)
         m_internal_energy_nplus1(cCells) +=
-            m_mass_fraction_env(cCells)[imat] * m_internal_energy_env_nplus1(cCells)[imat];
+            m_mass_fraction_env(cCells)[imat] *
+            m_internal_energy_env_nplus1(cCells)[imat];
   }
 }

@@ -173,50 +173,54 @@ void Remap::computeGradPhi2() noexcept {
                   varlp->faceNormalVelocity(fbFaces);
 
               double Flux_sortant_ar =
-                  dot(varlp->outerFaceNormal(cCells, ftFacesOfCellC),
-                                     exy) *
+                  dot(varlp->outerFaceNormal(cCells, ftFacesOfCellC), exy) *
                   varlp->faceNormalVelocity(ftFaces);
 
-	      double flux_dual = 0.5*(varlp->faceNormalVelocity(fbFaces)+varlp->faceNormalVelocity(ftFaces));
-	      int calcul_flux_dual(0);
-	      if (options->methode_flux_masse == 2) calcul_flux_dual = 1;
-	      
-        if (voisinage_pure)
-          computeFluxPPPure(gradPhi2(cCells),
-            varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
-            HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
-            Flux_sortant_av, gt->deltat_n, 0, cCells, options->threshold,
-            limiteurs->projectionPlateauPenteComplet,
-            flux_dual, calcul_flux_dual,
-            &deltaPhiFaceAr(cCells), &DualphiFlux2(cCells));
-        else
-          computeFluxPP(gradPhi2(cCells),
-            varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
-            HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
-            Flux_sortant_av, gt->deltat_n, 0, cCells, options->threshold,
-            limiteurs->projectionPlateauPenteComplet,
-            flux_dual, calcul_flux_dual,
-            &deltaPhiFaceAr(cCells), &DualphiFlux2(cCells));
+              double flux_dual = 0.5 * (varlp->faceNormalVelocity(fbFaces) +
+                                        varlp->faceNormalVelocity(ftFaces));
+              int calcul_flux_dual(0);
+              if (options->methode_flux_masse == 2) calcul_flux_dual = 1;
 
-            // pour avoir un flux dual 2D
-            DualphiFlux2(cCells) *= (varlp->faceLength(fbFaces)+varlp->faceLength(ftFaces))*0.5;
+              if (voisinage_pure)
+                computeFluxPPPure(
+                    gradPhi2(cCells), varlp->Phi(cCells), varlp->Phi(cbCells),
+                    varlp->Phi(cfCells), HvLagrange(cCells),
+                    HvLagrange(cbCells), HvLagrange(cfCells), Flux_sortant_av,
+                    gt->deltat_n, 0, cCells, options->threshold,
+                    limiteurs->projectionPlateauPenteComplet, flux_dual,
+                    calcul_flux_dual, &deltaPhiFaceAr(cCells),
+                    &DualphiFlux2(cCells));
+              else
+                computeFluxPP(gradPhi2(cCells), varlp->Phi(cCells),
+                              varlp->Phi(cbCells), varlp->Phi(cfCells),
+                              HvLagrange(cCells), HvLagrange(cbCells),
+                              HvLagrange(cfCells), Flux_sortant_av,
+                              gt->deltat_n, 0, cCells, options->threshold,
+                              limiteurs->projectionPlateauPenteComplet,
+                              flux_dual, calcul_flux_dual,
+                              &deltaPhiFaceAr(cCells), &DualphiFlux2(cCells));
 
-       if (voisinage_pure)
-         computeFluxPPPure(gradPhi2(cCells),
-            varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
-            HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
-            Flux_sortant_ar, gt->deltat_n, 1, cCells, options->threshold,
-            limiteurs->projectionPlateauPenteComplet,
-            flux_dual, calcul_flux_dual,
-            &deltaPhiFaceAv(cCells), &Bidon2(cCells));
-       else
-         computeFluxPP(gradPhi2(cCells),
-            varlp->Phi(cCells), varlp->Phi(cbCells), varlp->Phi(cfCells),
-            HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells),
-            Flux_sortant_ar, gt->deltat_n, 1, cCells, options->threshold,
-            limiteurs->projectionPlateauPenteComplet,
-            flux_dual, calcul_flux_dual,
-            &deltaPhiFaceAv(cCells), &Bidon2(cCells));
+              // pour avoir un flux dual 2D
+              DualphiFlux2(cCells) *=
+                  (varlp->faceLength(fbFaces) + varlp->faceLength(ftFaces)) *
+                  0.5;
+
+              if (voisinage_pure)
+                computeFluxPPPure(
+                    gradPhi2(cCells), varlp->Phi(cCells), varlp->Phi(cbCells),
+                    varlp->Phi(cfCells), HvLagrange(cCells),
+                    HvLagrange(cbCells), HvLagrange(cfCells), Flux_sortant_ar,
+                    gt->deltat_n, 1, cCells, options->threshold,
+                    limiteurs->projectionPlateauPenteComplet, flux_dual,
+                    calcul_flux_dual, &deltaPhiFaceAv(cCells), &Bidon2(cCells));
+              else
+                computeFluxPP(
+                    gradPhi2(cCells), varlp->Phi(cCells), varlp->Phi(cbCells),
+                    varlp->Phi(cfCells), HvLagrange(cCells),
+                    HvLagrange(cbCells), HvLagrange(cfCells), Flux_sortant_ar,
+                    gt->deltat_n, 1, cCells, options->threshold,
+                    limiteurs->projectionPlateauPenteComplet, flux_dual,
+                    calcul_flux_dual, &deltaPhiFaceAv(cCells), &Bidon2(cCells));
             }
           });
     } else {
@@ -267,50 +271,54 @@ void Remap::computeGradPhi2() noexcept {
                   varlp->faceNormalVelocity(flFaces);
 
               double Flux_sortant_av =
-                  dot(varlp->outerFaceNormal(cCells, frFacesOfCellC),
-                                     exy) *
+                  dot(varlp->outerFaceNormal(cCells, frFacesOfCellC), exy) *
                   varlp->faceNormalVelocity(frFaces);
 
-	      double flux_dual = 0.5*(varlp->faceNormalVelocity(flFaces)+varlp->faceNormalVelocity(frFaces));
-	      int calcul_flux_dual(0);
-	      if (options->methode_flux_masse == 2) calcul_flux_dual = 1;
-	      
-        if (voisinage_pure)
-                computeFluxPPPure(gradPhi2(cCells),
-		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
-                    HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
-		    Flux_sortant_ar, gt->deltat_n, 0, cCells, options->threshold,
-		    limiteurs->projectionPlateauPenteComplet,
-		    flux_dual, calcul_flux_dual,
-		    &deltaPhiFaceAr(cCells), &DualphiFlux2(cCells));
-              else
-                computeFluxPP(gradPhi2(cCells),
-		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
-                    HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
-		    Flux_sortant_ar, gt->deltat_n, 0, cCells, options->threshold,
-		    limiteurs->projectionPlateauPenteComplet,
-		    flux_dual, calcul_flux_dual,
-		    &deltaPhiFaceAr(cCells), &DualphiFlux2(cCells));
-	      
-	      // pour avoir un flux dual 2D
-	      DualphiFlux2(cCells) *= (varlp->faceLength(flFaces)+varlp->faceLength(frFaces))*0.5;
-	      
+              double flux_dual = 0.5 * (varlp->faceNormalVelocity(flFaces) +
+                                        varlp->faceNormalVelocity(frFaces));
+              int calcul_flux_dual(0);
+              if (options->methode_flux_masse == 2) calcul_flux_dual = 1;
+
               if (voisinage_pure)
-                computeFluxPPPure(gradPhi2(cCells),
-		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
-                    HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
-		    Flux_sortant_av, gt->deltat_n, 1, cCells, options->threshold,
-		    limiteurs->projectionPlateauPenteComplet,
-		    flux_dual, calcul_flux_dual,
-		    &deltaPhiFaceAv(cCells), &Bidon2(cCells));
+                computeFluxPPPure(
+                    gradPhi2(cCells), varlp->Phi(cCells), varlp->Phi(cfCells),
+                    varlp->Phi(cbCells), HvLagrange(cCells),
+                    HvLagrange(cfCells), HvLagrange(cbCells), Flux_sortant_ar,
+                    gt->deltat_n, 0, cCells, options->threshold,
+                    limiteurs->projectionPlateauPenteComplet, flux_dual,
+                    calcul_flux_dual, &deltaPhiFaceAr(cCells),
+                    &DualphiFlux2(cCells));
               else
-               computeFluxPP(gradPhi2(cCells),
-		    varlp->Phi(cCells), varlp->Phi(cfCells), varlp->Phi(cbCells),
-                    HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells),
-		    Flux_sortant_av, gt->deltat_n, 1, cCells, options->threshold,
-		    limiteurs->projectionPlateauPenteComplet,
-		    flux_dual, calcul_flux_dual,
-		    &deltaPhiFaceAv(cCells), &Bidon2(cCells));
+                computeFluxPP(gradPhi2(cCells), varlp->Phi(cCells),
+                              varlp->Phi(cfCells), varlp->Phi(cbCells),
+                              HvLagrange(cCells), HvLagrange(cfCells),
+                              HvLagrange(cbCells), Flux_sortant_ar,
+                              gt->deltat_n, 0, cCells, options->threshold,
+                              limiteurs->projectionPlateauPenteComplet,
+                              flux_dual, calcul_flux_dual,
+                              &deltaPhiFaceAr(cCells), &DualphiFlux2(cCells));
+
+              // pour avoir un flux dual 2D
+              DualphiFlux2(cCells) *=
+                  (varlp->faceLength(flFaces) + varlp->faceLength(frFaces)) *
+                  0.5;
+
+              if (voisinage_pure)
+                computeFluxPPPure(
+                    gradPhi2(cCells), varlp->Phi(cCells), varlp->Phi(cfCells),
+                    varlp->Phi(cbCells), HvLagrange(cCells),
+                    HvLagrange(cfCells), HvLagrange(cbCells), Flux_sortant_av,
+                    gt->deltat_n, 1, cCells, options->threshold,
+                    limiteurs->projectionPlateauPenteComplet, flux_dual,
+                    calcul_flux_dual, &deltaPhiFaceAv(cCells), &Bidon2(cCells));
+              else
+                computeFluxPP(
+                    gradPhi2(cCells), varlp->Phi(cCells), varlp->Phi(cfCells),
+                    varlp->Phi(cbCells), HvLagrange(cCells),
+                    HvLagrange(cfCells), HvLagrange(cbCells), Flux_sortant_av,
+                    gt->deltat_n, 1, cCells, options->threshold,
+                    limiteurs->projectionPlateauPenteComplet, flux_dual,
+                    calcul_flux_dual, &deltaPhiFaceAv(cCells), &Bidon2(cCells));
             }
           });
     }

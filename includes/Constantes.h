@@ -4,7 +4,6 @@
 #include "types/Types.h"  // for RealArray1D, RealArray2D
 using namespace nablalib;
 
-
 // dimension du code
 static const int dim = 2;
 // Nombre de matériaux maximum autorisé
@@ -13,6 +12,8 @@ static const int nbmatmax = 3;
 static const int nbequamax = 3 * nbmatmax + 2 + 1 + 1;
 // (volumes, masses, energies internes) * nbmatmax
 // + vitesses + energie cinétique + pseudo
+// Nombre de Particules autorisées
+static const int nbPartMax = 1000;
 
 const RealArray1D<dim> ex = {{1.0, 0.0}};
 const RealArray1D<dim> ey = {{0.0, 1.0}};

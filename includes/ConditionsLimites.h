@@ -1,6 +1,8 @@
 #ifndef CONDITIONSLIMITES_H
 #define CONDITIONSLIMITES_H
 
+#include "../includes/Constantes.h"
+
 namespace conditionslimiteslib {
 
 class ConditionsLimites {
@@ -40,7 +42,6 @@ class ConditionsLimites {
     int rightCellBC = 0;
     int bottomCellBC = 0;
     int topCellBC = 0;
-
   };
   Cdl* cdl;
 
