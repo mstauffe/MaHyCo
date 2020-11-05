@@ -54,7 +54,7 @@ cmake ../kokkos -DKokkos_CXX_STANDARD=17 -DCMAKE_INSTALL_PREFIX=/path/to/desired
 Just clone the repository:
 
 ```
-git clone https://github.com/hippo91/MaHyCo.git
+git clone https://github.com/Jean-Philippe-mac/MaHyCo-1.git
 ```
 
 # Compile *MaHyCo*

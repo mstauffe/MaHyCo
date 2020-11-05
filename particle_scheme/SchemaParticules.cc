@@ -15,6 +15,7 @@
 namespace particleslib {
 
 void SchemaParticules::initPart() noexcept {
+  srand(time(NULL));
   Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
     m_particle_velocity_n0(ipart) = zeroVect;
 
@@ -26,38 +27,34 @@ void SchemaParticules::initPart() noexcept {
                                m_particle_radius(ipart) / 3.;
     m_particle_mass(ipart) =
         m_particle_density(ipart) * m_particle_volume(ipart);
+
+    m_particle_velocity_n0(ipart) = zeroVect;
   });
 
   if (test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY ||
       test->Nom == test->SodCaseX || test->Nom == test->SodCaseY)
     Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
-      m_particle_coord_n0(ipart)[1] = (ipart % 10) * 0.01 + ipart * 0.0001;
-
-      if (ipart < nbPart / 6)
-        m_particle_coord_n0(ipart)[0] = 0.545;
-      else if (ipart >= nbPart / 6 && ipart < 2 * nbPart / 6)
-        m_particle_coord_n0(ipart)[0] = 0.595;
-      else if (ipart >= 2 * nbPart / 6 && ipart < 3 * nbPart / 6)
-        m_particle_coord_n0(ipart)[0] = 0.645;
-      else if (ipart >= 3 * nbPart / 6 && ipart < 4 * nbPart / 6)
-        m_particle_coord_n0(ipart)[0] = 0.695;
-      else if (ipart >= 4 * nbPart / 6 && ipart < 5 * nbPart / 6)
-        m_particle_coord_n0(ipart)[0] = 0.745;
-      else if (ipart >= 5 * nbPart / 6)
-        m_particle_coord_n0(ipart)[0] = 0.795;
-
+	
+      // tirage aleatoire de la position en X et Y
+      float posX(0), posY(0);
+      posX = (float)rand() / (float)RAND_MAX;
+      posY = (float)rand() / (float)RAND_MAX;
+      m_particle_coord_n0(ipart)[1] = posY / 10. ;
+      m_particle_coord_n0(ipart)[0] = 0.5 + 2. * posX / 10.;
+      
+      									  
       int icell = MathFunctions::max(
           floor(m_particle_coord_n0(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
       int jcell = MathFunctions::max(
           floor(m_particle_coord_n0(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
+      
       m_particle_cell(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
+      if (m_particle_cell(ipart) > cstmesh->X_EDGE_ELEMS * cstmesh->Y_EDGE_ELEMS) {
+	std::cout << " Init : Part  " << ipart << " dans aucune maille" << std::endl;
+	exit(1);
+      }
       m_cell_particle_list(m_particle_cell(ipart)).push_back(ipart);
-      m_particle_env(ipart) = 1;
-      // std::cout << " Part  " << ipart << "  xp= " <<
-      // m_particle_coord_n0(ipart)[0]
-      //          << "  yp= " << m_particle_coord_n0(ipart)[1] << "  " <<
-      //          m_particle_cell(ipart)
-      //          << std::endl;
+      m_particle_env(ipart) = 1;     
     });
   else if (test->Nom == test->BiTriplePoint)
     Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
@@ -81,6 +78,7 @@ void SchemaParticules::initPart() noexcept {
       //          << std::endl;
     });
   deep_copy(m_particle_coord_n, m_particle_coord_n0);
+  deep_copy(m_particle_velocity_n, m_particle_velocity_n0);
 }
 void SchemaParticules::updateParticlePosition() noexcept {
   Kokkos::parallel_for("updateParticleCoefficient", mesh->getNbCells(),
@@ -88,18 +86,29 @@ void SchemaParticules::updateParticlePosition() noexcept {
                          m_cell_particle_list(cCells).clear();
                        });
   Kokkos::parallel_for("initPart", nbPart, KOKKOS_LAMBDA(const int& ipart) {
+      
+    
     m_particle_coord_nplus1(ipart) =
         m_particle_coord_n(ipart) + m_particle_velocity_n(ipart) * gt->deltat_n;
+    
+    
     if (m_particle_coord_nplus1(ipart)[1] < 0.) {
       m_particle_coord_nplus1(ipart)[1] = -m_particle_coord_nplus1(ipart)[1];
       m_particle_velocity_n(ipart)[1] = -m_particle_velocity_n(ipart)[1];
     }
+    
     int icell = MathFunctions::max(
         floor(m_particle_coord_nplus1(ipart)[0] / cstmesh->X_EDGE_LENGTH), 0);
     int jcell = MathFunctions::max(
         floor(m_particle_coord_nplus1(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
     m_particle_cell(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
-
+    
+    
+    
+    if (m_particle_cell(ipart) > cstmesh->X_EDGE_ELEMS * cstmesh->Y_EDGE_ELEMS) {
+      std::cout << " Part  " << ipart << " dans aucune maille" << std::endl;
+      exit(1);
+    }
     // conditions limites
     if (m_particlecell_fracvol_env(
             m_particle_cell(ipart))[m_particle_env(ipart)] < 0.25) {
@@ -138,6 +147,11 @@ void SchemaParticules::updateParticlePosition() noexcept {
           floor(m_particle_coord_nplus1(ipart)[1] / cstmesh->Y_EDGE_LENGTH), 0);
       m_particle_cell(ipart) = jcell * cstmesh->X_EDGE_ELEMS + icell;
 
+      if (m_particle_cell(ipart) > cstmesh->X_EDGE_ELEMS * cstmesh->Y_EDGE_ELEMS) {
+	std::cout << " Part  " << ipart << " dans aucune maille" << std::endl;
+	exit(1);
+      }
+
       // std::cout << " AP : Part  " << ipart << " vit " <<
       // m_particle_velocity_n(ipart)
       //	    << "  xp= " << m_particle_coord_nplus1(ipart)[0] << "  yp= "
@@ -146,7 +160,7 @@ void SchemaParticules::updateParticlePosition() noexcept {
       // << std::endl; std::cout << " AP : Part  " << ipart << " gradf " <<
       // gradf
       // << " module_vit " << module_vit << std::endl;
-
+      
       if (m_particlecell_fracvol_env(
               m_particle_cell(ipart))[m_particle_env(ipart)] < 0.05)
         std::cout << " Part  " << ipart << " non recuperee " << std::endl;
