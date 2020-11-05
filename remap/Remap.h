@@ -28,6 +28,7 @@
 #include "mesh/PvdFileWriter2D.h"  // for PvdFileWriter2D
 #include "types/Types.h"           // for RealArray1D, RealArray2D
 #include "utils/Timer.h"           // for Timer
+#include "types/MathFunctions.h"
 
 /*---------------------------------------*/
 /*---------------------------------------*/

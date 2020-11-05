@@ -24,6 +24,7 @@ add_subdirectory( "./eucclhyd_remap" )
 add_subdirectory( "./vnr_remap" )
 add_subdirectory( "./remap" )
 add_subdirectory( "./particle_scheme" )
+add_subdirectory( "./initialisations" )
 add_subdirectory( "./lecture_donnees" )
 add_subdirectory( "./tests" )
 
@@ -32,4 +33,4 @@ target_sources( mahyco
     PRIVATE
         main.cc
 )
-target_link_libraries( mahyco PRIVATE eucclhydremap vnrremap remap lecture_donnees particles)
+target_link_libraries( mahyco PRIVATE eucclhydremap vnrremap remap lecture_donnees particles initialisations)

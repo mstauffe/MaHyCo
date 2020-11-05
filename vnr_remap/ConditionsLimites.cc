@@ -190,16 +190,16 @@ void Vnr::updatePeriodicBoundaryConditions() noexcept {
     if (cdl->rightCellBC == cdl->periodic) {
       int LeftCell = mesh->getLeftCellfromRight(cCell);
       if (LeftCell != -1) {
-        m_density_nplus1(LeftCell) = m_density_n0(LeftCell);
-        m_internal_energy_nplus1(LeftCell) = m_internal_energy_n0(LeftCell);
+        m_density_nplus1(LeftCell) = init->m_density_n0(LeftCell);
+        m_internal_energy_nplus1(LeftCell) = init->m_internal_energy_n0(LeftCell);
         m_density_nplus1(cCell) = m_density_nplus1(LeftCell);
         m_internal_energy_nplus1(cCell) = m_internal_energy_nplus1(LeftCell);
         int nbmat = options->nbmat;
         for (int imat = 0; imat < nbmat; ++imat) {
           m_density_env_nplus1(LeftCell)[imat] =
-              m_density_env_n0(LeftCell)[imat];
+              init->m_density_env_n0(LeftCell)[imat];
           m_internal_energy_env_nplus1(LeftCell)[imat] =
-              m_internal_energy_env_n0(LeftCell)[imat];
+              init->m_internal_energy_env_n0(LeftCell)[imat];
           m_density_env_nplus1(cCell)[imat] =
               m_density_env_nplus1(LeftCell)[imat];
           m_internal_energy_env_nplus1(cCell)[imat] =

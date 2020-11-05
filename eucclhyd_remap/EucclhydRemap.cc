@@ -234,6 +234,98 @@ void Eucclhyd::computedeltat() noexcept {
     exit(1);
   }
 }
+/**
+ * Job setUpTimeLoopN called @3.0 in simulate method.
+ * In variables: m_node_force_n0, m_cell_velocity_n0, m_node_velocity_n0,
+ * m_internal_energy_n0, m_density_n0 Out variables: m_node_force_n,
+ * m_cell_velocity_n, m_node_velocity_n, m_internal_energy_n, m_density_n
+ */
+void Eucclhyd::setUpTimeLoopN() noexcept {
+  deep_copy(m_node_coord, init->m_node_coord_n0);
+  deep_copy(m_cell_coord, init->m_cell_coord_n0);
+  deep_copy(m_euler_volume, init->m_euler_volume_n0);
+  deep_copy(m_density_n, init->m_density_n0);
+  deep_copy(m_density_env_n, init->m_density_env_n0);
+  deep_copy(m_internal_energy_n, init->m_internal_energy_n0);
+  deep_copy(m_internal_energy_env_n, init->m_internal_energy_env_n0);
+  deep_copy(m_node_velocity_n, init->m_node_velocity_n0);
+  deep_copy(m_mass_fraction_env,  init->m_mass_fraction_env_n0);
+  deep_copy(m_fracvol_env,  init->m_fracvol_env_n0);
+  // specfiques à eucclhyd
+  deep_copy(m_cell_perimeter, init->m_cell_perimeter_n0);
+  deep_copy(m_cell_velocity_n, init->m_cell_velocity_n0);
+  deep_copy(m_node_force_n, init->m_node_force_n0);
+
+  if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY ||
+      test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
+    // const ℝ δt_init = 1.0e-4;
+    gt->deltat_init = 1.0e-4;
+    gt->deltat_n = gt->deltat_init;
+  } else if (test->Nom == test->BiShockBubble) {
+    gt->deltat_init = 1.e-7;
+    gt->deltat_n = 1.0e-7;
+  } else if (test->Nom == test->SedovTestCase ||
+             test->Nom == test->BiSedovTestCase) {
+    // const ℝ δt_init = 1.0e-4;
+    gt->deltat_init = 1.0e-4;
+    gt->deltat_n = 1.0e-4;
+  } else if (test->Nom == test->NohTestCase ||
+             test->Nom == test->BiNohTestCase) {
+    // const ℝ δt_init = 1.0e-4;
+    gt->deltat_init = 1.0e-4;
+    gt->deltat_n = 1.0e-4;
+  } else if (test->Nom == test->TriplePoint ||
+             test->Nom == test->BiTriplePoint) {
+    // const ℝ δt_init = 1.0e-5; avec donnees adimensionnées
+    gt->deltat_init = 1.0e-5;  // avec pression de 1.e5 / 1.e-8
+    gt->deltat_n = 1.0e-5;
+  }
+  m_global_total_energy_0 = 0.;
+  Kokkos::parallel_for("init_m_global_total_energy_0", nbCells,
+                       KOKKOS_LAMBDA(const int& cCells) {
+                        m_total_energy_0(cCells) =
+                             (init->m_density_n0(cCells) * m_euler_volume(cCells)) *
+                             (init->m_internal_energy_n0(cCells) +
+                              0.5 * (init->m_cell_velocity_n0(cCells)[0] *
+                                         init->m_cell_velocity_n0(cCells)[0] +
+                                     init->m_cell_velocity_n0(cCells)[1] *
+                                         init->m_cell_velocity_n0(cCells)[1]));
+                         m_global_masse_0(cCells) =
+                             (init->m_density_n0(cCells) * m_euler_volume(cCells));
+                       });
+  double reductionE(0.), reductionM(0.);
+  {
+    Kokkos::Sum<double> reducerE(reductionE);
+    Kokkos::parallel_reduce("reductionE", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerE.join(x, m_total_energy_0(cCells));
+                            },
+                            reducerE);
+    Kokkos::Sum<double> reducerM(reductionM);
+    Kokkos::parallel_reduce("reductionM", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerM.join(x, m_global_masse_0(cCells));
+                            },
+                            reducerM);
+  }
+  m_global_total_energy_0 = reductionE;
+  m_total_masse_0 = reductionM;
+  // pour les sorties au temps 0
+  Kokkos::parallel_for(
+      "initDensity", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+        // pour les sorties au temps 0:
+        m_fracvol_env1(cCells) = init->m_fracvol_env_n0(cCells)[0];
+        m_fracvol_env2(cCells) = init->m_fracvol_env_n0(cCells)[1];
+        m_fracvol_env3(cCells) = init->m_fracvol_env_n0(cCells)[2];
+        m_x_cell_velocity(cCells) = init->m_cell_velocity_n0(cCells)[0];
+        m_y_cell_velocity(cCells) = init->m_cell_velocity_n0(cCells)[1];
+	
+	m_cell_coord_x(cCells) = init->m_cell_coord_n0(cCells)[0];
+        m_cell_coord_y(cCells) = init->m_cell_coord_n0(cCells)[1];
+	// a deplacer pour valider le schéma particule
+	particules->m_particlecell_euler_volume(cCells) = init->m_euler_volume_n0(cCells);
+   });
+}
 
 /**
  * Job updateTime called @4.0 in executeTimeLoopN method.
@@ -285,20 +377,22 @@ void Eucclhyd::simulate() {
     std::cout << "[" << __GREEN__ << "OUTPUT" << __RESET__ << "]    "
               << __BOLD__ << "Disabled" << __RESET__ << std::endl;
 
-  computeCornerNormal();       // @1.0
-  initMeshGeometryForCells();  // @1.0
-  initVpAndFpc();              // @1.0
-  initBoundaryConditions();
-  initCellInternalEnergy();    // @2.0
-  initCellVelocity();          // @2.0
-  initDensity();               // @2.0
-  initMeshGeometryForFaces();  // @2.0
+  init->initMeshGeometryForCells();  // @1.0
+  init->initVpAndFpc();              // @1.0
+  init->initBoundaryConditions();
+  init->initCellInternalEnergy();    // @2.0
+  init->initCellVelocity();          // @2.0
+  init->initDensity();               // @2.0
+  init->initMeshGeometryForFaces();  // @2.0
   if (options->AvecParticules == 1) {
     particules->initPart();
     particules->updateParticleCoefficients();
     switchrho_alpharho();  // on travaille avec alpharho sauf pour l'EOS
   }
   setUpTimeLoopN();    // @3.0
+  
+  computeCornerNormal();       // @1.0
+
   executeTimeLoopN();  // @4.0
   std::cout << __YELLOW__ << "\n\tDone ! Took " << __MAGENTA__ << __BOLD__
             << global_timer.print() << __RESET__ << std::endl;

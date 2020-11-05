@@ -1,4 +1,4 @@
-set( LIBRARY_NAME "vnrremap" )
+set( LIBRARY_NAME "initialisations" )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR
       CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
@@ -8,11 +8,10 @@ endif()
 add_library( ${LIBRARY_NAME} )
 target_sources( ${LIBRARY_NAME} 
     PRIVATE
-       VnrRemap.cc
-       ConditionsLimites.cc
-       PhaseLagrange.cc
-       PrepareRemap.cc
-       PhaseRemapFinal.cc
+        InitBoundaryConditions.cc
+        InitMeshQuantities.cc
+	InitVariables.cc
+	InitVariablesVNR.cc
 )
 target_include_directories( ${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} )
 if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )

@@ -69,24 +69,27 @@ void Vnr::computeTime() noexcept { gt->t_nplus1 = gt->t_n + gt->deltat_nplus1; }
  * m_tau_density_n, m_node_velocity_n
  */
 void Vnr::setUpTimeLoopN() noexcept {
-  gt->deltat_n = gt->deltat_init;
-  deep_copy(m_node_coord_n, m_node_coord_n0);
-  deep_copy(m_node_cellvolume_n, m_node_cellvolume_n0);
-  deep_copy(m_density_n, m_density_n0);
-  deep_copy(m_density_env_n, m_density_env_n0);
-  deep_copy(m_pressure_n, m_pressure_n0);
-  deep_copy(m_pressure_env_n, m_pressure_env_n0);
-  deep_copy(m_pseudo_viscosity_n, m_pseudo_viscosity_n0);
-  deep_copy(m_pseudo_viscosity_env_n, m_pseudo_viscosity_env_n0);
-  deep_copy(m_tau_density_n, m_tau_density_n0);
-  deep_copy(m_tau_density_env_n, m_tau_density_env_n0);
-  deep_copy(m_divu_n, m_divu_n0);
-  deep_copy(m_speed_velocity_n, m_speed_velocity_n0);
-  deep_copy(m_speed_velocity_env_n, m_speed_velocity_env_n0);
-  deep_copy(m_internal_energy_n, m_internal_energy_n0);
-  deep_copy(m_internal_energy_env_n, m_internal_energy_env_n0);
-  deep_copy(m_node_velocity_n, m_node_velocity_n0);
-  deep_copy(m_cell_coord_n, m_cell_coord_n0);
+  deep_copy(m_node_coord_n, init->m_node_coord_n0);
+  deep_copy(m_cell_coord_n, init->m_cell_coord_n0);
+  deep_copy(m_euler_volume, init->m_euler_volume_n0);
+  deep_copy(m_density_n, init->m_density_n0);
+  deep_copy(m_density_env_n, init->m_density_env_n0);
+  deep_copy(m_internal_energy_n, init->m_internal_energy_n0);
+  deep_copy(m_internal_energy_env_n, init->m_internal_energy_env_n0);
+  deep_copy(m_node_velocity_n, init->m_node_velocity_n0);
+  deep_copy(m_mass_fraction_env,  init->m_mass_fraction_env_n0);
+  deep_copy(m_fracvol_env,  init->m_fracvol_env_n0);
+  // specifiques à VNR
+  deep_copy(m_node_cellvolume_n, init->m_node_cellvolume_n0);
+  deep_copy(m_pressure_n, init->m_pressure_n0);
+  deep_copy(m_pressure_env_n, init->m_pressure_env_n0);
+  deep_copy(m_pseudo_viscosity_n, init->m_pseudo_viscosity_n0);
+  deep_copy(m_pseudo_viscosity_env_n, init->m_pseudo_viscosity_env_n0);
+  deep_copy(m_tau_density_n, init->m_tau_density_n0);
+  deep_copy(m_tau_density_env_n, init->m_tau_density_env_n0);
+  deep_copy(m_divu_n, init->m_divu_n0);
+  deep_copy(m_speed_velocity_n, init->m_speed_velocity_n0);
+  deep_copy(m_speed_velocity_env_n, init->m_speed_velocity_env_n0);
 
   // if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY ||
   //     test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
@@ -112,6 +115,74 @@ void Vnr::setUpTimeLoopN() noexcept {
   //   gt->deltat_init = 1.0e-5;  // avec pression de 1.e5 / 1.e-8
   //   gt->deltat_n = 1.0e-5;
   // }
+  if (options->sansLagrange == 0) {
+  double reduction0;
+  Kokkos::parallel_reduce(
+      nbCells,
+      KOKKOS_LAMBDA(const size_t& cCells, double& accu) {
+        const Id cId(cCells);
+        double reduction1(0.0);
+        {
+          const auto nodesOfCellC(mesh->getNodesOfCell(cId));
+          const size_t nbNodesOfCellC(nodesOfCellC.size());
+          for (size_t pNodesOfCellC = 0; pNodesOfCellC < nbNodesOfCellC;
+               pNodesOfCellC++) {
+            reduction1 =
+                sumR0(reduction1, init->m_node_cellvolume_n0(cCells, pNodesOfCellC));
+          }
+        }
+        accu = minR0(accu,
+                     0.1 * std::sqrt(reduction1) / init->m_speed_velocity_n0(cCells));
+      },
+      KokkosJoiner<double>(reduction0, numeric_limits<double>::max(), &minR0));
+  gt->deltat_init = reduction0 * 1.0E-6;
+  }
+  // pour la suite du calcul 
+  gt->deltat_n = gt->deltat_init;
+  // *******************************************************************
+  m_global_total_energy_0 = 0.;
+  Kokkos::parallel_for("init_m_global_total_energy_0", nbCells,
+                       KOKKOS_LAMBDA(const int& cCells) {
+                        m_total_energy_0(cCells) =
+                             (init->m_density_n0(cCells) * m_euler_volume(cCells)) *
+                             (init->m_internal_energy_n0(cCells) +
+                              0.5 * (init->m_cell_velocity_n0(cCells)[0] *
+                                         init->m_cell_velocity_n0(cCells)[0] +
+                                     init->m_cell_velocity_n0(cCells)[1] *
+                                         init->m_cell_velocity_n0(cCells)[1]));
+                         m_global_masse_0(cCells) =
+                             (init->m_density_n0(cCells) * m_euler_volume(cCells));
+                       });
+  double reductionE(0.), reductionM(0.);
+  {
+    Kokkos::Sum<double> reducerE(reductionE);
+    Kokkos::parallel_reduce("reductionE", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerE.join(x, m_total_energy_0(cCells));
+                            },
+                            reducerE);
+    Kokkos::Sum<double> reducerM(reductionM);
+    Kokkos::parallel_reduce("reductionM", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerM.join(x, m_global_masse_0(cCells));
+                            },
+                            reducerM);
+  }
+  m_global_total_energy_0 = reductionE;
+  m_total_masse_0 = reductionM;
+  // pour les sorties au temps 0
+  Kokkos::parallel_for(
+      "sortie", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+        // pour les sorties au temps 0:
+        m_fracvol_env1(cCells) = init->m_fracvol_env_n0(cCells)[0];
+        m_fracvol_env2(cCells) = init->m_fracvol_env_n0(cCells)[1];
+        m_fracvol_env3(cCells) = init->m_fracvol_env_n0(cCells)[2];
+   });
+  Kokkos::parallel_for(
+      "sortie", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
+      m_x_velocity(pNodes) = init->m_node_velocity_n0(pNodes)[0];
+      m_y_velocity(pNodes) = init->m_node_velocity_n0(pNodes)[1];
+   });
 }
 
 /**
@@ -330,17 +401,16 @@ void Vnr::simulate() {
     std::cout << "[" << __GREEN__ << "OUTPUT" << __RESET__ << "]    "
               << __BOLD__ << "Disabled" << __RESET__ << std::endl;
 
-  initBoundaryConditions();
-  initCellPos();  // @1.0
-  init();         // @2.0
-  initSubVol();   // @2.0
-  initMeshGeometryForFaces();
+  init->initBoundaryConditions();
+  init->initCellPos();  // @1.0
+  init->initvar();         // @2.0
+  init->initSubVol();   // @2.0
+  init->initMeshGeometryForFaces();
   remap->FacesOfNode();  // pour la conectivité Noeud-face
-  computeCellMass();     // @3.0
-  if (options->sansLagrange == 0) initDeltaT();          // @3.0
-  if (options->sansLagrange == 0) initInternalEnergy();  // @3.0
-  if (options->sansLagrange == 0) initPseudo();          // @3.0
+  if (options->sansLagrange == 0) init->initInternalEnergy();  // @3.0
+  if (options->sansLagrange == 0) init->initPseudo();    // @3.0
   setUpTimeLoopN();                                      // @4.0
+  computeCellMass();                                     // @3.0
   computeNodeMass();                                     // @4.0
   executeTimeLoopN();                                    // @5.0
 

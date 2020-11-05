@@ -23,6 +23,7 @@
 #include "../includes/Limiteurs.h"
 #include "../includes/VariablesLagRemap.h"
 #include "../particle_scheme/SchemaParticules.h"
+#include "../initialisations/Init.h"
 #include "../includes/Freefunctions.h"
 #include "../remap/Remap.h"
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D, CartesianM...
@@ -53,6 +54,7 @@ class Eucclhyd {
   cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh;
   gesttempslib::GestionTempsClass::GestTemps* gt;
   variableslagremaplib::VariablesLagRemap* varlp;
+  initlib::Initialisations* init;
   Remap* remap;
   PvdFileWriter2D writer;
   PvdFileWriter2D writer_particle;
@@ -96,7 +98,6 @@ class Eucclhyd {
   Kokkos::View<double*> m_cell_deltat;
   Kokkos::View<RealArray1D<dim>*> m_node_velocity_n;
   Kokkos::View<RealArray1D<dim>*> m_node_velocity_nplus1;
-  Kokkos::View<RealArray1D<dim>*> m_node_velocity_n0;
   Kokkos::View<double*> m_total_energy_0;
   Kokkos::View<double*> m_total_energy_T;
   Kokkos::View<double*> m_total_energy_L;
@@ -105,21 +106,16 @@ class Eucclhyd {
   Kokkos::View<double*> m_global_masse_L;
   Kokkos::View<double*> m_density_n;
   Kokkos::View<double*> m_density_nplus1;
-  Kokkos::View<double*> m_density_n0;
   Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_n;
   Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_nplus1;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_n0;
   Kokkos::View<RealArray1D<dim>*> m_cell_velocity_n;
   Kokkos::View<RealArray1D<dim>*> m_cell_velocity_nplus1;
-  Kokkos::View<RealArray1D<dim>*> m_cell_velocity_n0;
   Kokkos::View<double*> m_x_cell_velocity;
   Kokkos::View<double*> m_y_cell_velocity;
   Kokkos::View<double*> m_internal_energy_n;
   Kokkos::View<double*> m_internal_energy_nplus1;
-  Kokkos::View<double*> m_internal_energy_n0;
   Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_n;
   Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_nplus1;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_n0;
   Kokkos::View<double**> m_pressure_extrap;
   Kokkos::View<RealArray1D<nbmatmax>**> m_pressure_env_extrap;
   Kokkos::View<RealArray1D<dim>**> m_cell_velocity_extrap;
@@ -128,7 +124,6 @@ class Eucclhyd {
   Kokkos::View<RealArray2D<dim, dim>*> m_velocity_gradient;
   Kokkos::View<RealArray1D<dim>**> m_node_force_n;
   Kokkos::View<RealArray1D<dim>**> m_node_force_nplus1;
-  Kokkos::View<RealArray1D<dim>**> m_node_force_n0;
   Kokkos::View<RealArray1D<dim>***> m_node_force_env_n;
   Kokkos::View<RealArray1D<dim>***> m_node_force_env_nplus1;
   Kokkos::View<RealArray1D<dim>*> m_node_G;
@@ -160,7 +155,9 @@ class Eucclhyd {
            limiteurslib::LimiteursClass::Limiteurs* aLimiteurs,
            particleslib::SchemaParticules* aParticules,
            eoslib::EquationDetat::Eos* aEos, CartesianMesh2D* aCartesianMesh2D,
-           variableslagremaplib::VariablesLagRemap* avarlp, Remap* aremap,
+           variableslagremaplib::VariablesLagRemap* avarlp,
+	   Remap* aremap,
+	   initlib::Initialisations* ainit,
            string output)
       : options(aOptions),
         cstmesh(acstmesh),
@@ -173,6 +170,7 @@ class Eucclhyd {
         mesh(aCartesianMesh2D),
         varlp(avarlp),
         remap(aremap),
+        init(ainit),
         writer("EucclhydRemap", output),
         writer_particle("Particules", output),
         nbNodes(mesh->getNbNodes()),
@@ -213,7 +211,6 @@ class Eucclhyd {
         m_cell_deltat("cell_deltat", nbCells),
         m_node_velocity_n("node_velocity_n", nbNodes),
         m_node_velocity_nplus1("node_velocity_nplus1", nbNodes),
-        m_node_velocity_n0("node_velocity_n0", nbNodes),
         m_total_energy_0("total_energy_0", nbCells),
         m_total_energy_T("total_energy_T", nbCells),
         m_total_energy_L("total_energy_L", nbCells),
@@ -222,21 +219,16 @@ class Eucclhyd {
         m_global_masse_L("global_masse_L", nbCells),
         m_density_n("density_n", nbCells),
         m_density_nplus1("density_nplus1", nbCells),
-        m_density_n0("density_n0", nbCells),
         m_density_env_n("density_env_n", nbCells),
         m_density_env_nplus1("density_env_nplus1", nbCells),
-        m_density_env_n0("density_env_n0", nbCells),
         m_cell_velocity_n("cell_velocity_n", nbCells),
         m_cell_velocity_nplus1("cell_velocity_nplus1", nbCells),
-        m_cell_velocity_n0("cell_velocity_n0", nbCells),
         m_x_cell_velocity("x_cell_velocity", nbCells),
         m_y_cell_velocity("y_cell_velocity", nbCells),
         m_internal_energy_n("internal_energy_n", nbCells),
         m_internal_energy_nplus1("internal_energy_nplus1", nbCells),
-        m_internal_energy_n0("internal_energy_n0", nbCells),
         m_internal_energy_env_n("internal_energy_env_n", nbCells),
         m_internal_energy_env_nplus1("internal_energy_env_nplus1", nbCells),
-        m_internal_energy_env_n0("internal_energy_env_n0", nbCells),
         m_pressure_extrap("pressure_extrap", nbCells, nbNodesOfCell),
         m_pressure_env_extrap("pressure_env_extrap", nbCells, nbNodesOfCell),
         m_cell_velocity_extrap("cell_velocity_extrap", nbCells, nbNodesOfCell),
@@ -245,7 +237,6 @@ class Eucclhyd {
         m_velocity_gradient("velocity_gradient", nbCells),
         m_node_force_n("node_force_n", nbNodes, nbCellsOfNode),
         m_node_force_nplus1("node_force_nplus1", nbNodes, nbCellsOfNode),
-        m_node_force_n0("node_force_n0", nbNodes, nbCellsOfNode),
         m_node_force_env_n("node_force_env_n", nbNodes, nbCellsOfNode,
                            nbmatmax),
         m_node_force_env_nplus1("node_force_env_nplus1", nbNodes, nbCellsOfNode,
@@ -273,13 +264,7 @@ class Eucclhyd {
       int BC1, RealArray1D<dim> BCValue1, int BC2, RealArray1D<dim> BCValue2,
       RealArray2D<dim, dim> Mp, RealArray1D<dim> Gp);
 
-  void initBoundaryConditions() noexcept;
-  void initMeshGeometryForCells() noexcept;
-  void initVpAndFpc() noexcept;
-  void initCellInternalEnergy() noexcept;
-  void initCellVelocity() noexcept;
-  void initDensity() noexcept;
-  void initMeshGeometryForFaces() noexcept;
+ 
   void setUpTimeLoopN() noexcept;
 
   void computeCornerNormal() noexcept;

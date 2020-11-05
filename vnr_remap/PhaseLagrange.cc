@@ -15,7 +15,7 @@ void Vnr::computeCellMass() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
     int nbmat = options->nbmat;
     m_cell_mass(cCells) =
-        cstmesh->X_EDGE_LENGTH * cstmesh->Y_EDGE_LENGTH * m_density_n0(cCells);
+        cstmesh->X_EDGE_LENGTH * cstmesh->Y_EDGE_LENGTH * init->m_density_n0(cCells);
     for (int imat = 0; imat < nbmat; ++imat) {
       m_cell_mass_env(cCells)[imat] =
           m_mass_fraction_env(cCells)[imat] * m_cell_mass(cCells);

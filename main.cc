@@ -41,22 +41,26 @@ int main(int argc, char* argv[]) {
   // appel au schéma Lagrange Eucclhyd + schéma de projection ADI (en option)
   if (scheme->schema == scheme->Eucclhyd) {
     auto varlp = new variableslagremaplib::VariablesLagRemap(nm);
+    auto init = new initlib::Initialisations(o, eos, nm, cstmesh, varlp, cl, test);
     auto part = new particleslib::SchemaParticules(nm, cstmesh, gt, test);
-    auto proj =  new Remap(o, cstmesh, gt, cl, lim, nm, varlp);
+    auto proj = new Remap(o, cstmesh, gt, cl, lim, nm, varlp);
     auto c =
-      new Eucclhyd(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, output);
+      new Eucclhyd(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, init, output);
     c->simulate();
     delete varlp;
+    delete init;
     delete part;
     //delete c;
   
   } else if (scheme->schema == scheme->VNR) {
     auto varlp = new variableslagremaplib::VariablesLagRemap(nm);
+    auto init = new initlib::Initialisations(o, eos, nm, cstmesh, varlp, cl, test);
     auto part = new particleslib::SchemaParticules(nm, cstmesh, gt, test);
-    auto proj =  new Remap(o, cstmesh, gt, cl, lim, nm, varlp);
-    auto c = new Vnr(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, output);
+    auto proj = new Remap(o, cstmesh, gt, cl, lim, nm, varlp);
+    auto c = new Vnr(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, init, output);
     c->simulate();
     delete varlp;
+    delete init;
     delete part;
     //delete c;
   }
