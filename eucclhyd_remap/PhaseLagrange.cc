@@ -1111,4 +1111,5 @@ void Eucclhyd::PreparecellvariablesForParticles() noexcept {
             m_cell_velocity_nplus1(cCells);
         particules->m_particlecell_mass(cCells) = m_cell_mass(cCells);
       });
+  std::cout << " fin prepare " << std::endl;
 }

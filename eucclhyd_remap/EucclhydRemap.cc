@@ -126,6 +126,7 @@ void Eucclhyd::executeTimeLoopN() noexcept {
     computeLagrangeVolumeAndCenterOfGravity();  // @6.0
     computeFacedeltaxLagrange();                // @7.0
     updateCellCenteredLagrangeVariables();      // @7.0
+    std::cout << " fin cycle " << std::endl;
 
     if (options->AvecParticules == 1) {
       PreparecellvariablesForParticles();
@@ -164,10 +165,12 @@ void Eucclhyd::executeTimeLoopN() noexcept {
       std::swap(m_node_force_nplus1, m_node_force_n);
       std::swap(m_node_force_env_nplus1, m_node_force_env_n);
       if (options->AvecParticules == 1) {
+	std::cout << " swap " << std::endl;
         std::swap(particules->m_particle_velocity_nplus1,
                   particules->m_particle_velocity_n);
         std::swap(particules->m_particle_coord_nplus1,
                   particules->m_particle_coord_n);
+	std::cout << " fin swap " << std::endl;
       }
       if (options->AvecProjection == 0) {
         std::swap(varlp->vLagrange, m_euler_volume);

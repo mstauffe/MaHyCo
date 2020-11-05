@@ -13,7 +13,7 @@ static const int nbequamax = 3 * nbmatmax + 2 + 1 + 1;
 // (volumes, masses, energies internes) * nbmatmax
 // + vitesses + energie cinétique + pseudo
 // Nombre de Particules autorisées
-static const int nbPartMax = 1000;
+static const int nbPartMax = 2000;
 
 const RealArray1D<dim> ex = {{1.0, 0.0}};
 const RealArray1D<dim> ey = {{0.0, 1.0}};
