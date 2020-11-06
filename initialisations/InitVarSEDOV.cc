@@ -20,8 +20,7 @@ void Initialisations::initVarSEDOV() noexcept {
     KOKKOS_LAMBDA(const int& cCells) {
       m_density_n0(cCells) = 1.0;
       m_density_env_n0(cCells)[0] = 1.0;
-      m_cell_velocity_n0(cCells)[0] = 0.0;
-      m_cell_velocity_n0(cCells)[1] = 0.0;
+      m_cell_velocity_n0(cCells) = {0.0, 0.0};
       int cId(cCells);
       bool isCenterCell = false;
       double pInit = 1.e-6;
@@ -48,11 +47,18 @@ void Initialisations::initVarSEDOV() noexcept {
 	m_internal_energy_n0(cCells) = e1;
       }
       m_internal_energy_env_n0(cCells)[0] = m_internal_energy_n0(cCells);
+
+      m_pressure_env_n0(cCells)[0] = (eos->gammap[0] - 1.0) * m_density_env_n0(cCells)[0] * m_internal_energy_env_n0(cCells)[0];
+      m_pressure_n0(cCells) = m_pressure_env_n0(cCells)[0];
+
+      m_speed_velocity_env_n0(cCells)[0] =
+	std::sqrt(eos->gammap[0] * m_density_env_n0(cCells)[0] /
+                    m_pressure_env_n0(cCells)[0]);
+      m_speed_velocity_n0(cCells) = m_speed_velocity_env_n0(cCells)[0];
   });
   Kokkos::parallel_for(nbNodes,
     KOKKOS_LAMBDA(const size_t& pNodes) {
-      m_node_velocity_n0(pNodes)[0] = 0.;
-      m_node_velocity_n0(pNodes)[1] = 0.;
+      m_node_velocity_n0(pNodes) = {0.0, 0.0};
   });
 }
 void Initialisations::initVarBiSEDOV() noexcept {
@@ -60,8 +66,7 @@ void Initialisations::initVarBiSEDOV() noexcept {
     KOKKOS_LAMBDA(const int& cCells) {
       m_density_n0(cCells) = 1.0;
       m_density_env_n0(cCells)[0] = 1.0;
-      m_cell_velocity_n0(cCells)[0] = 0.0;
-      m_cell_velocity_n0(cCells)[1] = 0.0;
+      m_cell_velocity_n0(cCells) = {0.0, 0.0};
       int cId(cCells);
       bool isCenterCell = false;
       double pInit = 1.e-6;
@@ -91,8 +96,7 @@ void Initialisations::initVarBiSEDOV() noexcept {
   });
   Kokkos::parallel_for(nbNodes,
     KOKKOS_LAMBDA(const size_t& pNodes) {
-      m_node_velocity_n0(pNodes)[0] = 0.;
-      m_node_velocity_n0(pNodes)[1] = 0.;
+      m_node_velocity_n0(pNodes) = {0.0, 0.0};
   });
 }
   

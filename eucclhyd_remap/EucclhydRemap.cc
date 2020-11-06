@@ -380,7 +380,6 @@ void Eucclhyd::simulate() {
   init->initMeshGeometryForCells();  // @1.0
   init->initVpAndFpc();              // @1.0
   init->initBoundaryConditions();
-  //  init->initCellInternalEnergy();    // @2.0
   init->initVar();               // @2.0
   init->initMeshGeometryForFaces();  // @2.0
   if (options->AvecParticules == 1) {

@@ -63,7 +63,8 @@ set( TEST_NAMES "ADVECTION_X_Mono_mat_vnr_o1"
 		"POINT_TRIPLE_SuperBee_PenteBorne_mixte"
 		"POINT_TRIPLE_proj_ordre_3"
 		"SEDOV_Mono_Mat_Superbee_PenteBorne_mixte"
-		"SEDOV_Mono_Mat_MinModG_simple")
+		"SEDOV_Mono_Mat_MinModG_simple"
+		"SEDOV_Mono_Mat_MinModG_simple_vnr")
 
 foreach( TEST_NAME ${TEST_NAMES} )
     add_test( NAME ${TEST_NAME}

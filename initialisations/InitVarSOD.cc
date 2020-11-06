@@ -49,12 +49,12 @@ void Initialisations::initVarSOD() noexcept {
       m_speed_velocity_n0(cCells) = m_speed_velocity_env_n0(cCells)[0];
 
       // vitesses      
-      m_cell_velocity_n0(cCells)[0] = 0.0;
-      m_cell_velocity_n0(cCells)[1] = 0.0;
+      m_cell_velocity_n0(cCells) = {0.0, 0.0};
     });
-    for (size_t pNodes = 0; pNodes < nbNodes; pNodes++) {
-      m_node_velocity_n0(pNodes) = {0.0, 0.0};
-    }
+    Kokkos::parallel_for(nbNodes,
+      KOKKOS_LAMBDA(const size_t& pNodes) {
+       m_node_velocity_n0(pNodes) = {0.0, 0.0};
+			 });
 }
 void Initialisations::initVarBiSOD() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
@@ -119,12 +119,12 @@ void Initialisations::initVarBiSOD() noexcept {
                                         m_speed_velocity_env_n0(cCells)[1]);
 
       // vitesses      
-      m_cell_velocity_n0(cCells)[0] = 0.0;
-      m_cell_velocity_n0(cCells)[1] = 0.0;
+      m_cell_velocity_n0(cCells) = {0.0, 0.0};
     });
-    for (size_t pNodes = 0; pNodes < nbNodes; pNodes++) {
-      m_node_velocity_n0(pNodes) = {0.0, 0.0};
-    }
+    Kokkos::parallel_for(nbNodes,
+      KOKKOS_LAMBDA(const size_t& pNodes) {
+        m_node_velocity_n0(pNodes) = {0.0, 0.0};
+    });
 }
 
 }  // namespace initlib

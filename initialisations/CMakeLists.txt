@@ -11,7 +11,7 @@ target_sources( ${LIBRARY_NAME}
         InitBoundaryConditions.cc
         InitMeshQuantities.cc
 	InitVariables.cc
-	InitVariablesVNR.cc
+	InitSpecificVariables.cc
 	InitVarSOD.cc
 	InitVarShockBubble.cc
 	InitVarTriplePoint.cc

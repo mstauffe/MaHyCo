@@ -357,18 +357,6 @@ void Vnr::updateEnergy() noexcept {
         m_internal_energy_nplus1(cCells) +=
             m_mass_fraction_env(cCells)[imat] *
             m_internal_energy_env_nplus1(cCells)[imat];
-        if (abs(m_internal_energy_env_nplus1(cCells)[imat]) > 5.) {
-          std::cout << cCells << " energie "
-                    << m_internal_energy_env_nplus1(cCells)[imat]
-                    << " energien " << m_internal_energy_env_n(cCells)[imat]
-                    << " pseudo n+1 "
-                    << m_pseudo_viscosity_env_nplus1(cCells)[imat] << " n "
-                    << m_pseudo_viscosity_env_n(cCells)[imat] << " densite n+1 "
-                    << m_density_env_nplus1(cCells)[imat] << " n "
-                    << m_density_env_n(cCells)[imat] << " tam_x_velocity "
-                    << m_tau_density_env_nplus1(cCells)[imat] << std::endl;
-          exit(1);
-        }
       }
     }
   });

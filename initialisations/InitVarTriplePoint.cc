@@ -55,8 +55,11 @@ void Initialisations::initVarTriplePoint() noexcept {
     m_internal_energy_n0(cCells) = eInit;
     m_internal_energy_env_n0(cCells)[0] = eInit;
     // vitesses      
-    m_cell_velocity_n0(cCells)[0] = 0.0;
-    m_cell_velocity_n0(cCells)[1] = 0.0;
+    m_cell_velocity_n0(cCells) = {0.0, 0.0};
+  });
+  Kokkos::parallel_for(nbNodes,
+    KOKKOS_LAMBDA(const size_t& pNodes) {
+      m_node_velocity_n0(pNodes) = {0.0, 0.0};
   });
 }
 void Initialisations::initVarBiTriplePoint() noexcept {
@@ -111,8 +114,11 @@ void Initialisations::initVarBiTriplePoint() noexcept {
       }
     }
     // vitesses      
-    m_cell_velocity_n0(cCells)[0] = 0.0;
-    m_cell_velocity_n0(cCells)[1] = 0.0;
+    m_cell_velocity_n0(cCells) = {0.0, 0.0};
+  });
+  Kokkos::parallel_for(nbNodes,
+    KOKKOS_LAMBDA(const size_t& pNodes) {
+      m_node_velocity_n0(pNodes) = {0.0, 0.0};
   });
 }
 }  // namespace initlib
