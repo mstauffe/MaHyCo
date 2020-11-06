@@ -99,7 +99,7 @@ void Initialisations::initCellPos() noexcept {
     }
     m_cell_coord_n0(cCells) = 0.25 * reduction0;
   });
-}  
+}
 /**
  * Job initMeshGeometryForFaces called @2.0 in simulate method.
  * In variables: X, m_cell_coord, ex, ey, threshold
@@ -144,5 +144,5 @@ void Initialisations::initMeshGeometryForFaces() noexcept {
         //	  <<  varlp->faceNormal(fFaces) << std::endl;
       });
 }
-  
+
 }  // namespace initlib

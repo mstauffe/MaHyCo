@@ -84,4 +84,4 @@ void Initialisations::initSubVol() noexcept {
     m_euler_volume_n0(cCells) = cstmesh->X_EDGE_LENGTH * cstmesh->Y_EDGE_LENGTH;
   });
 }
-} // namespace initlib
+}  // namespace initlib

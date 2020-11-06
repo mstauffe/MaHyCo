@@ -191,7 +191,8 @@ void Vnr::updatePeriodicBoundaryConditions() noexcept {
       int LeftCell = mesh->getLeftCellfromRight(cCell);
       if (LeftCell != -1) {
         m_density_nplus1(LeftCell) = init->m_density_n0(LeftCell);
-        m_internal_energy_nplus1(LeftCell) = init->m_internal_energy_n0(LeftCell);
+        m_internal_energy_nplus1(LeftCell) =
+            init->m_internal_energy_n0(LeftCell);
         m_density_nplus1(cCell) = m_density_nplus1(LeftCell);
         m_internal_energy_nplus1(cCell) = m_internal_energy_nplus1(LeftCell);
         int nbmat = options->nbmat;

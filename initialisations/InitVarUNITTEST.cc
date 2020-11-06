@@ -17,51 +17,51 @@ namespace initlib {
 
 void Initialisations::initVarUnitTest() noexcept {
   Kokkos::parallel_for("initDensity", nbCells,
-    KOKKOS_LAMBDA(const int& cCells) {
-    if (m_cell_coord_n0(cCells)[0] <= 0.5) {
-      m_fracvol_env_n0(cCells)[0] = 1.;
-      m_fracvol_env_n0(cCells)[1] = 0.;
-      m_mass_fraction_env_n0(cCells)[0] = 1.;
-      m_mass_fraction_env_n0(cCells)[1] = 0.;
-      m_density_n0(cCells) = 1.0;
-      m_density_env_n0(cCells)[0] = 1.0;
-      m_density_env_n0(cCells)[1] = 0.;
-    } else {
-      m_fracvol_env_n0(cCells)[0] = 1.;
-      m_fracvol_env_n0(cCells)[1] = 0.;
-      m_mass_fraction_env_n0(cCells)[0] = 1.;
-      m_mass_fraction_env_n0(cCells)[1] = 0.;
-      m_density_n0(cCells) = 1.;
-      m_density_env_n0(cCells)[0] = 1.;
-      m_density_env_n0(cCells)[1] = 0.;
-    }
-    m_cell_velocity_n0(cCells)[0] = 1.0;
-    m_cell_velocity_n0(cCells)[1] = 0.0;
-  });
+                       KOKKOS_LAMBDA(const int& cCells) {
+                         if (m_cell_coord_n0(cCells)[0] <= 0.5) {
+                           m_fracvol_env_n0(cCells)[0] = 1.;
+                           m_fracvol_env_n0(cCells)[1] = 0.;
+                           m_mass_fraction_env_n0(cCells)[0] = 1.;
+                           m_mass_fraction_env_n0(cCells)[1] = 0.;
+                           m_density_n0(cCells) = 1.0;
+                           m_density_env_n0(cCells)[0] = 1.0;
+                           m_density_env_n0(cCells)[1] = 0.;
+                         } else {
+                           m_fracvol_env_n0(cCells)[0] = 1.;
+                           m_fracvol_env_n0(cCells)[1] = 0.;
+                           m_mass_fraction_env_n0(cCells)[0] = 1.;
+                           m_mass_fraction_env_n0(cCells)[1] = 0.;
+                           m_density_n0(cCells) = 1.;
+                           m_density_env_n0(cCells)[0] = 1.;
+                           m_density_env_n0(cCells)[1] = 0.;
+                         }
+                         m_cell_velocity_n0(cCells)[0] = 1.0;
+                         m_cell_velocity_n0(cCells)[1] = 0.0;
+                       });
 }
 void Initialisations::initVarBiUnitTest() noexcept {
   Kokkos::parallel_for("initDensity", nbCells,
-    KOKKOS_LAMBDA(const int& cCells) {
-    if (m_cell_coord_n0(cCells)[0] <= 0.5) {
-      m_fracvol_env_n0(cCells)[0] = 1.;
-      m_fracvol_env_n0(cCells)[1] = 0.;
-      m_mass_fraction_env_n0(cCells)[0] = 1.;
-      m_mass_fraction_env_n0(cCells)[1] = 0.;
-      m_density_n0(cCells) = 1.0;
-      m_density_env_n0(cCells)[0] = 1.0;
-      m_density_env_n0(cCells)[1] = 0.;
-    } else {
-      m_fracvol_env_n0(cCells)[0] = 0.;
-      m_fracvol_env_n0(cCells)[1] = 1.;
-      m_mass_fraction_env_n0(cCells)[0] = 0.;
-      m_mass_fraction_env_n0(cCells)[1] = 1.;
-      m_density_n0(cCells) = 1.;
-      m_density_env_n0(cCells)[0] = 0.;
-      m_density_env_n0(cCells)[1] = 1.0;
-    }    
-    m_cell_velocity_n0(cCells)[0] = 1.0;
-    m_cell_velocity_n0(cCells)[1] = 0.0;
-  });
+                       KOKKOS_LAMBDA(const int& cCells) {
+                         if (m_cell_coord_n0(cCells)[0] <= 0.5) {
+                           m_fracvol_env_n0(cCells)[0] = 1.;
+                           m_fracvol_env_n0(cCells)[1] = 0.;
+                           m_mass_fraction_env_n0(cCells)[0] = 1.;
+                           m_mass_fraction_env_n0(cCells)[1] = 0.;
+                           m_density_n0(cCells) = 1.0;
+                           m_density_env_n0(cCells)[0] = 1.0;
+                           m_density_env_n0(cCells)[1] = 0.;
+                         } else {
+                           m_fracvol_env_n0(cCells)[0] = 0.;
+                           m_fracvol_env_n0(cCells)[1] = 1.;
+                           m_mass_fraction_env_n0(cCells)[0] = 0.;
+                           m_mass_fraction_env_n0(cCells)[1] = 1.;
+                           m_density_n0(cCells) = 1.;
+                           m_density_env_n0(cCells)[0] = 0.;
+                           m_density_env_n0(cCells)[1] = 1.0;
+                         }
+                         m_cell_velocity_n0(cCells)[0] = 1.0;
+                         m_cell_velocity_n0(cCells)[1] = 0.0;
+                       });
 }
 
 }  // namespace initlib

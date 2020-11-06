@@ -13,18 +13,18 @@
 #include <string>                         // for allocator, string
 #include <vector>                         // for vector
 
-#include "../includes/Constantes.h"
-#include "../includes/Options.h"
 #include "../includes/CasTest.h"
 #include "../includes/ConditionsLimites.h"
+#include "../includes/Constantes.h"
 #include "../includes/CstMesh.h"
 #include "../includes/Eos.h"
+#include "../includes/Freefunctions.h"
 #include "../includes/GestionTemps.h"
 #include "../includes/Limiteurs.h"
+#include "../includes/Options.h"
 #include "../includes/VariablesLagRemap.h"
-#include "../particle_scheme/SchemaParticules.h"
 #include "../initialisations/Init.h"
-#include "../includes/Freefunctions.h"
+#include "../particle_scheme/SchemaParticules.h"
 #include "../remap/Remap.h"
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D, CartesianM...
 #include "mesh/MeshGeometry.h"     // for MeshGeometry
@@ -155,10 +155,8 @@ class Eucclhyd {
            limiteurslib::LimiteursClass::Limiteurs* aLimiteurs,
            particleslib::SchemaParticules* aParticules,
            eoslib::EquationDetat::Eos* aEos, CartesianMesh2D* aCartesianMesh2D,
-           variableslagremaplib::VariablesLagRemap* avarlp,
-	   Remap* aremap,
-	   initlib::Initialisations* ainit,
-           string output)
+           variableslagremaplib::VariablesLagRemap* avarlp, Remap* aremap,
+           initlib::Initialisations* ainit, string output)
       : options(aOptions),
         cstmesh(acstmesh),
         gt(agt),
@@ -248,10 +246,9 @@ class Eucclhyd {
         m_node_dissipation("node_dissipation", nbNodes) {
     // Copy node coordinates
     const auto& gNodes = mesh->getGeometry()->getNodes();
-    Kokkos::parallel_for(
-        nbNodes, KOKKOS_LAMBDA(const int& rNodes) {
-          m_node_coord(rNodes) = gNodes[rNodes];
-        });
+    Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const int& rNodes) {
+      m_node_coord(rNodes) = gNodes[rNodes];
+    });
   }
 
  private:
@@ -264,7 +261,6 @@ class Eucclhyd {
       int BC1, RealArray1D<dim> BCValue1, int BC2, RealArray1D<dim> BCValue2,
       RealArray2D<dim, dim> Mp, RealArray1D<dim> Gp);
 
- 
   void setUpTimeLoopN() noexcept;
 
   void computeCornerNormal() noexcept;
