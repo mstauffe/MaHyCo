@@ -403,11 +403,11 @@ void Vnr::simulate() {
 
   init->initBoundaryConditions();
   init->initCellPos();  // @1.0
-  init->initvar();         // @2.0
+  init->initVar();         // @2.0
   init->initSubVol();   // @2.0
   init->initMeshGeometryForFaces();
   remap->FacesOfNode();  // pour la conectivité Noeud-face
-  if (options->sansLagrange == 0) init->initInternalEnergy();  // @3.0
+  //  if (options->sansLagrange == 0) init->initInternalEnergy();  // @3.0
   if (options->sansLagrange == 0) init->initPseudo();    // @3.0
   setUpTimeLoopN();                                      // @4.0
   computeCellMass();                                     // @3.0

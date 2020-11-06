@@ -112,20 +112,35 @@ public:
           m_node_coord_n0(rNodes) = gNodes[rNodes];
         });
       }
-  
+  // initalisation commune
   void initBoundaryConditions() noexcept;
   void initMeshGeometryForCells() noexcept;
-  void initVpAndFpc() noexcept;
-  void initCellInternalEnergy() noexcept;
-  void initCellVelocity() noexcept;
-  void initDensity() noexcept;
   void initMeshGeometryForFaces() noexcept;
+  void initVpAndFpc() noexcept;
+  // initialisation des variables EU
+  void initCellInternalEnergy() noexcept;
+  // initialisation specifique VNR
   void initCellPos() noexcept;
   void initPseudo() noexcept;
-  void initvar() noexcept;
   void initSubVol()  noexcept;
-  void initDeltaT()  noexcept;
+  // initialisation des variables VNR
+  void initVar() noexcept;
   void initInternalEnergy()  noexcept;
+
+  void initVarSOD() noexcept;
+  void initVarBiSOD() noexcept;
+  void initVarShockBubble() noexcept;
+  void initVarTriplePoint() noexcept;
+  void initVarBiTriplePoint() noexcept;
+  void initVarSEDOV() noexcept;
+  void initVarBiSEDOV() noexcept;
+  void initVarNOH() noexcept;
+  void initVarBiNOH() noexcept;
+  void initVarUnitTest() noexcept;
+  void initVarBiUnitTest() noexcept;
+  void initVarAdvection() noexcept;
+  void initVarBiAdvection() noexcept;
+  void initVarBiAdvectionVitesse() noexcept;
 };
 
 }  // namespace initlib

@@ -22,7 +22,8 @@ function compare_results {
   local readonly reference_dir=$1
   local return_code=0
   if ! diff -r output "$reference_dir/reference" > /dev/null 2>&1; then
-    echo "Test failure! Output is different from reference"
+      echo "Test failure! Output is different from reference"
+      echo ${test_dir} >>  list_of_cases_to_change
     return_code=1
   fi
   return ${return_code}
