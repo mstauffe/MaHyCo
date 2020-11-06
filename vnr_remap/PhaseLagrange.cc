@@ -72,11 +72,12 @@ void Vnr::computeArtificialViscosity() noexcept {
               sumR0(reduction0, m_node_cellvolume_n(cCells, pNodesOfCellC));
         }
       }
+      double gamma(eos->gamma[0]); // a changer en prenant une moyenne des gamma ?
       m_pseudo_viscosity_nplus1(cCells) =
           1.0 / m_tau_density_nplus1(cCells) *
           (-0.5 * std::sqrt(reduction0) * m_speed_velocity_n(cCells) *
                m_divu_nplus1(cCells) +
-           (eos->gamma + 1) / 2.0 * reduction0 * m_divu_nplus1(cCells) *
+           (gamma + 1) / 2.0 * reduction0 * m_divu_nplus1(cCells) *
                m_divu_nplus1(cCells));
     } else
       m_pseudo_viscosity_nplus1(cCells) = 0.0;
@@ -335,7 +336,7 @@ void Vnr::updateEnergy() noexcept {
                   // m_pseudo_viscosity_nplus1(cCells)
           pseudo = m_pseudo_viscosity_env_nplus1(cCells)[imat];
         }
-        const double den(1 + 0.5 * (eos->gammap[imat] - 1.0) *
+        const double den(1 + 0.5 * (eos->gamma[imat] - 1.0) *
                                  m_density_env_nplus1(cCells)[imat] *
                                  (1.0 / m_density_env_nplus1(cCells)[imat] -
                                   1.0 / m_density_env_n(cCells)[imat]));
@@ -371,73 +372,30 @@ void Vnr::computeDivU() noexcept {
  * Job computeEOS called in executeTimeLoopN method.
  */
 void Vnr::computeEOS() {
-  for (int imat = 0; imat < options->nbmat; ++imat) {
-    if (eos->Nom[imat] == eos->PerfectGas) computeEOSGP(imat);
-    if (eos->Nom[imat] == eos->Void) computeEOSVoid(imat);
-    if (eos->Nom[imat] == eos->StiffenedGas) computeEOSSTIFG(imat);
-    if (eos->Nom[imat] == eos->Murnhagan) computeEOSMur(imat);
-    if (eos->Nom[imat] == eos->SolidLinear) computeEOSSL(imat);
-  }
-}
-/**
- * Job computeEOSGP called @1.0 in executeTimeLoopN method.
- * In variables: eos, eosPerfectGas, m_internal_energy_n, gammap, m_density_n
- * Out variables: c, p
- */
-void Vnr::computeEOSGP(int imat) {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-    m_pressure_env_nplus1(cCells)[imat] =
-        (eos->gammap[imat] - 1.0) * m_density_env_nplus1(cCells)[imat] *
-        m_internal_energy_env_nplus1(cCells)[imat];
-    m_speed_velocity_env_nplus1(cCells)[imat] =
-        std::sqrt(eos->gammap[imat] * (eos->gammap[imat] - 1.0) *
-                  m_internal_energy_env_nplus1(cCells)[imat]);
-  });
-}
-/**
- * Job computeEOSVoid called in executeTimeLoopN method.
- * In variables: eos, eosPerfectGas, m_internal_energy_n, gammap, m_density_n
- * Out variables: c, p
- */
-void Vnr::computeEOSVoid(int imat) {
-  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-    m_pressure_env_nplus1(cCells)[imat] = m_pressure_env_n(cCells)[imat];
-    m_speed_velocity_env_nplus1(cCells)[imat] =
-        m_speed_velocity_env_n(cCells)[imat];
-    m_internal_energy_env_nplus1(cCells)[imat] =
-        m_internal_energy_env_n(cCells)[imat];
-    m_internal_energy_nplus1(cCells) = 0.;
-  });
-}
-/**
- * Job computeEOSSTIFG
- * In variables: m_internal_energy_n, m_density_n
- * Out variables: c, p
- */
-void Vnr::computeEOSSTIFG(int imat) {
-  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-    std::cout << " Pas encore programmée" << std::endl;
-  });
-}
-/**
- * Job computeEOSMur called @1.0 in executeTimeLoopN method.
- * In variables: m_internal_energy_n, m_density_n
- * Out variables: c, p
- */
-void Vnr::computeEOSMur(int imat) {
-  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-    std::cout << " Pas encore programmée" << std::endl;
-  });
-}
-/**
- * Job computeEOSSL called @1.0 in executeTimeLoopN method.
- * In variables: m_internal_energy_n, m_density_n
- * Out variables: c, p
- */
-void Vnr::computeEOSSL(int imat) {
-  Kokkos::parallel_for("computeEOS", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-    std::cout << " Pas encore programmée" << std::endl;
-  });
+      for (int imat = 0; imat < options->nbmat; ++imat) {
+	double pression ; // = m_pressure_env_nplus1(cCells)[imat];
+	double density = m_density_env_nplus1(cCells)[imat];
+	double energy = m_internal_energy_env_nplus1(cCells)[imat];
+	double gamma = eos->gamma[imat];
+	double tension_limit = eos->tension_limit[imat];
+	double sound_speed ; // = m_speed_velocity_env_nplus1(cCells)[imat];
+	RealArray1D<2> sortie_eos; // pression puis sound_speed
+	if (eos->Nom[imat] == eos->PerfectGas)
+	  sortie_eos = eos->computeEOSGP(gamma, density, energy);
+	if (eos->Nom[imat] == eos->Void)
+	  sortie_eos = eos->computeEOSVoid(density, energy);
+	if (eos->Nom[imat] == eos->StiffenedGas)
+	  sortie_eos = eos->computeEOSSTIFG(gamma, tension_limit, density, energy);
+	if (eos->Nom[imat] == eos->Murnhagan)
+	  sortie_eos = eos->computeEOSMur(density, energy);
+	if (eos->Nom[imat] == eos->SolidLinear)
+	  sortie_eos = eos->computeEOSSL(density, energy);
+	//
+	m_pressure_env_nplus1(cCells)[imat] = sortie_eos[0];
+	m_speed_velocity_env_nplus1(cCells)[imat] = sortie_eos[1];
+      }
+    });
 }
 /**
  * Job computeEOS called in executeTimeLoopN method.
@@ -455,7 +413,7 @@ void Vnr::computePressionMoyenne() noexcept {
     // NONREG GP A SUPPRIMER
     if (m_density_nplus1(cCells) > 0.) {
       m_speed_velocity_nplus1(cCells) =
-          std::sqrt(eos->gammap[0] * (eos->gammap[0] - 1.0) *
+          std::sqrt(eos->gamma[0] * (eos->gamma[0] - 1.0) *
                     m_internal_energy_nplus1(cCells));
     }
     for (int imat = 0; imat < options->nbmat; ++imat)

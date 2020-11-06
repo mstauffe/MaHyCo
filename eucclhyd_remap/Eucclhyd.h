@@ -50,7 +50,7 @@ class Eucclhyd {
   particleslib::SchemaParticules* particules;
   conditionslimiteslib::ConditionsLimites::Cdl* cdl;
   limiteurslib::LimiteursClass::Limiteurs* limiteurs;
-  eoslib::EquationDetat::Eos* eos;
+  eoslib::EquationDetat* eos;
   cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh;
   gesttempslib::GestionTempsClass::GestTemps* gt;
   variableslagremaplib::VariablesLagRemap* varlp;
@@ -154,7 +154,7 @@ class Eucclhyd {
            conditionslimiteslib::ConditionsLimites::Cdl* aCdl,
            limiteurslib::LimiteursClass::Limiteurs* aLimiteurs,
            particleslib::SchemaParticules* aParticules,
-           eoslib::EquationDetat::Eos* aEos, CartesianMesh2D* aCartesianMesh2D,
+           eoslib::EquationDetat* aEos, CartesianMesh2D* aCartesianMesh2D,
            variableslagremaplib::VariablesLagRemap* avarlp, Remap* aremap,
            initlib::Initialisations* ainit, string output)
       : options(aOptions),
@@ -265,11 +265,6 @@ class Eucclhyd {
 
   void computeCornerNormal() noexcept;
   void computeEOS();
-  void computeEOSGP(int imat);
-  void computeEOSVoid(int imat);
-  void computeEOSSTIFG(int imat);
-  void computeEOSMur(int imat);
-  void computeEOSSL(int imat);
   void computePressionMoyenne() noexcept;
   void computeGradients() noexcept;
   void computeMass() noexcept;

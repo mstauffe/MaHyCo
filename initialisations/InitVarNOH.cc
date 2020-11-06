@@ -21,7 +21,7 @@ void Initialisations::initVarNOH() noexcept {
     m_mass_fraction_env_n0(cCells)[0] = 1.;
     double p0(1.);
     double rho0(1.);
-    double e0 = p0 / ((eos->gamma - 1.0) * rho0);
+    double e0 = p0 / ((eos->gamma[0] - 1.0) * rho0);
     m_pressure_n0(cCells) = p0;
     m_pressure_env_n0(cCells)[0] = p0;
     m_density_n0(cCells) = rho0;
@@ -52,7 +52,7 @@ void Initialisations::initVarBiNOH() noexcept {
     m_mass_fraction_env_n0(cCells)[0] = 1.;
     double p0(1.);
     double rho0(1.);
-    double e0 = p0 / ((eos->gamma - 1.0) * rho0);
+    double e0 = p0 / ((eos->gamma[0] - 1.0) * rho0);
     m_pressure_n0(cCells) = p0;
     m_pressure_env_n0(cCells)[0] = p0;
     m_density_n0(cCells) = rho0;

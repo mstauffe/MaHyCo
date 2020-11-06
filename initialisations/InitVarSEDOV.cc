@@ -26,7 +26,7 @@ void Initialisations::initVarSEDOV() noexcept {
         double pInit = 1.e-6;
         double rhoInit = 1.;
         double rmin = options->threshold;  // depot sur 1 maille
-        double e1 = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+        double e1 = pInit / ((eos->gamma[0] - 1.0) * rhoInit);
         {
           auto nodesOfCellC(mesh->getNodesOfCell(cId));
           for (int pNodesOfCellC = 0; pNodesOfCellC < nodesOfCellC.size();
@@ -47,13 +47,13 @@ void Initialisations::initVarSEDOV() noexcept {
         }
         m_internal_energy_env_n0(cCells)[0] = m_internal_energy_n0(cCells);
 
-        m_pressure_env_n0(cCells)[0] = (eos->gammap[0] - 1.0) *
+        m_pressure_env_n0(cCells)[0] = (eos->gamma[0] - 1.0) *
                                        m_density_env_n0(cCells)[0] *
                                        m_internal_energy_env_n0(cCells)[0];
         m_pressure_n0(cCells) = m_pressure_env_n0(cCells)[0];
 
         m_speed_velocity_env_n0(cCells)[0] =
-            std::sqrt(eos->gammap[0] * m_density_env_n0(cCells)[0] /
+            std::sqrt(eos->gamma[0] * m_density_env_n0(cCells)[0] /
                       m_pressure_env_n0(cCells)[0]);
         m_speed_velocity_n0(cCells) = m_speed_velocity_env_n0(cCells)[0];
       });
@@ -72,7 +72,7 @@ void Initialisations::initVarBiSEDOV() noexcept {
         double pInit = 1.e-6;
         double rhoInit = 1.;
         double rmin = options->threshold;  // depot sur 1 maille
-        double e1 = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+        double e1 = pInit / ((eos->gamma[0] - 1.0) * rhoInit);
         {
           auto nodesOfCellC(mesh->getNodesOfCell(cId));
           for (int pNodesOfCellC = 0; pNodesOfCellC < nodesOfCellC.size();

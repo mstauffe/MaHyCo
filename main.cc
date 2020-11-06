@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
   auto o = new optionschemalib::OptionsSchema::Options();
   auto cl = new conditionslimiteslib::ConditionsLimites::Cdl();
   auto lim = new limiteurslib::LimiteursClass::Limiteurs();
-  auto eos = new eoslib::EquationDetat::Eos();
+  auto eos = new eoslib::EquationDetat();
   auto test = new castestlib::CasTest::Test();
   auto cstmesh =
       new cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages();

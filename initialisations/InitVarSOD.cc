@@ -28,11 +28,11 @@ void Initialisations::initVarSOD() noexcept {
     if (r < 0.5) {
       pInit = 1.0;
       rhoInit = 1.0;
-      eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+      eInit = pInit / ((eos->gamma[0] - 1.0) * rhoInit);
     } else {
       pInit = 0.1;
       rhoInit = 0.125;
-      eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+      eInit = pInit / ((eos->gamma[0] - 1.0) * rhoInit);
     }
     m_density_n0(cCells) = rhoInit;
     m_density_env_n0(cCells)[0] = rhoInit;
@@ -44,7 +44,7 @@ void Initialisations::initVarSOD() noexcept {
     m_internal_energy_env_n0(cCells)[0] = eInit;
 
     m_speed_velocity_env_n0(cCells)[0] =
-        std::sqrt(eos->gamma * m_density_env_n0(cCells)[0] /
+        std::sqrt(eos->gamma[0] * m_density_env_n0(cCells)[0] /
                   m_pressure_env_n0(cCells)[0]);
     m_speed_velocity_n0(cCells) = m_speed_velocity_env_n0(cCells)[0];
 
@@ -70,7 +70,7 @@ void Initialisations::initVarBiSOD() noexcept {
       f2 = 0.0;
       rhoInit1 = 1.0;
       pInit1 = 1.0;
-      eInit1 = pInit1 / ((eos->gammap[0] - 1.0) * rhoInit1);
+      eInit1 = pInit1 / ((eos->gamma[0] - 1.0) * rhoInit1);
       rhoInit2 = 0.0;
       pInit2 = 0.0;
       eInit2 = 0.0;
@@ -82,7 +82,7 @@ void Initialisations::initVarBiSOD() noexcept {
       eInit1 = 0.0;
       rhoInit2 = 0.125;
       pInit2 = 0.1;
-      eInit2 = pInit2 / ((eos->gammap[1] - 1.0) * rhoInit2);
+      eInit2 = pInit2 / ((eos->gamma[1] - 1.0) * rhoInit2);
     }
     m_fracvol_env_n0(cCells)[0] = f1;
     m_fracvol_env_n0(cCells)[1] = f2;
@@ -102,14 +102,14 @@ void Initialisations::initVarBiSOD() noexcept {
     // reference a basculer plus tard
     // if (f1 > 0.)
     m_speed_velocity_env_n0(cCells)[0] =
-        std::sqrt(eos->gamma * m_density_env_n0(cCells)[0] /
+        std::sqrt(eos->gamma[0] * m_density_env_n0(cCells)[0] /
                   m_pressure_env_n0(cCells)[0]);
     // else
     // m_speed_velocity_env_n0(cCells)[0] = 1.e20; // pour avoir le min sur 2
 
     // if (f2 > 0.)
     m_speed_velocity_env_n0(cCells)[1] =
-        std::sqrt(eos->gamma * m_density_env_n0(cCells)[1] /
+        std::sqrt(eos->gamma[1] * m_density_env_n0(cCells)[1] /
                   m_pressure_env_n0(cCells)[1]);
     // else
     // m_speed_velocity_env_n0(cCells)[1] = 1.e20; // pour avoir le min sur 1

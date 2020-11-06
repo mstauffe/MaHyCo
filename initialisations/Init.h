@@ -23,7 +23,7 @@ namespace initlib {
   CartesianMesh2D* mesh;
   optionschemalib::OptionsSchema::Options* options;
   castestlib::CasTest::Test* test;
-  eoslib::EquationDetat::Eos* eos;
+  eoslib::EquationDetat* eos;
   cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh;
   conditionslimiteslib::ConditionsLimites::Cdl* cdl;
   variableslagremaplib::VariablesLagRemap* varlp;
@@ -63,7 +63,7 @@ namespace initlib {
   
 public:
   Initialisations(optionschemalib::OptionsSchema::Options* aOptions,
-      eoslib::EquationDetat::Eos* aEos, CartesianMesh2D* aCartesianMesh2D,
+      eoslib::EquationDetat* aEos, CartesianMesh2D* aCartesianMesh2D,
       cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* acstmesh,
       variableslagremaplib::VariablesLagRemap* avarlp,
       conditionslimiteslib::ConditionsLimites::Cdl* aCdl,

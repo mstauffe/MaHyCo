@@ -13,7 +13,7 @@ void LectureDonneesClass::LectureDonnees(
     optionschemalib::OptionsSchema::Options* o,
     cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh,
     gesttempslib::GestionTempsClass::GestTemps* gt,
-    limiteurslib::LimiteursClass::Limiteurs* l, eoslib::EquationDetat::Eos* eos,
+    limiteurslib::LimiteursClass::Limiteurs* l, eoslib::EquationDetat* eos,
     castestlib::CasTest::Test* test) {
   // string Fichier=argv[1];
   ifstream mesdonnees(Fichier);  // Ouverture d'un fichier en lecture

@@ -24,7 +24,7 @@ void Initialisations::initVarShockBubble() noexcept {
         // Air partout
         rhoInit = 1.0;
         pInit = 1.e5;
-        eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+        eInit = pInit / ((eos->gamma[0] - 1.0) * rhoInit);
         m_density_env_n0(cCells)[0] = rhoInit;
         m_density_n0(cCells) = rhoInit;
 
@@ -52,7 +52,7 @@ void Initialisations::initVarShockBubble() noexcept {
         if (r <= rb) {
           pInit = 1.e5;
           rhoInit = 0.182;
-          eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+          eInit = pInit / ((eos->gamma[0] - 1.0) * rhoInit);
 
           m_density_env_n0(cCells)[0] = 0.0;
           m_density_env_n0(cCells)[1] = rhoInit;

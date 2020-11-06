@@ -15,7 +15,7 @@ class LectureDonneesClass {
       cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh,
       gesttempslib::GestionTempsClass::GestTemps* gt,
       limiteurslib::LimiteursClass::Limiteurs* l,
-      eoslib::EquationDetat::Eos* eos, castestlib::CasTest::Test* test);
+      eoslib::EquationDetat* eos, castestlib::CasTest::Test* test);
 
  private:
   std::unordered_map<string, int> castestToOptions{

@@ -51,7 +51,7 @@ void Initialisations::initVarTriplePoint() noexcept {
                              rhoInit = 0.1;
                            }
                          }
-                         eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+                         eInit = pInit / ((eos->gamma[0] - 1.0) * rhoInit);
                          m_internal_energy_n0(cCells) = eInit;
                          m_internal_energy_env_n0(cCells)[0] = eInit;
                          // vitesses
@@ -78,7 +78,7 @@ void Initialisations::initVarBiTriplePoint() noexcept {
                            m_density_env_n0(cCells)[0] = 1.0;
                            pInit = 1.0;  // 1.e5; // 1.0;
                            rhoInit = 1.0;
-                           eInit = pInit / ((eos->gammap[0] - 1.0) * rhoInit);
+                           eInit = pInit / ((eos->gamma[0] - 1.0) * rhoInit);
                            m_internal_energy_n0(cCells) = eInit;
                            m_internal_energy_env_n0(cCells)[0] = eInit;
                          } else {
@@ -94,7 +94,7 @@ void Initialisations::initVarBiTriplePoint() noexcept {
                              m_density_env_n0(cCells)[1] = 1.0;
                              pInit = 0.1;  // 1.e4; // 0.1;
                              rhoInit = 1.;
-                             eInit = pInit / ((eos->gammap[1] - 1.0) * rhoInit);
+                             eInit = pInit / ((eos->gamma[1] - 1.0) * rhoInit);
                              m_internal_energy_n0(cCells) = eInit;
                              m_internal_energy_env_n0(cCells)[1] = eInit;
                            } else {
@@ -109,7 +109,7 @@ void Initialisations::initVarBiTriplePoint() noexcept {
                              m_density_env_n0(cCells)[2] = 0.1;
                              pInit = 0.1;  // 1.e4; // 0.1;
                              rhoInit = 0.1;
-                             eInit = pInit / ((eos->gammap[2] - 1.0) * rhoInit);
+                             eInit = pInit / ((eos->gamma[2] - 1.0) * rhoInit);
                              m_internal_energy_n0(cCells) = eInit;
                              m_internal_energy_env_n0(cCells)[2] = eInit;
                            }
