@@ -16,8 +16,7 @@
 namespace initlib {
 
 void Initialisations::initVarNOH() noexcept {
-  Kokkos::parallel_for("initVarNOH", nbCells,
-    KOKKOS_LAMBDA(const int& cCells) {
+  Kokkos::parallel_for("initVarNOH", nbCells, KOKKOS_LAMBDA(const int& cCells) {
     m_fracvol_env_n0(cCells)[0] = 1.;
     m_mass_fraction_env_n0(cCells)[0] = 1.;
     double p0(1.);
@@ -48,8 +47,7 @@ void Initialisations::initVarNOH() noexcept {
   });
 }
 void Initialisations::initVarBiNOH() noexcept {
-  Kokkos::parallel_for("initVarNOH", nbCells,
-    KOKKOS_LAMBDA(const int& cCells) {			 
+  Kokkos::parallel_for("initVarNOH", nbCells, KOKKOS_LAMBDA(const int& cCells) {
     m_fracvol_env_n0(cCells)[0] = 1.;
     m_mass_fraction_env_n0(cCells)[0] = 1.;
     double p0(1.);
@@ -78,5 +76,5 @@ void Initialisations::initVarBiNOH() noexcept {
     m_node_velocity_n0(pNodes)[0] = -u0 * n1 / normVect;
     m_node_velocity_n0(pNodes)[1] = -u0 * n2 / normVect;
   });
-}  
+}
 }  // namespace initlib

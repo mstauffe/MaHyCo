@@ -26,8 +26,8 @@
 #include "../includes/Limiteurs.h"
 #include "../includes/Options.h"
 #include "../includes/VariablesLagRemap.h"
-#include "../particle_scheme/SchemaParticules.h"
 #include "../initialisations/Init.h"
+#include "../particle_scheme/SchemaParticules.h"
 #include "../remap/Remap.h"
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D, CartesianM...
 #include "mesh/PvdFileWriter2D.h"  // for PvdFileWriter2D
@@ -166,10 +166,8 @@ class Vnr {
       limiteurslib::LimiteursClass::Limiteurs* aLimiteurs,
       particleslib::SchemaParticules* aParticules,
       eoslib::EquationDetat::Eos* aEos, CartesianMesh2D* aCartesianMesh2D,
-      variableslagremaplib::VariablesLagRemap* avarlp,
-      Remap* aremap,
-      initlib::Initialisations* ainit,
-      string output)
+      variableslagremaplib::VariablesLagRemap* avarlp, Remap* aremap,
+      initlib::Initialisations* ainit, string output)
       : options(aOptions),
         cstmesh(acstmesh),
         gt(agt),

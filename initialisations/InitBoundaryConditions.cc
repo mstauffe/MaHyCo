@@ -14,7 +14,7 @@
 #include "utils/Utils.h"           // for indexOf
 
 namespace initlib {
-  
+
 void Initialisations::initBoundaryConditions() noexcept {
   if (test->Nom == test->AdvectionX || test->Nom == test->BiAdvectionX ||
       test->Nom == test->AdvectionVitX || test->Nom == test->BiAdvectionVitX) {

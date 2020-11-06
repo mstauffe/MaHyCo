@@ -45,7 +45,7 @@ void Initialisations::initVarAdvection() noexcept {
     m_speed_velocity_env_n0(cCells)[0] = 1.;
     m_speed_velocity_env_n0(cCells)[1] = 1.;
     m_speed_velocity_n0(cCells) = min(m_speed_velocity_env_n0(cCells)[0],
-				      m_speed_velocity_env_n0(cCells)[1]);
+                                      m_speed_velocity_env_n0(cCells)[1]);
     m_internal_energy_env_n0(cCells)[0] = 1.;
     m_internal_energy_env_n0(cCells)[1] = 1.;
     m_internal_energy_n0(cCells) = 1.;
@@ -89,7 +89,7 @@ void Initialisations::initVarBiAdvection() noexcept {
     m_speed_velocity_env_n0(cCells)[0] = 1.;
     m_speed_velocity_env_n0(cCells)[1] = 1.;
     m_speed_velocity_n0(cCells) = min(m_speed_velocity_env_n0(cCells)[0],
-				      m_speed_velocity_env_n0(cCells)[1]);
+                                      m_speed_velocity_env_n0(cCells)[1]);
     m_internal_energy_env_n0(cCells)[0] = 1.;
     m_internal_energy_env_n0(cCells)[1] = 1.;
     m_internal_energy_n0(cCells) = 1.;
@@ -133,11 +133,11 @@ void Initialisations::initVarBiAdvectionVitesse() noexcept {
     m_speed_velocity_env_n0(cCells)[0] = 1.;
     m_speed_velocity_env_n0(cCells)[1] = 1.;
     m_speed_velocity_n0(cCells) = min(m_speed_velocity_env_n0(cCells)[0],
-				      m_speed_velocity_env_n0(cCells)[1]);
+                                      m_speed_velocity_env_n0(cCells)[1]);
     m_internal_energy_env_n0(cCells)[0] = 1.;
     m_internal_energy_env_n0(cCells)[1] = 1.;
     m_internal_energy_n0(cCells) = 1.;
-    });
+  });
   const RealArray1D<dim> ex = {{1.0, 0.0}};
   const RealArray1D<dim> ey = {{0.0, 1.0}};
   RealArray1D<dim> u;

@@ -28,55 +28,44 @@ void Initialisations::initVar() noexcept {
                            m_mass_fraction_env_n0(cCells)[imat] = 0.0;
                            m_density_env_n0(cCells)[imat] = 0.0;
                            m_pressure_env_n0(cCells)[imat] = 0.0;
-			   m_internal_energy_env_n0(cCells)[imat] = 0.0;
+                           m_internal_energy_env_n0(cCells)[imat] = 0.0;
                          }
                        });
   if (test->Nom == test->UnitTestCase) {
-
     initVarUnitTest();
-    
-  } else if (test->Nom == test->BiUnitTestCase) {
 
+  } else if (test->Nom == test->BiUnitTestCase) {
     initVarBiUnitTest();
 
   } else if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY) {
-    
     initVarSOD();
 
   } else if (test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
-    
     initVarBiSOD();
 
   } else if (test->Nom == test->BiShockBubble) {
-    
     initVarShockBubble();
-    
-  } else if (test->Nom == test->TriplePoint) {
-    
-    initVarTriplePoint() ;
-    
-  } else if (test->Nom == test->BiTriplePoint) {
-    
-    initVarBiTriplePoint();
-    
-  } else if (test->Nom == test->SedovTestCase) {
 
+  } else if (test->Nom == test->TriplePoint) {
+    initVarTriplePoint();
+
+  } else if (test->Nom == test->BiTriplePoint) {
+    initVarBiTriplePoint();
+
+  } else if (test->Nom == test->SedovTestCase) {
     initVarSEDOV();
-    
+
   } else if (test->Nom == test->AdvectionX || test->Nom == test->AdvectionY) {
-    
     initVarAdvection();
 
   } else if (test->Nom == test->BiAdvectionX ||
              test->Nom == test->BiAdvectionY) {
-    
     initVarBiAdvection();
-    
+
   } else if (test->Nom == test->BiAdvectionVitX ||
              test->Nom == test->BiAdvectionVitY) {
-    
     initVarBiAdvectionVitesse();
-    
+
   } else {
     std::cout << "Cas test inconnu " << std::endl;
     exit(1);
@@ -112,6 +101,4 @@ void Initialisations::initVar() noexcept {
     }
   });
 }
-} // namespace initlib
-
-
+}  // namespace initlib
