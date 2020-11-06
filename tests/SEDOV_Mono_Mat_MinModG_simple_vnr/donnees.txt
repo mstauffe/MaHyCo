@@ -1,0 +1,42 @@
+# Cas test
+SedovTestCase
+# Nombre de Mailles en X
+30
+# Nombre de Mailles en Y
+30
+# DELTA_X
+0.04
+# DELTA_Y
+0.04
+# temps final
+1.
+# Temps entre deux sorties
+1.e-2
+# Pas de temps initial
+1.e-4
+# Pas de temps minimal
+1.e-12
+# equation d'etat
+PerfectGas
+# schéma Lagrange
+VNR
+# ordre en espace du schéma Lagrange
+2
+# avec projection (mode euler)
+oui
+# projection conservative
+non
+# Limite fraction volumique
+1.e-16
+# Ordre de la projection
+2
+# Limiteurs
+minmodG
+# option Pente Borne
+non
+# pseudo_centree
+oui
+# methode flux masse
+A1
+# Presence particules
+non

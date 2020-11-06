@@ -72,21 +72,11 @@ void Vnr::computeArtificialViscosity() noexcept {
               sumR0(reduction0, m_node_cellvolume_n(cCells, pNodesOfCellC));
         }
       }
-      double reduction1(0.0);
-      {
-        const auto nodesOfCellC(mesh->getNodesOfCell(cId));
-        const size_t nbNodesOfCellC(nodesOfCellC.size());
-        for (size_t pNodesOfCellC = 0; pNodesOfCellC < nbNodesOfCellC;
-             pNodesOfCellC++) {
-          reduction1 =
-              sumR0(reduction1, m_node_cellvolume_n(cCells, pNodesOfCellC));
-        }
-      }
       m_pseudo_viscosity_nplus1(cCells) =
           1.0 / m_tau_density_nplus1(cCells) *
           (-0.5 * std::sqrt(reduction0) * m_speed_velocity_n(cCells) *
                m_divu_nplus1(cCells) +
-           (eos->gamma + 1) / 2.0 * reduction1 * m_divu_nplus1(cCells) *
+           (eos->gamma + 1) / 2.0 * reduction0 * m_divu_nplus1(cCells) *
                m_divu_nplus1(cCells));
     } else
       m_pseudo_viscosity_nplus1(cCells) = 0.0;
@@ -357,18 +347,6 @@ void Vnr::updateEnergy() noexcept {
         m_internal_energy_nplus1(cCells) +=
             m_mass_fraction_env(cCells)[imat] *
             m_internal_energy_env_nplus1(cCells)[imat];
-        if (abs(m_internal_energy_env_nplus1(cCells)[imat]) > 5.) {
-          std::cout << cCells << " energie "
-                    << m_internal_energy_env_nplus1(cCells)[imat]
-                    << " energien " << m_internal_energy_env_n(cCells)[imat]
-                    << " pseudo n+1 "
-                    << m_pseudo_viscosity_env_nplus1(cCells)[imat] << " n "
-                    << m_pseudo_viscosity_env_n(cCells)[imat] << " densite n+1 "
-                    << m_density_env_nplus1(cCells)[imat] << " n "
-                    << m_density_env_n(cCells)[imat] << " tam_x_velocity "
-                    << m_tau_density_env_nplus1(cCells)[imat] << std::endl;
-          exit(1);
-        }
       }
     }
   });

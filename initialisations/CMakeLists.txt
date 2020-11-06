@@ -11,7 +11,14 @@ target_sources( ${LIBRARY_NAME}
         InitBoundaryConditions.cc
         InitMeshQuantities.cc
 	InitVariables.cc
-	InitVariablesVNR.cc
+	InitSpecificVariables.cc
+	InitVarSOD.cc
+	InitVarShockBubble.cc
+	InitVarTriplePoint.cc
+	InitVarSEDOV.cc
+	InitVarNOH.cc
+	InitVarUNITTEST.cc
+	InitVarAdvection.cc
 )
 target_include_directories( ${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} )
 if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )

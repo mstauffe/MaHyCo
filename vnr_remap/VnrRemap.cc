@@ -137,6 +137,7 @@ void Vnr::setUpTimeLoopN() noexcept {
       KokkosJoiner<double>(reduction0, numeric_limits<double>::max(), &minR0));
   gt->deltat_init = reduction0 * 1.0E-6;
   }
+  // gt->deltat_init dans le jeu de donnees si options->sansLagrange==1
   // pour la suite du calcul 
   gt->deltat_n = gt->deltat_init;
   // *******************************************************************
@@ -403,11 +404,10 @@ void Vnr::simulate() {
 
   init->initBoundaryConditions();
   init->initCellPos();  // @1.0
-  init->initvar();         // @2.0
+  init->initVar();         // @2.0
   init->initSubVol();   // @2.0
   init->initMeshGeometryForFaces();
   remap->FacesOfNode();  // pour la conectivité Noeud-face
-  if (options->sansLagrange == 0) init->initInternalEnergy();  // @3.0
   if (options->sansLagrange == 0) init->initPseudo();    // @3.0
   setUpTimeLoopN();                                      // @4.0
   computeCellMass();                                     // @3.0

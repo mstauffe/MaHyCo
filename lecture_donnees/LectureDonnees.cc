@@ -214,12 +214,13 @@ void LectureDonneesClass::LectureDonnees(
               << " ) " << std::endl;
     mesdonnees.ignore();
 
-    getline(mesdonnees, ligne);  // Nombre de Particules
-    mesdonnees >> cstmesh->Nombre_Particules;
-    std::cout << " Nombre de Particules " << cstmesh->Nombre_Particules
-              << std::endl;
-    mesdonnees.ignore();
-
+    if (o->AvecParticules == 1) {
+      getline(mesdonnees, ligne);  // Nombre de Particules
+      mesdonnees >> cstmesh->Nombre_Particules;
+      std::cout << " Nombre de Particules " << cstmesh->Nombre_Particules
+		<< std::endl;
+      mesdonnees.ignore();
+    }
   } else {
     cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
     exit(1);
