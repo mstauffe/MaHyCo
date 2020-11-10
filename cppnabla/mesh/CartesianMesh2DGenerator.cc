@@ -7,6 +7,7 @@
  * SPDX-License-Identifier: EPL-2.0
  * Contributors: see AUTHORS file
  *******************************************************************************/
+#include <math.h>
 #include "mesh/CartesianMesh2DGenerator.h"
 #include "mesh/CartesianMesh2D.h"
 
@@ -24,7 +25,7 @@ namespace nablalib
    */
 
 CartesianMesh2D*
-CartesianMesh2DGenerator::generate(size_t nbXQuads, size_t nbYQuads, double xSize, double ySize)
+CartesianMesh2DGenerator::generate(size_t nbXQuads, size_t nbYQuads, double xSize, double ySize, int cylindrical_mesh)
 {
 	vector<RealArray1D<2>> nodes_((nbXQuads + 1) * (nbYQuads + 1));
 	vector<Quad> quads_(nbXQuads * nbYQuads);
@@ -51,7 +52,14 @@ CartesianMesh2DGenerator::generate(size_t nbXQuads, size_t nbYQuads, double xSiz
   
 	for(size_t j(0); j <= nbYQuads; ++j) {
 		for(size_t i(0); i <= nbXQuads; ++i) {
-			nodes_[node_id_] = RealArray1D<2>{xSize * i, ySize * j};
+		  nodes_[node_id_] = RealArray1D<2>{xSize * i, ySize * j};
+		  if (cylindrical_mesh) {		    
+		    double pi = 3.14159265359;
+		    double r =  xSize * i;
+		    double theta = ySize * j * pi / 2.;
+		    nodes_[node_id_][0] = r * std::cos(theta);
+		    nodes_[node_id_][1] = r * std::sin(theta);
+		  }
 			if (i!=0 && j!=0 && i!=nbXQuads && j!=nbYQuads)
 				inner_node_ids_[inner_node_id_++] = node_id_;
 			else

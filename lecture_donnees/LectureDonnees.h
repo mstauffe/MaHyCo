@@ -14,18 +14,19 @@ class LectureDonneesClass {
       optionschemalib::OptionsSchema::Options* o,
       cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh,
       gesttempslib::GestionTempsClass::GestTemps* gt,
-      limiteurslib::LimiteursClass::Limiteurs* l,
-      eoslib::EquationDetat* eos, castestlib::CasTest::Test* test);
+      limiteurslib::LimiteursClass::Limiteurs* l, eoslib::EquationDetat* eos,
+      castestlib::CasTest::Test* test);
 
  private:
   std::unordered_map<string, int> castestToOptions{
-      {"UnitTestCase", 0},   {"SedovTestCase", 1},    {"TriplePoint", 2},
-      {"SodCaseX", 4},       {"SodCaseY", 5},         {"NohTestCase", 6},
-      {"AdvectionX", 7},     {"AdvectionY", 8},       {"AdvectionVitX", 9},
-      {"AdvectionVitY", 10}, {"BiUnitTestCase", 11},  {"BiSedovTestCase", 12},
-      {"BiTriplePoint", 13}, {"BiShockBubble", 14},   {"BiSodCaseX", 15},
-      {"BiSodCaseY", 16},    {"BiNohTestCase", 17},   {"BiAdvectionX", 18},
-      {"BiAdvectionY", 19},  {"BiAdvectionVitX", 20}, {"BiAdvectionVitY", 21}};
+      {"UnitTestCase", 0},     {"SedovTestCase", 1},  {"TriplePoint", 2},
+      {"Implosion", 3},        {"SodCaseX", 4},       {"SodCaseY", 5},
+      {"NohTestCase", 6},      {"AdvectionX", 7},     {"AdvectionY", 8},
+      {"AdvectionVitX", 9},    {"AdvectionVitY", 10}, {"BiUnitTestCase", 11},
+      {"BiSedovTestCase", 12}, {"BiTriplePoint", 13}, {"BiShockBubble", 14},
+      {"BiSodCaseX", 15},      {"BiSodCaseY", 16},    {"BiNohTestCase", 17},
+      {"BiAdvectionX", 18},    {"BiAdvectionY", 19},  {"BiAdvectionVitX", 20},
+      {"BiAdvectionVitY", 21}, {"BiImplosion", 22}};
 
   std::unordered_map<string, int> schema_lagrange{
       {"Eucclhyd", 2000}, {"VNR", 2001}, {"CSTS", 2002}, {"MYR", 2003}};

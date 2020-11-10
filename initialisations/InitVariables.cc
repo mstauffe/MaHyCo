@@ -66,6 +66,14 @@ void Initialisations::initVar() noexcept {
              test->Nom == test->BiAdvectionVitY) {
     initVarBiAdvectionVitesse();
 
+  } else if (test->Nom == test->Implosion) {
+
+    initVarImplosion();
+
+  } else if (test->Nom == test->BiImplosion) {
+
+    initVarBiImplosion();
+
   } else {
     std::cout << "Cas test inconnu " << std::endl;
     exit(1);

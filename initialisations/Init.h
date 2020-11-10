@@ -129,6 +129,8 @@ public:
 
   void initVarSOD() noexcept;
   void initVarBiSOD() noexcept;
+  void initVarImplosion() noexcept;
+  void initVarBiImplosion() noexcept;
   void initVarShockBubble() noexcept;
   void initVarTriplePoint() noexcept;
   void initVarBiTriplePoint() noexcept;

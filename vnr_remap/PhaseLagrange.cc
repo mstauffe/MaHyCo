@@ -14,7 +14,7 @@ using namespace nablalib;
 void Vnr::computeCellMass() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
     int nbmat = options->nbmat;
-    m_cell_mass(cCells) = cstmesh->X_EDGE_LENGTH * cstmesh->Y_EDGE_LENGTH *
+    m_cell_mass(cCells) =  init->m_euler_volume_n0(cCells) *
                           init->m_density_n0(cCells);
     for (int imat = 0; imat < nbmat; ++imat) {
       m_cell_mass_env(cCells)[imat] =

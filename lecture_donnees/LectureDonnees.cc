@@ -62,6 +62,12 @@ void LectureDonneesClass::LectureDonnees(
 
     getline(mesdonnees, ligne);  // ligne de commentaire DELTA_Y
     mesdonnees >> cstmesh->Y_EDGE_LENGTH;
+
+    if (cstmesh->Y_EDGE_LENGTH < 0.) {
+      std::cout << "Utilisation d'un maille cylindrique" << std::endl;
+      cstmesh->cylindrical_mesh = 1;
+      cstmesh->Y_EDGE_LENGTH = - cstmesh->Y_EDGE_LENGTH;
+    }
     std::cout << " DELTA Y " << cstmesh->Y_EDGE_LENGTH << std::endl;
     mesdonnees.ignore();
 

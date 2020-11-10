@@ -126,7 +126,6 @@ void Eucclhyd::executeTimeLoopN() noexcept {
     computeLagrangeVolumeAndCenterOfGravity();  // @6.0
     computeFacedeltaxLagrange();                // @7.0
     updateCellCenteredLagrangeVariables();      // @7.0
-    std::cout << " fin cycle " << std::endl;
 
     if (options->AvecParticules == 1) {
       PreparecellvariablesForParticles();
@@ -150,7 +149,7 @@ void Eucclhyd::executeTimeLoopN() noexcept {
     // Evaluate loop condition with variables at time n
     continueLoop =
         (n + 1 < gt->max_time_iterations && gt->t_nplus1 < gt->final_time);
-
+    std::cout << " DT  = " << gt->deltat_nplus1 << std::endl;
     if (continueLoop) {
       // Switch variables to prepare next iteration
       std::swap(varlp->x_then_y_nplus1, varlp->x_then_y_n);
@@ -229,7 +228,7 @@ void Eucclhyd::computedeltat() noexcept {
       MathFunctions::min(gt->cfl * reduction10, gt->deltat_n * 1.05);
   if (gt->deltat_nplus1 < gt->deltat_min) {
     std::cerr << "Fin de la simulation par pas de temps minimum "
-              << gt->deltat_nplus1 << " < " << gt->deltat_min << std::endl;
+      << gt->deltat_nplus1 << " < " << gt->deltat_min << " et " << reduction10 << std::endl;
     Kokkos::finalize();
     exit(1);
   }
@@ -260,26 +259,22 @@ void Eucclhyd::setUpTimeLoopN() noexcept {
       test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
     // const ℝ δt_init = 1.0e-4;
     gt->deltat_init = 1.0e-4;
-    gt->deltat_n = gt->deltat_init;
   } else if (test->Nom == test->BiShockBubble) {
     gt->deltat_init = 1.e-7;
-    gt->deltat_n = 1.0e-7;
   } else if (test->Nom == test->SedovTestCase ||
              test->Nom == test->BiSedovTestCase) {
     // const ℝ δt_init = 1.0e-4;
     gt->deltat_init = 1.0e-4;
-    gt->deltat_n = 1.0e-4;
   } else if (test->Nom == test->NohTestCase ||
              test->Nom == test->BiNohTestCase) {
     // const ℝ δt_init = 1.0e-4;
     gt->deltat_init = 1.0e-4;
-    gt->deltat_n = 1.0e-4;
   } else if (test->Nom == test->TriplePoint ||
              test->Nom == test->BiTriplePoint) {
     // const ℝ δt_init = 1.0e-5; avec donnees adimensionnées
     gt->deltat_init = 1.0e-5;  // avec pression de 1.e5 / 1.e-8
-    gt->deltat_n = 1.0e-5;
   }
+  gt->deltat_n = gt->deltat_init;
   m_global_total_energy_0 = 0.;
   Kokkos::parallel_for(
       "init_m_global_total_energy_0", nbCells,

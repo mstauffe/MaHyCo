@@ -19,6 +19,7 @@ target_sources( ${LIBRARY_NAME}
 	InitVarNOH.cc
 	InitVarUNITTEST.cc
 	InitVarAdvection.cc
+	InitVarImplosion.cc
 )
 target_include_directories( ${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} )
 if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )

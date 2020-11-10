@@ -10,6 +10,7 @@ class CasTest {
     int UnitTestCase = 0;
     int SedovTestCase = 1;
     int TriplePoint = 2;
+    int Implosion = 3;
     int SodCaseX = 4;
     int SodCaseY = 5;
     int NohTestCase = 6;
@@ -28,6 +29,7 @@ class CasTest {
     int BiAdvectionY = 19;
     int BiAdvectionVitX = 20;
     int BiAdvectionVitY = 21;
+    int BiImplosion = 22;
 
     int Nom = -1;
   };
