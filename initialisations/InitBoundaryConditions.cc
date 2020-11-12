@@ -124,8 +124,7 @@ void Initialisations::initBoundaryConditions() noexcept {
 
     cdl->bottomBC = cdl->symmetry;
     cdl->bottomBCValue = ex;
-  }
-  if (test->Nom == test->UnitTestCase || test->Nom == test->BiUnitTestCase) {
+  } else if (test->Nom == test->UnitTestCase || test->Nom == test->BiUnitTestCase) {
     cdl->rightBC = cdl->imposedVelocity;
     cdl->rightBCValue = {{1.0, 0.0}};
 
@@ -152,6 +151,35 @@ void Initialisations::initBoundaryConditions() noexcept {
 
     // cdl->bottomBC = cdl->symmetry;
     // cdl->bottomBCValue = ex;
+  } else if (test->Nom == test->Implosion || test->Nom == test->BiImplosion) {
+    
+    if (cstmesh->cylindrical_mesh == 1) {
+      // rayon minimum ne bouge pas
+      cdl->leftBC = cdl->imposedVelocity;
+      cdl->leftBCValue = {{0.0, 0.0}};
+      // rayon maximum libre
+      //cdl->rightBC = cdl->freeSurface;
+      cdl->rightBC = cdl->imposedVelocity;
+      cdl->rightBCValue = {{0.0, 0.0}};
+      
+      // axe y
+      cdl->topBC = cdl->symmetry;
+      cdl->topBCValue = ey;
+      // axe x
+      cdl->bottomBC = cdl->symmetry;
+      cdl->bottomBCValue = ex;
+    }
+  } else if (test->Nom == test->RiderTx || test->Nom == test->RiderTy ||
+	     test->Nom == test->RiderRotation || test->Nom == test->RiderT45 ||
+	     test->Nom == test->RiderVortex ||
+	     test->Nom == test->RiderDeformation ||
+	     test->Nom == test->RiderTimeReverse) {
+    cdl->leftBC = cdl->freeSurface;
+    cdl->rightBC = cdl->freeSurface;
+    cdl->topBC = cdl->freeSurface;
+    cdl->bottomBC = cdl->freeSurface;
+    cdl->rightCellBC = cdl->periodic;
+    cdl->topCellBC = cdl->periodic;
   }
   cdl->FluxBC =
       cdl->leftFluxBC + cdl->rightFluxBC + cdl->bottomFluxBC + cdl->topFluxBC;

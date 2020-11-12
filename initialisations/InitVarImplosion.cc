@@ -19,6 +19,7 @@ namespace initlib {
   // rayon externe 1.2
 void Initialisations::initVarImplosion() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
+      double frac1(0), frac2(0), fracm1(0), fracm2(0);
     // light fluid
     double pInit_l(0.1);
     double rhoInit_l(0.05);
@@ -28,8 +29,8 @@ void Initialisations::initVarImplosion() noexcept {
     double rhoInit_e(1.);
     double eInit_e = pInit_e / ((eos->gamma[0] - 1.0) * rhoInit_e);
     // very light fluid
-    double pInit_ll(0.001);
-    double rhoInit_ll = 0.01*0.05;
+    double pInit_ll(5.);
+    double rhoInit_ll = 1.;
     double eInit_ll = pInit_ll / ((eos->gamma[0] - 1.0) * rhoInit_ll);
     // rayon interne et externe
     double ri(1.0), re(1.2);
@@ -58,6 +59,8 @@ void Initialisations::initVarImplosion() noexcept {
       m_density_env_n0(cCells)[0] = rhoInit_l;
       m_pressure_env_n0(cCells)[0] = pInit_l;
       m_internal_energy_env_n0(cCells)[0] = eInit_l;
+      frac1 = 1.;
+      fracm1 = 1.;
       // std::cout << " cell pure light " << cCells << std::endl;
     } else if ((rmax > ri) && (rmin <= ri)) {
       // maille mixte light fuid and eavy fluid
@@ -66,7 +69,9 @@ void Initialisations::initVarImplosion() noexcept {
       m_density_env_n0(cCells)[0] = rhoInit_le;
       m_pressure_env_n0(cCells)[0] = pInit_l;
       m_internal_energy_env_n0(cCells)[0] = pInit_l /
-	((eos->gamma[0] - 1.0) *rhoInit_le);	
+	((eos->gamma[0] - 1.0) *rhoInit_le);
+      frac1 = 1.;
+      fracm1 = 1.;    
       // std::cout << " cell pure light-eavy " << cCells <<
       // " frac " << frac_l << " et " << rhoInit_le << std::endl;
 
@@ -75,40 +80,53 @@ void Initialisations::initVarImplosion() noexcept {
       m_density_env_n0(cCells)[0] = rhoInit_e;
       m_pressure_env_n0(cCells)[0] = pInit_e;
       m_internal_energy_env_n0(cCells)[0] = eInit_e;
+      frac1 = 1.;
+      fracm1 = 1.;           
       //std::cout << " cell pure eavy " << cCells << std::endl;
       
     } else if ((rmax > re) && (rmin <= re)) {
-      // maille mixte eavy fluid and very light fluid
+      // maille mixte eavy fluid and fluide fictif
       double frac_e = (re - rmin) / (rmax -rmin);
-      double rhoInit_ell = frac_e * rhoInit_e + (1.-frac_e) * rhoInit_ll;
-      double pInit_ell = frac_e * pInit_e + (1.-frac_e) * pInit_ll;
-      m_density_env_n0(cCells)[0] = rhoInit_ell;
-      m_pressure_env_n0(cCells)[0] = pInit_ell;
-      m_internal_energy_env_n0(cCells)[0] = pInit_ell /
-	((eos->gamma[0] - 1.0) *rhoInit_ell);	
+      frac1 = frac_e;
+      frac2 = 1.-frac_e;
+      m_density_env_n0(cCells)[0] = rhoInit_e;
+      m_density_env_n0(cCells)[1] = rhoInit_ll;
+      m_pressure_env_n0(cCells)[0] = pInit_e;
+      m_pressure_env_n0(cCells)[0] = pInit_ll;
+      m_internal_energy_env_n0(cCells)[0] = pInit_e /
+	((eos->gamma[0] - 1.0) *rhoInit_e);	
+      m_internal_energy_env_n0(cCells)[1] = pInit_ll /
+	((eos->gamma[1] - 1.0) *rhoInit_ll);	
       // std::cout << " cell pure very light-eavy " << cCells <<
       // " rho " << m_density_env_n0(cCells)[0] << std::endl;	
     } else if (rmin > re) {
-      // maille pure very light fluid
-      m_density_env_n0(cCells)[0] = rhoInit_ll;
-      m_pressure_env_n0(cCells)[0] = pInit_ll;
-      m_internal_energy_env_n0(cCells)[0] = eInit_ll;
+      // maille pure de fluid fictif
+      m_density_env_n0(cCells)[1] = rhoInit_ll;
+      m_pressure_env_n0(cCells)[1] = pInit_ll;
+      m_internal_energy_env_n0(cCells)[1] = eInit_ll;
+      frac1 = 0.;
+      frac2 = 1.;
       //std::cout << " cell pure very light " << cCells << std::endl;
     }
-    m_density_n0(cCells) = m_density_env_n0(cCells)[0];
-    m_pressure_n0(cCells) = m_pressure_env_n0(cCells)[0];
-    m_internal_energy_n0(cCells) = m_internal_energy_env_n0(cCells)[0];
+    m_density_n0(cCells) = frac1 * m_density_env_n0(cCells)[0]
+      + frac2 * m_density_env_n0(cCells)[1];
+    m_pressure_n0(cCells) = frac1 * m_pressure_env_n0(cCells)[0]
+      + frac2 * m_pressure_env_n0(cCells)[1];
     m_speed_velocity_env_n0(cCells)[0] =
       std::sqrt(eos->gamma[0] * m_density_env_n0(cCells)[0] /
 		m_pressure_env_n0(cCells)[0]);
     m_speed_velocity_n0(cCells) = m_speed_velocity_env_n0(cCells)[0];
-    
-    m_fracvol_env_n0(cCells)[0] = 1.;
-    m_mass_fraction_env_n0(cCells)[0] = 1.;
 
-    // if ( m_speed_velocity_n0(cCells) < 0.83666)
-    //std::cout << " cell " << cCells << " " << rmin << " " << rmax <<
-    //	" " << m_speed_velocity_n0(cCells) << std::endl;
+    fracm1 = frac1 * m_density_env_n0(cCells)[0] / m_density_n0(cCells);
+    fracm2 = frac2 * m_density_env_n0(cCells)[1] / m_density_n0(cCells);
+    
+    m_fracvol_env_n0(cCells)[0] = frac1;
+    m_mass_fraction_env_n0(cCells)[0] = fracm1;
+    m_fracvol_env_n0(cCells)[1] = frac2;
+    m_mass_fraction_env_n0(cCells)[1] = fracm2;
+
+    m_internal_energy_n0(cCells) = fracm1 * m_internal_energy_env_n0(cCells)[0]
+      + fracm2 * m_internal_energy_env_n0(cCells)[1];
 
     // vitesses
     m_cell_velocity_n0(cCells) = {0.0, 0.0};

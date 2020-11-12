@@ -16,6 +16,7 @@ target_sources( ${LIBRARY_NAME}
 	InitVarShockBubble.cc
 	InitVarTriplePoint.cc
 	InitVarSEDOV.cc
+	InitVarRIDER.cc
 	InitVarNOH.cc
 	InitVarUNITTEST.cc
 	InitVarAdvection.cc

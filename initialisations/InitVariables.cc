@@ -74,6 +74,34 @@ void Initialisations::initVar() noexcept {
 
     initVarBiImplosion();
 
+  } else if (test->Nom == test->RiderTx) {
+
+    initVarRider({0.20, 0.20});
+
+  } else if (test->Nom == test->RiderTy) {
+
+    initVarRider({0.20, 0.20});
+
+  } else if (test->Nom == test->RiderT45) {
+
+    initVarRider({0.20, 0.20});
+
+  } else if (test->Nom == test->RiderRotation) {
+
+    initVarRider({0.50, 0.75});
+
+  } else if (test->Nom == test->RiderVortex) {
+
+    initVarRider({0.50, 0.75});
+
+  }  else if (test->Nom == test->RiderDeformation) {
+
+    initVarRider({0.50, 0.75});
+
+  } else if (test->Nom == test->RiderTimeReverse) {
+
+    initVarRider({0.50, 0.75});
+
   } else {
     std::cout << "Cas test inconnu " << std::endl;
     exit(1);

@@ -7,11 +7,9 @@
 #include "../includes/Freefunctions.h"
 
 /**
- * Job updateVelocity called @2.0 in executeTimeLoopN method.
- * In variables: C, m_pseudo_viscosity_nplus1, deltat_n, deltat_nplus1, m,
- * m_pressure_n, m_node_velocity_n Out variables: m_node_velocity_nplus1
+ * Job updateNodeBoundaryConditions 
  */
-void Vnr::updateVelocityBoundaryConditions() noexcept {
+void Vnr::updateNodeBoundaryConditions() noexcept {
   const double dt(0.5 * (gt->deltat_nplus1 + gt->deltat_n));
   const auto bottomNodes(mesh->getBottomNodes());
   const size_t nbBottomNodes(bottomNodes.size());
@@ -185,7 +183,7 @@ void Vnr::updateVelocityBoundaryConditions() noexcept {
           m_node_velocity_nplus1(pNodes) = cdl->rightBCValue;
       });
 }
-void Vnr::updatePeriodicBoundaryConditions() noexcept {
+void Vnr::updateCellBoundaryConditions() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCell) {
     if (cdl->rightCellBC == cdl->periodic) {
       int LeftCell = mesh->getLeftCellfromRight(cCell);
@@ -205,6 +203,27 @@ void Vnr::updatePeriodicBoundaryConditions() noexcept {
               m_density_env_nplus1(LeftCell)[imat];
           m_internal_energy_env_nplus1(cCell)[imat] =
               m_internal_energy_env_nplus1(LeftCell)[imat];
+        }
+      }
+    }
+    if (cdl->topCellBC == cdl->periodic) {
+      int BottomCell = mesh->getBottomCellfromTop(cCell);
+      if (BottomCell != -1) {
+        m_density_nplus1(BottomCell) = init->m_density_n0(BottomCell);
+        m_internal_energy_nplus1(BottomCell) =
+            init->m_internal_energy_n0(BottomCell);
+        m_density_nplus1(cCell) = m_density_nplus1(BottomCell);
+        m_internal_energy_nplus1(cCell) = m_internal_energy_nplus1(BottomCell);
+        int nbmat = options->nbmat;
+        for (int imat = 0; imat < nbmat; ++imat) {
+          m_density_env_nplus1(BottomCell)[imat] =
+              init->m_density_env_n0(BottomCell)[imat];
+          m_internal_energy_env_nplus1(BottomCell)[imat] =
+              init->m_internal_energy_env_n0(BottomCell)[imat];
+          m_density_env_nplus1(cCell)[imat] =
+              m_density_env_nplus1(BottomCell)[imat];
+          m_internal_energy_env_nplus1(cCell)[imat] =
+              m_internal_energy_env_nplus1(BottomCell)[imat];
         }
       }
     }

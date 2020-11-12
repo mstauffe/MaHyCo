@@ -13,6 +13,7 @@ class ConstantesMaillagesClass {
     double X_EDGE_LENGTH = X_LENGTH / X_EDGE_ELEMS;
     double Y_EDGE_LENGTH = Y_LENGTH / Y_EDGE_ELEMS;
     int cylindrical_mesh = 0;
+    double minimum_radius = 0.;
     int Nombre_Particules = 0;
   };
   ConstantesMaillages* cstmesh;

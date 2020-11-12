@@ -30,6 +30,14 @@ class CasTest {
     int BiAdvectionVitX = 20;
     int BiAdvectionVitY = 21;
     int BiImplosion = 22;
+    int RiderTx = 23;
+    int RiderTy = 24;
+    int RiderT45 = 25;
+    int RiderRotation = 26;
+    int RiderVortex = 27;
+    int RiderDeformation = 28;
+    int RiderTimeReverse = 29;
+
 
     int Nom = -1;
   };

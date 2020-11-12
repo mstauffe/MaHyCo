@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
   // chargement du maillage
   auto nm = CartesianMesh2DGenerator::generate(
       cstmesh->X_EDGE_ELEMS, cstmesh->Y_EDGE_ELEMS, cstmesh->X_EDGE_LENGTH,
-      cstmesh->Y_EDGE_LENGTH, cstmesh->cylindrical_mesh);
+      cstmesh->Y_EDGE_LENGTH, cstmesh->cylindrical_mesh, cstmesh->minimum_radius);
 
   // appel au schéma Lagrange Eucclhyd + schéma de projection ADI (en option)
   if (scheme->schema == scheme->Eucclhyd) {

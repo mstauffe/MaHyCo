@@ -146,7 +146,8 @@ void Remap::computeGradPhi2() noexcept {
             int cbId(cbBackCellF);
             int cbCells(cbId);
             int ftFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), ftId));
-
+	    RealArray1D<dim> exy = {{0.0, 1.0}};
+	    
             if (cbCells == -1) cbCells = cCells;
             if (cfCells == -1) cfCells = cCells;
             bool voisinage_pure =
@@ -166,11 +167,16 @@ void Remap::computeGradPhi2() noexcept {
                 HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells));
 
             if (limiteurs->projectionAvecPlateauPente == 1) {
-              RealArray1D<dim> exy = {{0.0, 1.0}};
+	      
+	      if (cstmesh->cylindrical_mesh) 
+		exy = varlp->faceNormal(fbFaces);
 
               double Flux_sortant_av =
                   dot(varlp->outerFaceNormal(cCells, fbFacesOfCellC), exy) *
                   varlp->faceNormalVelocity(fbFaces);
+	      
+	      if (cstmesh->cylindrical_mesh) 
+		exy = varlp->faceNormal(ftFaces);
 
               double Flux_sortant_ar =
                   dot(varlp->outerFaceNormal(cCells, ftFacesOfCellC), exy) *
@@ -245,6 +251,7 @@ void Remap::computeGradPhi2() noexcept {
             int cbId(cbBackCellF);
             int cbCells(cbId);
             int flFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), flId));
+            RealArray1D<dim> exy = {{1.0, 0.0}};
 
             if (cbCells == -1) cbCells = cCells;
             if (cfCells == -1) cfCells = cCells;
@@ -265,10 +272,16 @@ void Remap::computeGradPhi2() noexcept {
                 HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells));
             //
             if (limiteurs->projectionAvecPlateauPente == 1) {
-              RealArray1D<dim> exy = {{1.0, 0.0}};
+	      
+	      if (cstmesh->cylindrical_mesh) 
+		exy = varlp->faceNormal(flFaces);
+	      
               double Flux_sortant_ar =
                   dot(varlp->outerFaceNormal(cCells, flFacesOfCellC), exy) *
                   varlp->faceNormalVelocity(flFaces);
+	      
+	      if (cstmesh->cylindrical_mesh) 
+		exy = varlp->faceNormal(frFaces);
 
               double Flux_sortant_av =
                   dot(varlp->outerFaceNormal(cCells, frFacesOfCellC), exy) *
@@ -474,6 +487,9 @@ void Remap::computeUremap2() noexcept {
             size_t fId(fCommonFaceCD);
             int fFaces(utils::indexOf(mesh->getFaces(), fId));
             int fFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), fId));
+
+	    
+	    if ((cstmesh->cylindrical_mesh !=1) || dot(varlp->faceNormal(fFaces), exy) > 0.) {
             // stockage des flux aux faces pour la quantite de mouvement de Vnr
             FluxFace2(cCells, fFacesOfCellC) = (computeRemapFlux(
                 options->projectionOrder, limiteurs->projectionAvecPlateauPente,
@@ -492,6 +508,7 @@ void Remap::computeUremap2() noexcept {
                                   exy, gt->deltat_n));
             //
             //
+	    }
           }
           if (cdl->FluxBC > 0) {
             // flux exterieur

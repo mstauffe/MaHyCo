@@ -143,6 +143,7 @@ public:
   void initVarAdvection() noexcept;
   void initVarBiAdvection() noexcept;
   void initVarBiAdvectionVitesse() noexcept;
+  void initVarRider(RealArray1D<dim> Xb) noexcept;
 };
 
 }  // namespace initlib

@@ -81,8 +81,8 @@ void Eucclhyd::computeEOS() {
 	  sortie_eos = eos->computeEOSVoid(density, energy);
 	if (eos->Nom[imat] == eos->StiffenedGas)
 	  sortie_eos = eos->computeEOSSTIFG(gamma, tension_limit, density, energy);
-	if (eos->Nom[imat] == eos->Murnhagan)
-	  sortie_eos = eos->computeEOSMur(density, energy);
+	if (eos->Nom[imat] == eos->Fictif)
+	  sortie_eos = eos->computeEOSFictif(gamma, density, energy);
 	if (eos->Nom[imat] == eos->SolidLinear)
 	  sortie_eos = eos->computeEOSSL(density, energy);
 	

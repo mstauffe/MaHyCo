@@ -146,6 +146,7 @@ class Vnr {
   Kokkos::View<double*> m_fracvol_env1;
   Kokkos::View<double*> m_fracvol_env2;
   Kokkos::View<double*> m_fracvol_env3;
+  Kokkos::View<double*> m_interface12;
   Kokkos::View<double*> m_pressure_env1;
   Kokkos::View<double*> m_pressure_env2;
   Kokkos::View<double*> m_pressure_env3;
@@ -245,6 +246,7 @@ class Vnr {
         m_fracvol_env1("fracvol_env1", nbCells),
         m_fracvol_env2("fracvol_env2", nbCells),
         m_fracvol_env3("fracvol_env3", nbCells),
+        m_interface12("interface12", nbCells),
         m_cqs("cqs", nbCells, nbNodesOfCell) {
     // Copy node coordinates
     const auto& gNodes = mesh->getGeometry()->getNodes();
@@ -277,6 +279,8 @@ class Vnr {
 
   void updateVelocity() noexcept;
 
+  void updateVelocityWithoutLagrange() noexcept;
+  
   void computeCellMass() noexcept;
 
   void updatePosition() noexcept;
@@ -301,8 +305,8 @@ class Vnr {
   
   void computePressionMoyenne() noexcept;
 
-  void updateVelocityBoundaryConditions() noexcept;
-  void updatePeriodicBoundaryConditions() noexcept;
+  void updateNodeBoundaryConditions() noexcept;
+  void updateCellBoundaryConditions() noexcept;
   void computeVariablesForRemap() noexcept;
   void computeFaceQuantitesForRemap() noexcept;
   void computeCellQuantitesForRemap() noexcept;
