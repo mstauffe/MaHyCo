@@ -67,39 +67,30 @@ void Initialisations::initVar() noexcept {
     initVarBiAdvectionVitesse();
 
   } else if (test->Nom == test->Implosion) {
-
     initVarImplosion();
 
   } else if (test->Nom == test->BiImplosion) {
-
     initVarBiImplosion();
 
   } else if (test->Nom == test->RiderTx) {
-
     initVarRider({0.20, 0.20});
 
   } else if (test->Nom == test->RiderTy) {
-
     initVarRider({0.20, 0.20});
 
   } else if (test->Nom == test->RiderT45) {
-
     initVarRider({0.20, 0.20});
 
   } else if (test->Nom == test->RiderRotation) {
-
     initVarRider({0.50, 0.75});
 
   } else if (test->Nom == test->RiderVortex) {
-
     initVarRider({0.50, 0.75});
 
-  }  else if (test->Nom == test->RiderDeformation) {
-
+  } else if (test->Nom == test->RiderDeformation) {
     initVarRider({0.50, 0.75});
 
   } else if (test->Nom == test->RiderTimeReverse) {
-
     initVarRider({0.50, 0.75});
 
   } else {

@@ -80,13 +80,14 @@ void Initialisations::initSubVol() noexcept {
         m_node_cellvolume_n0(cCells, pNodesOfCellC) =
             0.5 * (crossProduct2d(x1, x2) + crossProduct2d(x2, x3) +
                    crossProduct2d(x3, x4) + crossProduct2d(x4, x1));
-	reduction0 =
+        reduction0 =
             sumR0(reduction0, m_node_cellvolume_n0(cCells, pNodesOfCellC));
       }
     }
-     m_euler_volume_n0(cCells) = cstmesh->X_EDGE_LENGTH * cstmesh->Y_EDGE_LENGTH;
-     if (cstmesh->cylindrical_mesh)
-       m_euler_volume_n0(cCells) = reduction0; // calcul identique au précédent mais donne des diff en nr
+    m_euler_volume_n0(cCells) = cstmesh->X_EDGE_LENGTH * cstmesh->Y_EDGE_LENGTH;
+    if (cstmesh->cylindrical_mesh)
+      m_euler_volume_n0(cCells) = reduction0;  // calcul identique au précédent
+                                               // mais donne des diff en nr
   });
 }
 }  // namespace initlib

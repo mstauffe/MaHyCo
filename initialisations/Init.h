@@ -4,21 +4,21 @@
 #include <Kokkos_Core.hpp>                // for KOKKOS_LAMBDA
 #include <OpenMP/Kokkos_OpenMP_Exec.hpp>  // for OpenMP::impl_is_initialized
 
-#include "../includes/Options.h"
 #include "../includes/CasTest.h"
 #include "../includes/ConditionsLimites.h"
 #include "../includes/Constantes.h"
 #include "../includes/CstMesh.h"
 #include "../includes/Eos.h"
-#include "../includes/GestionTemps.h"
-#include "../includes/VariablesLagRemap.h"
 #include "../includes/Freefunctions.h"
+#include "../includes/GestionTemps.h"
+#include "../includes/Options.h"
+#include "../includes/VariablesLagRemap.h"
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D
 
 using namespace nablalib;
 
 namespace initlib {
-  class Initialisations {
+class Initialisations {
  public:
   CartesianMesh2D* mesh;
   optionschemalib::OptionsSchema::Options* options;
@@ -27,9 +27,9 @@ namespace initlib {
   cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh;
   conditionslimiteslib::ConditionsLimites::Cdl* cdl;
   variableslagremaplib::VariablesLagRemap* varlp;
-  int nbNodes, nbCells, nbFaces, nbFacesnbCellsOfNode, nbNodesOfCell, nbNodesOfFace, nbCellsOfFace, nbCellsOfNode;
+  int nbNodes, nbCells, nbFaces, nbFacesnbCellsOfNode, nbNodesOfCell,
+      nbNodesOfFace, nbCellsOfFace, nbCellsOfNode;
 
-  
   // Variables
   Kokkos::View<RealArray1D<dim>*> m_node_coord_n0;
   Kokkos::View<RealArray1D<dim>*> m_cell_coord_n0;
@@ -45,7 +45,7 @@ namespace initlib {
   Kokkos::View<double*> m_cell_perimeter_n0;
   Kokkos::View<RealArray1D<dim>*> m_cell_velocity_n0;
   Kokkos::View<RealArray1D<dim>**> m_node_force_n0;
-  
+
   // init VNR
   Kokkos::View<double**> m_node_cellvolume_n0;
   Kokkos::View<double*> m_pressure_n0;
@@ -57,12 +57,10 @@ namespace initlib {
   Kokkos::View<double*> m_divu_n0;
   Kokkos::View<double*> m_speed_velocity_n0;
   Kokkos::View<RealArray1D<nbmatmax>*> m_speed_velocity_env_n0;
-  
-  
-  
-  
-public:
-  Initialisations(optionschemalib::OptionsSchema::Options* aOptions,
+
+ public:
+  Initialisations(
+      optionschemalib::OptionsSchema::Options* aOptions,
       eoslib::EquationDetat* aEos, CartesianMesh2D* aCartesianMesh2D,
       cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* acstmesh,
       variableslagremaplib::VariablesLagRemap* avarlp,
@@ -88,7 +86,7 @@ public:
         m_cell_perimeter_n0("cell_perimeter", nbCells),
         m_node_velocity_n0("node_velocity_n0", nbNodes),
         m_density_n0("density_n0", nbCells),
-        m_density_env_n0("density_env_n0", nbCells), 
+        m_density_env_n0("density_env_n0", nbCells),
         m_cell_velocity_n0("cell_velocity_n0", nbCells),
         m_internal_energy_n0("internal_energy_n0", nbCells),
         m_internal_energy_env_n0("internal_energy_env_n0", nbCells),
@@ -103,15 +101,13 @@ public:
         m_pseudo_viscosity_n0("pseudo_viscosity_n", nbCells),
         m_pseudo_viscosity_env_n0("pseudo_viscosity_env_n", nbCells),
         m_speed_velocity_n0("speed_velocity_n0", nbCells),
-        m_speed_velocity_env_n0("speed_velocity_n0", nbCells)
-      {
+        m_speed_velocity_env_n0("speed_velocity_n0", nbCells) {
     // Copy node coordinates
     const auto& gNodes = mesh->getGeometry()->getNodes();
-    Kokkos::parallel_for(
-        nbNodes, KOKKOS_LAMBDA(const int& rNodes) {
-          m_node_coord_n0(rNodes) = gNodes[rNodes];
-        });
-      }
+    Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const int& rNodes) {
+      m_node_coord_n0(rNodes) = gNodes[rNodes];
+    });
+  }
   // initalisation commune
   void initBoundaryConditions() noexcept;
   void initMeshGeometryForCells() noexcept;
@@ -122,10 +118,10 @@ public:
   // initialisation specifique VNR
   void initCellPos() noexcept;
   void initPseudo() noexcept;
-  void initSubVol()  noexcept;
+  void initSubVol() noexcept;
   // initialisation des variables VNR
   void initVar() noexcept;
-  void initInternalEnergy()  noexcept;
+  void initInternalEnergy() noexcept;
 
   void initVarSOD() noexcept;
   void initVarBiSOD() noexcept;

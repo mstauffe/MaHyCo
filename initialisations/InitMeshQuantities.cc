@@ -122,7 +122,7 @@ void Initialisations::initMeshGeometryForFaces() noexcept {
             (m_node_coord_n0(n2Nodes) - m_node_coord_n0(n1Nodes));
         varlp->Xf(fFaces) = X_face;
         varlp->faceLength(fFaces) = MathFunctions::norm(face_vec);
-	varlp->faceNormal(fFaces) = zeroVect;
+        varlp->faceNormal(fFaces) = zeroVect;
         {
           auto cellsOfFaceF(mesh->getCellsOfFace(fId));
           for (int cCellsOfFaceF = 0; cCellsOfFaceF < cellsOfFaceF.size();
@@ -133,21 +133,25 @@ void Initialisations::initMeshGeometryForFaces() noexcept {
             varlp->outerFaceNormal(cCells, fFacesOfCellC) =
                 (((X_face - m_cell_coord_n0(cCells))) /
                  MathFunctions::norm((X_face - m_cell_coord_n0(cCells))));
-	    if (cstmesh->cylindrical_mesh == 1) {
-	      varlp->faceNormal(fFaces)[0] += 0.5 * std::abs(varlp->outerFaceNormal(cCells, fFacesOfCellC)[0]);
-	      varlp->faceNormal(fFaces)[1] += 0.5 * std::abs(varlp->outerFaceNormal(cCells, fFacesOfCellC)[1]);
-	    }
+            if (cstmesh->cylindrical_mesh == 1) {
+              varlp->faceNormal(fFaces)[0] +=
+                  0.5 *
+                  std::abs(varlp->outerFaceNormal(cCells, fFacesOfCellC)[0]);
+              varlp->faceNormal(fFaces)[1] +=
+                  0.5 *
+                  std::abs(varlp->outerFaceNormal(cCells, fFacesOfCellC)[1]);
+            }
           }
         }
-	if (cstmesh->cylindrical_mesh !=1) {
-	  RealArray1D<dim> face_normal;
-	  if (MathFunctions::fabs(dot(face_vec, ex)) < options->threshold)
-	    face_normal = ex;
-	  else
-	    face_normal = ey;
-	  
-	  varlp->faceNormal(fFaces) = face_normal;
-	}
+        if (cstmesh->cylindrical_mesh != 1) {
+          RealArray1D<dim> face_normal;
+          if (MathFunctions::fabs(dot(face_vec, ex)) < options->threshold)
+            face_normal = ex;
+          else
+            face_normal = ey;
+
+          varlp->faceNormal(fFaces) = face_normal;
+        }
         // std::cout << nbFaces << " "
         //	  <<  varlp->faceNormal(fFaces) << std::endl;
       });
