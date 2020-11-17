@@ -8,6 +8,7 @@
  * Contributors: see AUTHORS file
  *******************************************************************************/
 #include <math.h>
+#include <cmath>
 #include "mesh/CartesianMesh2DGenerator.h"
 #include "mesh/CartesianMesh2D.h"
 
