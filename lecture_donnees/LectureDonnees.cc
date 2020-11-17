@@ -11,236 +11,266 @@
 void LectureDonneesClass::LectureDonnees(
     string Fichier, schemalagrangelib::SchemaLagrangeClass::SchemaLagrange* s,
     optionschemalib::OptionsSchema::Options* o,
+    sortielib::Sortie::SortieVariables* so,
     cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh,
     gesttempslib::GestionTempsClass::GestTemps* gt,
     limiteurslib::LimiteursClass::Limiteurs* l, eoslib::EquationDetat* eos,
     castestlib::CasTest::Test* test) {
   // string Fichier=argv[1];
   ifstream mesdonnees(Fichier);  // Ouverture d'un fichier en lecture
+  std::cout << " rentrer dans le fichier " << Fichier << std::endl;
   if (mesdonnees) {
     // Tout est prêt pour la lecture.
     string ligne;
-    string mot;
+    char motcle[30];
+    char valeur[30];
+    char variables[30];
     int entier;
-    getline(mesdonnees, ligne);  // ligne de commentaire numero du cas test
-    mesdonnees >> mot;
-    test->Nom = castestToOptions[mot];
-    std::cout << " Cas test " << mot << " ( " << test->Nom << " ) "
-              << std::endl;
-    mesdonnees.ignore();
 
-    // on en deduit le nombre de materiaux du calcul
-    if (test->Nom < test->BiUnitTestCase)
-      o->nbmat = 1;
-    else
-      o->nbmat = 2;
-    if (test->Nom == test->BiTriplePoint) o->nbmat = 3;
-    
-    if (test->Nom == test->AdvectionX || test->Nom == test->AdvectionY ||
-        test->Nom == test->BiAdvectionX || test->Nom == test->BiAdvectionY ||
-        test->Nom == test->AdvectionVitX || test->Nom == test->AdvectionVitY ||
-        test->Nom == test->BiAdvectionVitX || test->Nom == test->BiAdvectionVitY ||
-	test->Nom >= test->RiderTx)
-      o->sansLagrange = 1;
+    while (getline(mesdonnees, ligne))  // Tant qu'on n'est pas à la fin, on lit
+    {
+      mesdonnees >> motcle;
+      std::cout << " lecture de " << motcle << std::endl;
+      if (!strcmp(motcle, "CAS")) {
+        mesdonnees >> valeur;
+        test->Nom = castestToOptions[valeur];
+        std::cout << " Cas test " << valeur << " ( " << test->Nom << " ) "
+                  << std::endl;
+        mesdonnees.ignore();
 
-    if (test->Nom == test->Implosion) o->nbmat = 2;
-    if (test->Nom == test->BiImplosion) o->nbmat = 3;
-    
-    
-    getline(mesdonnees, ligne);  // ligne de commentaire Nombre de Mailles en X
-    mesdonnees >> entier;
-    cstmesh->X_EDGE_ELEMS = entier;
-    std::cout << " Nombre de Mailles en X " << cstmesh->X_EDGE_ELEMS
-              << std::endl;
-    mesdonnees.ignore();
+        // on en deduit le nombre de materiaux du calcul
+        if (test->Nom < test->BiUnitTestCase)
+          o->nbmat = 1;
+        else
+          o->nbmat = 2;
+        if (test->Nom == test->BiTriplePoint) o->nbmat = 3;
 
-    getline(mesdonnees, ligne);  // ligne de commentaire Nombre de Mailles en Y
-    mesdonnees >> cstmesh->Y_EDGE_ELEMS;
-    std::cout << " Nombre de Mailles en Y " << cstmesh->Y_EDGE_ELEMS
-              << std::endl;
-    mesdonnees.ignore();
+        if (test->Nom == test->AdvectionX || test->Nom == test->AdvectionY ||
+            test->Nom == test->BiAdvectionX ||
+            test->Nom == test->BiAdvectionY ||
+            test->Nom == test->AdvectionVitX ||
+            test->Nom == test->AdvectionVitY ||
+            test->Nom == test->BiAdvectionVitX ||
+            test->Nom == test->BiAdvectionVitY || test->Nom >= test->RiderTx)
+          o->sansLagrange = 1;
 
-    getline(mesdonnees, ligne);  // ligne de commentaire DELTA_X
-    mesdonnees >> cstmesh->X_EDGE_LENGTH;
-    std::cout << " DELTA X " << cstmesh->X_EDGE_LENGTH << std::endl;
-    mesdonnees.ignore();
-
-    getline(mesdonnees, ligne);  // ligne de commentaire DELTA_Y
-    mesdonnees >> cstmesh->Y_EDGE_LENGTH;
-    if (cstmesh->Y_EDGE_LENGTH < 0.) {
-      std::cout << "Utilisation d'un maille cylindrique" << std::endl;
-      cstmesh->cylindrical_mesh = 1;
-      cstmesh->Y_EDGE_LENGTH = - cstmesh->Y_EDGE_LENGTH;
-    }
-    std::cout << " DELTA Y " << cstmesh->Y_EDGE_LENGTH << std::endl;
-    mesdonnees.ignore();
-
-    if (cstmesh->cylindrical_mesh == 1) {
-      getline(mesdonnees, ligne);  // rayon_minimum
-      mesdonnees >> cstmesh->minimum_radius;
-      std::cout << " RAYON-MINIMUM " << cstmesh->minimum_radius << std::endl;
-      mesdonnees.ignore();
-    }
-      
-
-    getline(mesdonnees, ligne);  // ligne de commentaire Temps-final
-    mesdonnees >> gt->final_time;
-    std::cout << " Temps-final " << gt->final_time << std::endl;
-    mesdonnees.ignore();
-
-    getline(mesdonnees,
-            ligne);  // ligne de commentaire Temps entre deux sorties
-    mesdonnees >> gt->output_time;
-    std::cout << " Temps entre deux sorties " << gt->output_time << std::endl;
-    mesdonnees.ignore();
-
-    getline(mesdonnees, ligne);  // Pas de temps initial
-    mesdonnees >> gt->deltat_init;
-    std::cout << " Pas de temps initial " << gt->deltat_init << std::endl;
-    mesdonnees.ignore();
-
-    getline(mesdonnees, ligne);  // Pas de temps minimal
-    mesdonnees >> gt->deltat_min;
-    std::cout << " Pas de temps minimal " << gt->deltat_min << std::endl;
-    mesdonnees.ignore();
-
-    for (int imat = 0; imat < o->nbmat; ++imat) {
-      getline(mesdonnees, ligne);  // Equation d'etat
-      mesdonnees >> mot;
-      eos->Nom[imat] = liste_eos[mot];
-      std::cout << " Equation d'etat " << mot << " ( " << eos->Nom[imat]
-                << " ) " << std::endl;
-      mesdonnees.ignore();
-    }
-
-    // getline(mesdonnees, ligne); // Equilibrage des pressions
-    // mesdonnees >> mot;
-    // o->AvecEquilibrage = equilibrage[mot];
-    // std::cout << " Equilibrage des pressions " << mot << " ( " <<
-    // o->AvecEquilibrage << " ) " << std::endl; mesdonnees.ignore();
-
-    getline(mesdonnees, ligne);  // Schéma Lagrange
-    mesdonnees >> mot;
-    s->schema = schema_lagrange[mot];
-    std::cout << " schema Lagrange " << mot << " ( " << s->schema << " ) "
-              << std::endl;
-    mesdonnees.ignore();
-
-    getline(mesdonnees, ligne);  // ordre en espace du schema Lagrange
-    mesdonnees >> o->spaceOrder;
-    if (o->sansLagrange == 1)
-      std::cout << " Pas de Lagrange : advection pure  "  << std::endl;
-    else
-      std::cout << " Ordre en espace du schéma Lagrange  " << o->spaceOrder
-		<< std::endl;
-    mesdonnees.ignore();
-
-    getline(mesdonnees, ligne);  // Avec projection
-    mesdonnees >> mot;
-    o->AvecProjection = ouiOUnon[mot];
-    std::cout << " Avec Projection " << mot << " ( " << o->AvecProjection
-              << " ) " << std::endl;
-    mesdonnees.ignore();
-
-    getline(mesdonnees, ligne);  // Projection conservative
-    mesdonnees >> mot;
-    o->projectionConservative = ouiOUnon[mot];
-    std::cout << " Projection conservative " << mot << " ( "
-              << o->projectionConservative << " ) " << std::endl;
-    mesdonnees.ignore();
-
-    getline(mesdonnees, ligne);  // Limite de fraction vol des mailles mixtes
-    mesdonnees >> o->threshold;
-    std::cout << " Limite de fraction volumique des mailles mixtes  "
-              << o->threshold << std::endl;
-    mesdonnees.ignore();
-
-    getline(mesdonnees, ligne);  // ordre de la projection
-    mesdonnees >> o->projectionOrder;
-    std::cout << " Ordre de la phase de projection  " << o->projectionOrder
-              << std::endl;
-    mesdonnees.ignore();
-
-    getline(mesdonnees, ligne);  // Limiteur
-    mesdonnees >> mot;
-    l->projectionLimiterId = limiteur[mot];
-    if ((l->projectionLimiterId != -1) && (l->projectionLimiterId != 0)) {
-      std::cout << " Limiteur  " << mot << " ( " << l->projectionLimiterId
-                << " ) " << std::endl;
-    } else {
-      cout << "ERREUR: Limiteur " << mot << " non prévu " << endl;
-      exit(1);
-    }
-    mesdonnees.ignore();
-
-    getline(mesdonnees, ligne);  // Projection Avec Plateau Pente
-    mesdonnees >> mot;
-    l->projectionAvecPlateauPente = ouiOUnon[mot];
-    std::cout << " Projection Avec Plateau Pente " << mot << " ( "
-              << l->projectionAvecPlateauPente << " ) " << std::endl;
-    mesdonnees.ignore();
-
-    if (l->projectionAvecPlateauPente == 1) {
-      getline(mesdonnees, ligne);  // Projection Avec Plateau Pente Mixte
-      mesdonnees >> mot;
-      l->projectionLimiteurMixte = ouiOUnon[mot];
-      std::cout << " Projection Avec Plateau Pente Mixte " << mot << " ( "
-                << l->projectionLimiteurMixte << " ) " << std::endl;
-      mesdonnees.ignore();
-
-      getline(mesdonnees, ligne);  // Projection Limiteur pour Mailles Pures
-      mesdonnees >> mot;
-      l->projectionLimiterIdPure = limiteur[mot];
-      std::cout << " Limiteur pour Mailles Pures " << mot << " ( "
-                << l->projectionLimiterIdPure << " ) " << std::endl;
-      if ((l->projectionLimiterId == -1) && (l->projectionLimiteurMixte == 1)) {
-        cout << "ERREUR: Limiteur pour mailles pures non défini "
-             << " alors que l option projectionLimiteurMixte est demandée"
-             << endl;
-        exit(1);
+        if (test->Nom == test->Implosion) o->nbmat = 2;
+        if (test->Nom == test->BiImplosion) o->nbmat = 3;
       }
-      mesdonnees.ignore();
 
-      getline(mesdonnees, ligne);  // Projection Plateau-Pente Complet
-      mesdonnees >> mot;
-      l->projectionPlateauPenteComplet = ouiOUnon[mot];
-      ;
-      std::cout << " Projection Avec Plateau Pente Complet" << mot << " ( "
-                << l->projectionPlateauPenteComplet << " ) " << std::endl;
-      mesdonnees.ignore();
-    }
+      else if (!strcmp(motcle, "NX")) {
+        mesdonnees >> cstmesh->X_EDGE_ELEMS;
+        std::cout << " Nombre de Mailles en X " << cstmesh->X_EDGE_ELEMS
+                  << std::endl;
+        mesdonnees.ignore();
+      }
 
-    if (s->schema == s->VNR) {
-      // motclé spécifique VNR
-      getline(mesdonnees, ligne);  // pseudo-centree
-      mesdonnees >> mot;
-      o->pseudo_centree = ouiOUnon[mot];
-      std::cout << " Pseudo_centree : " << mot << " ( " << o->pseudo_centree
-                << " ) " << std::endl;
-      mesdonnees.ignore();
+      else if (!strcmp(motcle, "NY")) {
+        mesdonnees >> cstmesh->Y_EDGE_ELEMS;
+        std::cout << " Nombre de Mailles en Y " << cstmesh->Y_EDGE_ELEMS
+                  << std::endl;
+        mesdonnees.ignore();
+      }
 
-      if (o->AvecProjection == 1) {
-        getline(mesdonnees, ligne);  // methode calcul des flux de masses duales
-        mesdonnees >> mot;
-        o->methode_flux_masse = A1OUA2OUPB[mot];
-        std::cout << " Methode Projection Dual : " << mot << " ( "
+      else if (!strcmp(motcle, "DELTA_X")) {
+        mesdonnees >> cstmesh->X_EDGE_LENGTH;
+        std::cout << " DELTA X " << cstmesh->X_EDGE_LENGTH << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "DELTA_Y")) {
+        mesdonnees >> cstmesh->Y_EDGE_LENGTH;
+        std::cout << " DELTA Y " << cstmesh->Y_EDGE_LENGTH << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "CYLINDRIC")) {
+        mesdonnees >> valeur;
+        cstmesh->cylindrical_mesh = ouiOUnon[valeur];
+        std::cout << "Utilisation d'un maille cylindrique" << std::endl;
+      }
+
+      else if (!strcmp(motcle, "R_MIN")) {
+        mesdonnees >> cstmesh->minimum_radius;
+        std::cout << " RAYON-MINIMUM " << cstmesh->minimum_radius << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "TFIN")) {
+        mesdonnees >> gt->final_time;
+        std::cout << " Temps-final " << gt->final_time << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "T_SORTIE")) {
+        mesdonnees >> gt->output_time;
+        std::cout << " Temps entre deux sorties " << gt->output_time
+                  << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "DTDEBUT")) {
+        mesdonnees >> gt->deltat_init;
+        std::cout << " Pas de temps initial " << gt->deltat_init << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "DTMIN")) {
+        mesdonnees >> gt->deltat_min;
+        std::cout << " Pas de temps minimal " << gt->deltat_min << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "EOS")) {
+        for (int imat = 0; imat < o->nbmat; ++imat) {
+          mesdonnees >> valeur;
+          eos->Nom[imat] = liste_eos[valeur];
+          std::cout << " Equation d'etat " << valeur << " ( " << eos->Nom[imat]
+                    << " ) " << std::endl;
+          mesdonnees.ignore();
+        }
+      }
+
+      else if (!strcmp(motcle, "SCHEMA_LAGRANGE")) {
+        mesdonnees >> valeur;
+        s->schema = schema_lagrange[valeur];
+        std::cout << " schema Lagrange " << valeur << " ( " << s->schema
+                  << " ) " << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "ORDRE_SCHEMA_LAGRANGE")) {
+        mesdonnees >> o->spaceOrder;
+        std::cout << "Ordre du schéma Lagrange" << o->spaceOrder << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "MODE_EULER")) {
+        mesdonnees >> valeur;
+        o->AvecProjection = ouiOUnon[valeur];
+        std::cout << " Avec Projection " << valeur << " ( " << o->AvecProjection
+                  << " ) " << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "PROJECTION_CONSERVATIVE")) {
+        mesdonnees >> valeur;
+        o->projectionConservative = ouiOUnon[valeur];
+        std::cout << " Projection conservative " << valeur << " ( "
+                  << o->projectionConservative << " ) " << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "LIMITE_FRACTION_VOLUMIQUE")) {
+        mesdonnees >> o->threshold;
+        std::cout << " Limite de fraction volumique des mailles mixtes  "
+                  << o->threshold << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "ORDRE_PROJECTION")) {
+        mesdonnees >> o->projectionOrder;
+        std::cout << " Ordre de la phase de projection  " << o->projectionOrder
+                  << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "LIMITEURS_PROJECTION")) {
+        mesdonnees >> valeur;
+        l->projectionLimiterId = limiteur[valeur];
+        std::cout << " Limiteur  " << valeur << " ( " << l->projectionLimiterId
+                  << " ) " << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "PENTE_BORNE_PROJECTION")) {
+        mesdonnees >> valeur;
+        l->projectionAvecPlateauPente = ouiOUnon[valeur];
+        std::cout << " Projection Avec Plateau Pente " << valeur << " ( "
+                  << l->projectionAvecPlateauPente << " ) " << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "PENTE_BORNE_MASSE_MAILLE_PURE")) {
+        getline(mesdonnees, ligne);  // Projection Avec Plateau Pente Mixte
+        mesdonnees >> valeur;
+        l->projectionLimiteurMixte = ouiOUnon[valeur];
+        std::cout << " Projection Avec Plateau Pente Mixte " << valeur << " ( "
+                  << l->projectionLimiteurMixte << " ) " << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "LIMITEURS_PROJECTION_MAILLE_PURE")) {
+        mesdonnees >> valeur;
+        l->projectionLimiterIdPure = limiteur[valeur];
+        std::cout << " Limiteur pour Mailles Pures " << valeur << " ( "
+                  << l->projectionLimiterIdPure << " ) " << std::endl;
+        if ((l->projectionLimiterId == -1) &&
+            (l->projectionLimiteurMixte == 1)) {
+          cout << "ERREUR: Limiteur pour mailles pures non défini "
+               << " alors que l option projectionLimiteurMixte est demandée"
+               << endl;
+          exit(1);
+        }
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "PENTE_BORNE_COMPLET")) {
+        mesdonnees >> valeur;
+        l->projectionPlateauPenteComplet = ouiOUnon[valeur];
+        std::cout << " Projection Avec Plateau Pente Complet" << valeur << " ( "
+                  << l->projectionPlateauPenteComplet << " ) " << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "PSEUDO_CENTREE")) {
+        mesdonnees >> valeur;
+        o->pseudo_centree = ouiOUnon[valeur];
+        std::cout << " Pseudo_centree : " << valeur << " ( "
+                  << o->pseudo_centree << " ) " << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "CALCUL_FLUX_MASSE_DUAL")) {
+        mesdonnees >> valeur;
+        o->methode_flux_masse = A1OUA2OUPB[valeur];
+        std::cout << " Methode Projection Dual : " << valeur << " ( "
                   << o->methode_flux_masse << " ) " << std::endl;
         mesdonnees.ignore();
       }
-    }
-    getline(mesdonnees, ligne);  // Presence de Particules
-    mesdonnees >> mot;
-    o->AvecParticules = ouiOUnon[mot];
-    std::cout << " Presence de Particules " << mot << " ( " << o->AvecParticules
-              << " ) " << std::endl;
-    mesdonnees.ignore();
 
-    if (o->AvecParticules == 1) {
-      getline(mesdonnees, ligne);  // Nombre de Particules
-      mesdonnees >> cstmesh->Nombre_Particules;
-      std::cout << " Nombre de Particules " << cstmesh->Nombre_Particules
-		<< std::endl;
-      mesdonnees.ignore();
+      else if (!strcmp(motcle, "SCHEMA_PARTICULE")) {
+        mesdonnees >> valeur;
+        o->AvecParticules = ouiOUnon[valeur];
+        std::cout << " Presence de Particules " << valeur << " ( "
+                  << o->AvecParticules << " ) " << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "NOMBRE_PARTICULES")) {
+        mesdonnees >> cstmesh->Nombre_Particules;
+        std::cout << " Nombre de Particules " << cstmesh->Nombre_Particules
+                  << std::endl;
+        mesdonnees.ignore();
+      }
+
+      else if (!strcmp(motcle, "SORTIES")) {
+        mesdonnees >> variables;
+        while (strcmp(variables, "fin_liste")) {
+          if (!strcmp(variables, "pression")) so->pression = true;
+          if (!strcmp(variables, "densite")) so->densite = true;
+          if (!strcmp(variables, "energie_interne")) so->energie_interne = true;
+          if (!strcmp(variables, "fraction_volumique"))
+            so->fraction_volumique = true;
+          if (!strcmp(variables, "interface")) so->interface = true;
+          if (!strcmp(variables, "vitesse")) so->vitesse = true;
+          mesdonnees >> variables;
+        }
+        mesdonnees.ignore();
+      } else {
+        cout << "ERREUR: Mot-cle " << motcle << " inconnu" << endl;
+        exit(1);
+      }
     }
   } else {
     cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;

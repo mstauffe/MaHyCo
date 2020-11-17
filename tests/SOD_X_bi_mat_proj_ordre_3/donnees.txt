@@ -1,42 +1,69 @@
-# Cas test
+#
+CAS
 BiSodCaseX
-# Nombre de Mailles en X
+#
+NX
 200
-# Nombre de Mailles en Y
+#
+NY
 5
-# DELTA_X
+#
+DELTA_X
 0.005
-# DELTA_Y
+#
+DELTA_Y
 0.02
-# temps final
+#
+TFIN
 0.2
-# Temps entre deux sorties
+#
+T_SORTIE
 1.e-2
-# Pas de temps initial
+#
+DTDEBUT
 1.e-4
-# Pas de temps minimal
+#
+DTMIN
 1.e-12
-# equation d'etat
+#
+EOS
 PerfectGas
-# equation d'etat
 PerfectGas
-# schéma Lagrange
+#
+SCHEMA_LAGRANGE
 Eucclhyd
-# ordre en espace du schéma Lagrange
+#
+ORDRE_SCHEMA_LAGRANGE
 2
-# avec projection (mode euler)
+#
+MODE_EULER
 oui
-# projection conservative
+#
+PROJECTION_CONSERVATIVE
 non
-# Limite fraction volumique
+#
+LIMITE_FRACTION_VOLUMIQUE
 1.e-16
-# Ordre de la projection
+#
+ORDRE_PROJECTION
 3
-# Limiteurs
+#
+LIMITEURS_PROJECTION
 minmod
-# option Pente Borne
+#
+PENTE_BORNE_PROJECTION
 non
-# option Pente Borne Mixte
+#
+PENTE_BORNE_MASSE_MAILLE_PURE
 non
-# limiteur Pente Borne Pure
+#
+LIMITEURS_PROJECTION_MAILLE_PURE
 arithmeticG
+#
+SORTIES
+pression
+densite
+energie_interne
+fraction_volumique
+vitesse
+fin_liste

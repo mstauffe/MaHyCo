@@ -1,44 +1,70 @@
-# Cas test
+#
+CAS
 BiTriplePoint
-# Nombre de Mailles en X
+#
+NX
 70
-# Nombre de Mailles en Y
+#
+NY
 30
-# DELTA_X
+#
+DELTA_X
 0.001
-# DELTA_Y
+#
+DELTA_Y
 0.001
-# temps final
+#
+TFIN
 0.041
-# Temps entre deux sorties
+#
+T_SORTIE
 1.e-2
-# Pas de temps initial
+#
+DTDEBUT
 1.e-5
-# Pas de temps minimal
+#
+DTMIN
 1.e-12
-# equation d'etat
+#
+EOS
 PerfectGas
-# equation d'etat
 PerfectGas
-# equation d'etat
 PerfectGas
-# schéma Lagrange
+#
+SCHEMA_LAGRANGE
 Eucclhyd
-# ordre en espace du schéma Lagrange
+#
+ORDRE_SCHEMA_LAGRANGE
 2
-# avec projection (mode euler)
+#
+MODE_EULER
 oui
-# projection conservative
+#
+PROJECTION_CONSERVATIVE
 non
-# Limite fraction volumique
+#
+LIMITE_FRACTION_VOLUMIQUE
 1.e-16
-# Ordre de la projection
+#
+ORDRE_PROJECTION
 2
-# Limiteurs
+#
+LIMITEURS_PROJECTION
 superBee
-# option Pente Borne
+#
+PENTE_BORNE_PROJECTION
 oui
-# option Pente Borne Mixte
+#
+PENTE_BORNE_MASSE_MAILLE_PURE
 non
-# limiteur Pente Borne Pure
+#
+LIMITEURS_PROJECTION_MAILLE_PURE
 arithmeticG
+#
+SORTIES
+pression
+densite
+energie_interne
+fraction_volumique
+vitesse
+fin_liste

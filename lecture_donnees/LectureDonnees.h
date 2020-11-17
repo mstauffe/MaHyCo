@@ -12,6 +12,7 @@ class LectureDonneesClass {
   void LectureDonnees(
       string Fichier, schemalagrangelib::SchemaLagrangeClass::SchemaLagrange* s,
       optionschemalib::OptionsSchema::Options* o,
+      sortielib::Sortie::SortieVariables* so,
       cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* cstmesh,
       gesttempslib::GestionTempsClass::GestTemps* gt,
       limiteurslib::LimiteursClass::Limiteurs* l, eoslib::EquationDetat* eos,
@@ -31,7 +32,7 @@ class LectureDonneesClass {
       {"RiderVortex", 27},     {"RiderDeformation", 28}, {"RiderTimeReverse", 29}};
 
   std::unordered_map<string, int> schema_lagrange{
-      {"Eucclhyd", 2000}, {"VNR", 2001}, {"CSTS", 2002}, {"MYR", 2003}};
+    {"Eucclhyd", 2000}, {"VNR", 2001}, {"CSTS", 2002}, {"MYR", 2003}, {"AUCUN", 2004}};
 
   std::unordered_map<string, int> limiteur{
       {"minmod", 300},       {"superBee", 301},   {"vanLeer", 302},

@@ -22,6 +22,7 @@
 #include "../includes/GestionTemps.h"
 #include "../includes/Limiteurs.h"
 #include "../includes/Options.h"
+#include "../includes/Sortie.h"
 #include "../includes/VariablesLagRemap.h"
 #include "../initialisations/Init.h"
 #include "../particle_scheme/SchemaParticules.h"
@@ -46,6 +47,7 @@ class Eucclhyd {
  public:
   CartesianMesh2D* mesh;
   optionschemalib::OptionsSchema::Options* options;
+  sortielib::Sortie::SortieVariables* so;
   castestlib::CasTest::Test* test;
   particleslib::SchemaParticules* particules;
   conditionslimiteslib::ConditionsLimites::Cdl* cdl;
@@ -136,6 +138,9 @@ class Eucclhyd {
   Kokkos::View<double*> m_fracvol_env1;
   Kokkos::View<double*> m_fracvol_env2;
   Kokkos::View<double*> m_fracvol_env3;
+  Kokkos::View<double*> m_interface12;
+  Kokkos::View<double*> m_interface13;
+  Kokkos::View<double*> m_interface23;
   Kokkos::View<double*> m_pressure_env1;
   Kokkos::View<double*> m_pressure_env2;
   Kokkos::View<double*> m_pressure_env3;
@@ -156,7 +161,9 @@ class Eucclhyd {
            particleslib::SchemaParticules* aParticules,
            eoslib::EquationDetat* aEos, CartesianMesh2D* aCartesianMesh2D,
            variableslagremaplib::VariablesLagRemap* avarlp, Remap* aremap,
-           initlib::Initialisations* ainit, string output)
+           initlib::Initialisations* ainit, 
+           sortielib::Sortie::SortieVariables* asorties,
+	   string output)
       : options(aOptions),
         cstmesh(acstmesh),
         gt(agt),
@@ -169,6 +176,7 @@ class Eucclhyd {
         varlp(avarlp),
         remap(aremap),
         init(ainit),
+        so(asorties),
         writer("EucclhydRemap", output),
         writer_particle("Particules", output),
         nbNodes(mesh->getNbNodes()),
@@ -202,6 +210,9 @@ class Eucclhyd {
         m_fracvol_env1("fracvol_env1", nbCells),
         m_fracvol_env2("fracvol_env2", nbCells),
         m_fracvol_env3("fracvol_env3", nbCells),
+        m_interface12("interface12", nbCells),
+        m_interface23("interface23", nbCells),
+        m_interface13("interface13", nbCells),
         m_lagrange_volume("lagrange_volume", nbCells),
         m_cell_perimeter("cell_perimeter", nbCells),
         m_speed_velocity("speed_velocity", nbCells),

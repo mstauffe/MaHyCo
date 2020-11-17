@@ -25,6 +25,7 @@
 #include "../includes/GestionTemps.h"
 #include "../includes/Limiteurs.h"
 #include "../includes/Options.h"
+#include "../includes/Sortie.h"
 #include "../includes/VariablesLagRemap.h"
 #include "../initialisations/Init.h"
 #include "../particle_scheme/SchemaParticules.h"
@@ -70,6 +71,7 @@ class Vnr {
   // Mesh (can depend on previous definitions)
   CartesianMesh2D* mesh;
   optionschemalib::OptionsSchema::Options* options;
+  sortielib::Sortie::SortieVariables* so;
   castestlib::CasTest::Test* test;
   particleslib::SchemaParticules* particules;
   conditionslimiteslib::ConditionsLimites::Cdl* cdl;
@@ -147,6 +149,8 @@ class Vnr {
   Kokkos::View<double*> m_fracvol_env2;
   Kokkos::View<double*> m_fracvol_env3;
   Kokkos::View<double*> m_interface12;
+  Kokkos::View<double*> m_interface13;
+  Kokkos::View<double*> m_interface23;
   Kokkos::View<double*> m_pressure_env1;
   Kokkos::View<double*> m_pressure_env2;
   Kokkos::View<double*> m_pressure_env3;
@@ -168,7 +172,9 @@ class Vnr {
       particleslib::SchemaParticules* aParticules,
       eoslib::EquationDetat* aEos, CartesianMesh2D* aCartesianMesh2D,
       variableslagremaplib::VariablesLagRemap* avarlp, Remap* aremap,
-      initlib::Initialisations* ainit, string output)
+      initlib::Initialisations* ainit, 
+      sortielib::Sortie::SortieVariables* asorties,
+      string output)
       : options(aOptions),
         cstmesh(acstmesh),
         gt(agt),
@@ -183,6 +189,7 @@ class Vnr {
         init(ainit),
         nbCalls(0),
         lastDump(0.0),
+        so(asorties),
         writer("VnrRemap", output),
         nbNodes(mesh->getNbNodes()),
         nbCells(mesh->getNbCells()),
@@ -247,6 +254,8 @@ class Vnr {
         m_fracvol_env2("fracvol_env2", nbCells),
         m_fracvol_env3("fracvol_env3", nbCells),
         m_interface12("interface12", nbCells),
+        m_interface23("interface23", nbCells),
+        m_interface13("interface13", nbCells),
         m_cqs("cqs", nbCells, nbNodesOfCell) {
     // Copy node coordinates
     const auto& gNodes = mesh->getGeometry()->getNodes();

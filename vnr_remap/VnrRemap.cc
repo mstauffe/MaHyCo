@@ -344,26 +344,29 @@ void Vnr::dumpVariables() noexcept {
     std::map<string, double*> cellVariables;
     std::map<string, double*> nodeVariables;
     std::map<string, double*> partVariables;
-    cellVariables.insert(
-        pair<string, double*>("Pressure", m_pressure_n.data()));
-    cellVariables.insert(pair<string, double*>("Density", m_density_n.data()));
-    cellVariables.insert(
-        pair<string, double*>("Energy", m_internal_energy_n.data()));
+    if (so->pression)
+      cellVariables.insert(pair<string, double*>("Pressure", m_pressure_n.data()));
+    if (so->densite)
+      cellVariables.insert(pair<string, double*>("Density", m_density_n.data()));
+    if (so->energie_interne)
+      cellVariables.insert(pair<string, double*>("Energy", m_internal_energy_n.data()));
     if (options->nbmat > 1) {
-      if (options->AvecProjection == 1)
-	cellVariables.insert(
-			     pair<string, double*>("fracvol1", m_fracvol_env1.data()));
-      //if (options->sansLagrange == 1)
-      //	cellVariables.insert(
-      //			     pair<string, double*>("interface12", m_interface12.data()));
+      if (so->fraction_volumique)
+	cellVariables.insert(pair<string, double*>("fracvol1", m_fracvol_env1.data()));
+      if (so->interface)
+	cellVariables.insert(pair<string, double*>("interface12", m_interface12.data()));
     }
-    if (options->nbmat > 2 && options->AvecProjection == 1)
-      cellVariables.insert(
-          pair<string, double*>("fracvol2", m_fracvol_env2.data()));
-    nodeVariables.insert(
-        pair<string, double*>("VitesseX", m_x_velocity.data()));
-    nodeVariables.insert(
-        pair<string, double*>("VitesseY", m_y_velocity.data()));
+    if (options->nbmat > 2 && options->AvecProjection == 1) {
+      if (so->fraction_volumique)
+	cellVariables.insert(pair<string, double*>("fracvol2", m_fracvol_env2.data()));
+      if (so->interface)
+	cellVariables.insert(pair<string, double*>("interface23", m_interface23.data()));
+	cellVariables.insert(pair<string, double*>("interface13", m_interface13.data()));
+    }
+    if (so->vitesse) {
+      nodeVariables.insert(pair<string, double*>("VitesseX", m_x_velocity.data()));
+      nodeVariables.insert(pair<string, double*>("VitesseY", m_y_velocity.data()));
+    }
     auto quads = mesh->getGeometry()->getQuads();
     writer.writeFile(nbCalls, gt->t_n, nbNodes, m_node_coord_n.data(), nbCells,
                      quads.data(), cellVariables, nodeVariables);
