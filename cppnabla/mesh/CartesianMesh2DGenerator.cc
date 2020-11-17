@@ -11,6 +11,9 @@
 #include "mesh/CartesianMesh2DGenerator.h"
 #include "mesh/CartesianMesh2D.h"
 
+using namespace std;
+
+
 namespace nablalib
 {
   
