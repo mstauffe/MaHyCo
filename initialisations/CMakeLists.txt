@@ -1,4 +1,4 @@
-set( LIBRARY_NAME "initialisations" )
+set(LIBRARY_NAME "initialisations")
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR
       CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
@@ -8,18 +8,19 @@ endif()
 add_library( ${LIBRARY_NAME} )
 target_sources( ${LIBRARY_NAME} 
     PRIVATE
-        InitBoundaryConditions.cc
-        InitMeshQuantities.cc
-	InitVariables.cc
-	InitSpecificVariables.cc
-	InitVarSOD.cc
-	InitVarShockBubble.cc
-	InitVarTriplePoint.cc
-	InitVarSEDOV.cc
-	InitVarNOH.cc
-	InitVarUNITTEST.cc
-	InitVarAdvection.cc
-	InitVarImplosion.cc
+    InitBoundaryConditions.cc
+    InitMeshQuantities.cc
+    InitVariables.cc
+    InitSpecificVariables.cc
+    InitVarSOD.cc
+    InitVarShockBubble.cc
+    InitVarTriplePoint.cc
+    InitVarSEDOV.cc
+    InitVarRIDER.cc
+    InitVarNOH.cc
+    InitVarUNITTEST.cc
+    InitVarAdvection.cc
+    InitVarImplosion.cc
 )
 target_include_directories( ${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} )
 if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )

@@ -187,6 +187,27 @@ void Vnr::updateVelocity() noexcept {
   }
 }
 /**
+ * Job updateVelocity called @2.0 in executeTimeLoopN method.
+ * In variables: C, m_pseudo_viscosity_nplus1, deltat_n, deltat_nplus1, m,
+ * m_pressure_n, m_node_velocity_n Out variables: m_node_velocity_nplus1
+ */
+void Vnr::updateVelocityWithoutLagrange() noexcept {
+  Kokkos::parallel_for(
+    nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
+      m_node_velocity_nplus1(pNodes) =  m_node_velocity_n(pNodes);
+      if (test->Nom == test->RiderRotation) {
+	// centre rotation 0.5,0.5
+	RealArray1D<dim>  cc = {{0.5, 0.5}};
+	RealArray1D<dim>  dd = m_node_coord_n(pNodes) - cc;
+	double theta = std::atan2(dd[1], dd[0]);
+	double r = std::sqrt(dd[0] * dd[0] + dd[1] * dd[1]);  
+	double omega = 4.* Pi;
+	m_node_velocity_nplus1(pNodes)[0] = -r * omega * std::sin(omega * gt->t_nplus1 +  theta);
+	m_node_velocity_nplus1(pNodes)[1] = r * omega * std::cos(omega * gt->t_nplus1 +  theta);
+      }
+    });
+}
+/**
  * Job updatePosition called @3.0 in executeTimeLoopN method.
  * In variables: m_node_coord_n, deltat_nplus1, m_node_velocity_nplus1
  * Out variables: m_node_coord_nplus1
@@ -387,8 +408,8 @@ void Vnr::computeEOS() {
 	  sortie_eos = eos->computeEOSVoid(density, energy);
 	if (eos->Nom[imat] == eos->StiffenedGas)
 	  sortie_eos = eos->computeEOSSTIFG(gamma, tension_limit, density, energy);
-	if (eos->Nom[imat] == eos->Murnhagan)
-	  sortie_eos = eos->computeEOSMur(density, energy);
+	if (eos->Nom[imat] == eos->Fictif)
+	  sortie_eos = eos->computeEOSFictif(gamma, density, energy);
 	if (eos->Nom[imat] == eos->SolidLinear)
 	  sortie_eos = eos->computeEOSSL(density, energy);
 	//

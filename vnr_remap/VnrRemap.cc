@@ -179,6 +179,7 @@ void Vnr::setUpTimeLoopN() noexcept {
     m_fracvol_env1(cCells) = init->m_fracvol_env_n0(cCells)[0];
     m_fracvol_env2(cCells) = init->m_fracvol_env_n0(cCells)[1];
     m_fracvol_env3(cCells) = init->m_fracvol_env_n0(cCells)[2];
+    m_interface12(cCells) = m_fracvol_env1(cCells) * m_fracvol_env2(cCells);
   });
   Kokkos::parallel_for("sortie", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
     m_x_velocity(pNodes) = init->m_node_velocity_n0(pNodes)[0];
@@ -223,8 +224,9 @@ void Vnr::executeTimeLoopN() noexcept {
 
     if (options->sansLagrange == 0) {
       updateVelocity();                    // @2.0
-      updateVelocityBoundaryConditions();  // @2.0
+      updateNodeBoundaryConditions();  // @2.0
     } else {
+      //updateVelocityWithoutLagrange(); 
       std::swap(m_node_velocity_n, m_node_velocity_nplus1);
     }
 
@@ -232,7 +234,6 @@ void Vnr::executeTimeLoopN() noexcept {
     updateCellPos();
     computeSubVol();  // @4.0
     updateRho();      // @5.0
-    updatePeriodicBoundaryConditions();
 
     if (options->sansLagrange == 0) {
       computeTau();                  // @6.0
@@ -244,6 +245,8 @@ void Vnr::executeTimeLoopN() noexcept {
     } else {
       std::swap(m_internal_energy_n, m_internal_energy_nplus1);
     }
+    updateCellBoundaryConditions();
+    
     if (options->AvecProjection == 1) {
       computeVariablesForRemap();
       computeCellQuantitesForRemap();
@@ -259,6 +262,11 @@ void Vnr::executeTimeLoopN() noexcept {
       remap->computeUremap2();
       remap->computeDualUremap2();
       remapVariables();
+      if (options->sansLagrange == 1) {
+      	// on devrait lancer updateVelocityWithoutLagrange();
+	// les cas d'advection doivent etre à vitesses constantes ? donc non
+	// projetees ? référence des cas d'advection à modifier
+      }
       computeNodeMass();         // avec la masse des mailles recalculée dans
                                  // remapVariables()
       computeEOS();              // rappel EOS apres projection
@@ -341,9 +349,14 @@ void Vnr::dumpVariables() noexcept {
     cellVariables.insert(pair<string, double*>("Density", m_density_n.data()));
     cellVariables.insert(
         pair<string, double*>("Energy", m_internal_energy_n.data()));
-    if (options->nbmat > 1 && options->AvecProjection == 1)
-      cellVariables.insert(
-          pair<string, double*>("fracvol1", m_fracvol_env1.data()));
+    if (options->nbmat > 1) {
+      if (options->AvecProjection == 1)
+	cellVariables.insert(
+			     pair<string, double*>("fracvol1", m_fracvol_env1.data()));
+      //if (options->sansLagrange == 1)
+      //	cellVariables.insert(
+      //			     pair<string, double*>("interface12", m_interface12.data()));
+    }
     if (options->nbmat > 2 && options->AvecProjection == 1)
       cellVariables.insert(
           pair<string, double*>("fracvol2", m_fracvol_env2.data()));

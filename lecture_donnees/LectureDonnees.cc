@@ -35,13 +35,18 @@ void LectureDonneesClass::LectureDonnees(
     else
       o->nbmat = 2;
     if (test->Nom == test->BiTriplePoint) o->nbmat = 3;
+    
     if (test->Nom == test->AdvectionX || test->Nom == test->AdvectionY ||
         test->Nom == test->BiAdvectionX || test->Nom == test->BiAdvectionY ||
         test->Nom == test->AdvectionVitX || test->Nom == test->AdvectionVitY ||
-        test->Nom == test->BiAdvectionVitX ||
-        test->Nom == test->BiAdvectionVitY)
+        test->Nom == test->BiAdvectionVitX || test->Nom == test->BiAdvectionVitY ||
+	test->Nom >= test->RiderTx)
       o->sansLagrange = 1;
 
+    if (test->Nom == test->Implosion) o->nbmat = 2;
+    if (test->Nom == test->BiImplosion) o->nbmat = 3;
+    
+    
     getline(mesdonnees, ligne);  // ligne de commentaire Nombre de Mailles en X
     mesdonnees >> entier;
     cstmesh->X_EDGE_ELEMS = entier;
@@ -62,7 +67,6 @@ void LectureDonneesClass::LectureDonnees(
 
     getline(mesdonnees, ligne);  // ligne de commentaire DELTA_Y
     mesdonnees >> cstmesh->Y_EDGE_LENGTH;
-
     if (cstmesh->Y_EDGE_LENGTH < 0.) {
       std::cout << "Utilisation d'un maille cylindrique" << std::endl;
       cstmesh->cylindrical_mesh = 1;
@@ -70,6 +74,14 @@ void LectureDonneesClass::LectureDonnees(
     }
     std::cout << " DELTA Y " << cstmesh->Y_EDGE_LENGTH << std::endl;
     mesdonnees.ignore();
+
+    if (cstmesh->cylindrical_mesh == 1) {
+      getline(mesdonnees, ligne);  // rayon_minimum
+      mesdonnees >> cstmesh->minimum_radius;
+      std::cout << " RAYON-MINIMUM " << cstmesh->minimum_radius << std::endl;
+      mesdonnees.ignore();
+    }
+      
 
     getline(mesdonnees, ligne);  // ligne de commentaire Temps-final
     mesdonnees >> gt->final_time;
@@ -116,8 +128,11 @@ void LectureDonneesClass::LectureDonnees(
 
     getline(mesdonnees, ligne);  // ordre en espace du schema Lagrange
     mesdonnees >> o->spaceOrder;
-    std::cout << " Ordre en espace du schéma Lagrange  " << o->spaceOrder
-              << std::endl;
+    if (o->sansLagrange == 1)
+      std::cout << " Pas de Lagrange : advection pure  "  << std::endl;
+    else
+      std::cout << " Ordre en espace du schéma Lagrange  " << o->spaceOrder
+		<< std::endl;
     mesdonnees.ignore();
 
     getline(mesdonnees, ligne);  // Avec projection

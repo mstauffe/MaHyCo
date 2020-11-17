@@ -8,8 +8,12 @@
  * Contributors: see AUTHORS file
  *******************************************************************************/
 #include <math.h>
+#include <cmath>
 #include "mesh/CartesianMesh2DGenerator.h"
 #include "mesh/CartesianMesh2D.h"
+
+using namespace std;
+
 
 namespace nablalib
 {
@@ -25,7 +29,7 @@ namespace nablalib
    */
 
 CartesianMesh2D*
-CartesianMesh2DGenerator::generate(size_t nbXQuads, size_t nbYQuads, double xSize, double ySize, int cylindrical_mesh)
+CartesianMesh2DGenerator::generate(size_t nbXQuads, size_t nbYQuads, double xSize, double ySize, int cylindrical_mesh, double minimum_radius)
 {
 	vector<RealArray1D<2>> nodes_((nbXQuads + 1) * (nbYQuads + 1));
 	vector<Quad> quads_(nbXQuads * nbYQuads);
@@ -55,7 +59,7 @@ CartesianMesh2DGenerator::generate(size_t nbXQuads, size_t nbYQuads, double xSiz
 		  nodes_[node_id_] = RealArray1D<2>{xSize * i, ySize * j};
 		  if (cylindrical_mesh) {		    
 		    double pi = 3.14159265359;
-		    double r =  xSize * i;
+		    double r =  xSize * i + minimum_radius;
 		    double theta = ySize * j * pi / 2.;
 		    nodes_[node_id_][0] = r * std::cos(theta);
 		    nodes_[node_id_][1] = r * std::sin(theta);

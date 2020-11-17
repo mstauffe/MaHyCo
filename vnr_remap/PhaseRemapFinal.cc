@@ -198,6 +198,7 @@ void Vnr::remapVariables() noexcept {
         m_fracvol_env1(cCells) = m_fracvol_env(cCells)[0];
         m_fracvol_env2(cCells) = m_fracvol_env(cCells)[1];
         m_fracvol_env3(cCells) = m_fracvol_env(cCells)[2];
+	m_interface12(cCells) =  m_fracvol_env2(cCells) * m_fracvol_env1(cCells);
         // pression
         m_pressure_env1(cCells) = m_pressure_env_nplus1(cCells)[0];
         m_pressure_env2(cCells) = m_pressure_env_nplus1(cCells)[1];

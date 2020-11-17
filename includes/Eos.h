@@ -9,7 +9,7 @@ class EquationDetat {
   int Void = 100;
   int PerfectGas = 101;
   int StiffenedGas = 102;
-  int Murnhagan = 103;
+  int Fictif = 103;
   int SolidLinear = 104;
   IntArray1D<nbmatmax> Nom = {{PerfectGas, PerfectGas, PerfectGas}};
   RealArray1D<nbmatmax> gamma = {{1.4, 1.4, 1.4}};
@@ -44,8 +44,10 @@ class EquationDetat {
     return {pression, sound_speed};   
   }
   
-  RealArray1D<2> computeEOSMur(double rho, double energy) {
-    std::cout << " Pas encore programmée" << std::endl;
+  RealArray1D<2> computeEOSFictif(double gamma, double rho, double energy) {
+    double pression = 5.;
+    double sound_speed = std::sqrt(gamma * (gamma -1.) * energy);
+    return {pression, sound_speed};   
   }
   
   RealArray1D<2> computeEOSSL(double rho, double energy) {
