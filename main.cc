@@ -23,11 +23,12 @@ int main(int argc, char* argv[]) {
   auto cstmesh =
       new cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages();
   auto gt = new gesttempslib::GestionTempsClass::GestTemps();
+  auto so = new sortielib::Sortie::SortieVariables();
   string output;
   // Lecture des donnees
   if (argc == 2) {
     LectureDonneesClass lecture;
-    lecture.LectureDonnees(argv[1], scheme, o, cstmesh, gt, lim, eos, test);
+    lecture.LectureDonnees(argv[1], scheme, o, so, cstmesh, gt, lim, eos, test);
   } else if (argc != 1) {
     std::cerr << "[ERREUR] Fichier de donnees non passé en argument "
               << std::endl;
@@ -45,7 +46,7 @@ int main(int argc, char* argv[]) {
     auto part = new particleslib::SchemaParticules(nm, cstmesh, gt, test);
     auto proj = new Remap(o, cstmesh, gt, cl, lim, nm, varlp);
     auto c =
-      new Eucclhyd(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, init, output);
+      new Eucclhyd(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, init, so, output);
     c->simulate();
     delete varlp;
     delete init;
@@ -57,7 +58,7 @@ int main(int argc, char* argv[]) {
     auto init = new initlib::Initialisations(o, eos, nm, cstmesh, varlp, cl, test);
     auto part = new particleslib::SchemaParticules(nm, cstmesh, gt, test);
     auto proj = new Remap(o, cstmesh, gt, cl, lim, nm, varlp);
-    auto c = new Vnr(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, init, output);
+    auto c = new Vnr(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, init, so, output);
     c->simulate();
     delete varlp;
     delete init;
