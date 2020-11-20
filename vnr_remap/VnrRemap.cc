@@ -180,6 +180,8 @@ void Vnr::setUpTimeLoopN() noexcept {
     m_fracvol_env2(cCells) = init->m_fracvol_env_n0(cCells)[1];
     m_fracvol_env3(cCells) = init->m_fracvol_env_n0(cCells)[2];
     m_interface12(cCells) = m_fracvol_env1(cCells) * m_fracvol_env2(cCells);
+    m_interface13(cCells) = m_fracvol_env1(cCells) * m_fracvol_env3(cCells);
+    m_interface23(cCells) = m_fracvol_env2(cCells) * m_fracvol_env3(cCells);
   });
   Kokkos::parallel_for("sortie", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
     m_x_velocity(pNodes) = init->m_node_velocity_n0(pNodes)[0];
@@ -212,6 +214,7 @@ void Vnr::executeTimeLoopN() noexcept {
                 << __RESET__ "] t = " << __BOLD__
                 << setiosflags(std::ios::scientific) << setprecision(8)
                 << setw(16) << gt->t_n << __RESET__;
+    
     if (options->sansLagrange == 0) {
       computeCornerNormal();  // @1.0
       computeDeltaT();        // @1.0
@@ -221,14 +224,11 @@ void Vnr::executeTimeLoopN() noexcept {
     }
     computeTime();    // @2.0
     dumpVariables();  // @2.0
-
+    
     if (options->sansLagrange == 0) {
       updateVelocity();                    // @2.0
-      updateNodeBoundaryConditions();  // @2.0
-    } else {
-      //updateVelocityWithoutLagrange(); 
-      std::swap(m_node_velocity_n, m_node_velocity_nplus1);
-    }
+      updateNodeBoundaryConditions();  // @2.0    
+    } 
 
     updatePosition();  // @3.0
     updateCellPos();
@@ -263,9 +263,9 @@ void Vnr::executeTimeLoopN() noexcept {
       remap->computeDualUremap2();
       remapVariables();
       if (options->sansLagrange == 1) {
-      	// on devrait lancer updateVelocityWithoutLagrange();
 	// les cas d'advection doivent etre à vitesses constantes ? donc non
 	// projetees ? référence des cas d'advection à modifier
+	deep_copy(m_node_velocity_nplus1, m_node_velocity_n);
       }
       computeNodeMass();         // avec la masse des mailles recalculée dans
                                  // remapVariables()

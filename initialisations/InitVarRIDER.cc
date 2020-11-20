@@ -69,8 +69,8 @@ void Initialisations::initVarRiderMono(RealArray1D<dim> Xb) noexcept {
           if (rmax == rnode) pmax = pNodesOfCellC;
         }
         // Air partout
-        m_density_env_n0(cCells)[0] = 1.;
-        m_density_n0(cCells) = 1;
+        m_density_env_n0(cCells)[0] = 0.;
+        m_density_n0(cCells) = 0.;
 
         m_pressure_env_n0(cCells)[0] = 0.0;
         m_pressure_n0(cCells) = 0.0;
@@ -89,8 +89,8 @@ void Initialisations::initVarRiderMono(RealArray1D<dim> Xb) noexcept {
                             (m_cell_coord_n0(cCells)[1] - Xb[1]));
         if (rmax < rb) {
           // maille pure de bulle
-          m_density_env_n0(cCells)[0] = 2.0;
-          m_density_n0(cCells) = 2.0;
+          m_density_env_n0(cCells)[0] = 1.0;
+          m_density_n0(cCells) = 1.0;
 
           m_pressure_env_n0(cCells)[0] = 0.0;
           m_pressure_n0(cCells) = 0.0;
@@ -104,8 +104,8 @@ void Initialisations::initVarRiderMono(RealArray1D<dim> Xb) noexcept {
 
         } else if ((rmax >= rb) && (rmin < rb)) {
           double frac_b = (rb - rmin) / (rmax - rmin);
-          m_density_env_n0(cCells)[0] = 1. + (1. - frac_b);
-          m_density_n0(cCells) = 1. + (1. - frac_b);
+          m_density_env_n0(cCells)[0] =(1. - frac_b);
+          m_density_n0(cCells) = (1. - frac_b);
 
           m_pressure_env_n0(cCells)[0] = 0.0;
           m_pressure_n0(cCells) = 0.0;
