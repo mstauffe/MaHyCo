@@ -22,8 +22,8 @@ for cas in $(cat list_of_cases_to_change.txt); do
 	echo "Basculer Yes/No"
 	read reponse
 	if  [[ "$reponse" == "Yes" ]]; then
-	    rm -rf $cas_dir/refrence
-	    mv output $cas_dir/refrence
+	    rm -rf $cas_dir/reference
+	    mv output $cas_dir/reference
 	fi
     fi
 done
