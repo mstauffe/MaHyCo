@@ -243,7 +243,7 @@ void Vnr::executeTimeLoopN() noexcept {
       computeEOS();                  // @7.0
       computePressionMoyenne();      // @7.0
     } else {
-      std::swap(m_internal_energy_n, m_internal_energy_nplus1);
+      deep_copy(m_internal_energy_nplus1, m_internal_energy_n);
     }
     updateCellBoundaryConditions();
     

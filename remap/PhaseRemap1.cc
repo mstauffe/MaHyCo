@@ -523,6 +523,19 @@ void Remap::computeUremap1() noexcept {
 
         Uremap1(cCells) = varlp->ULagrange(cCells) - reduction8;
 
+	for (int imat = 0; imat < nbmat; imat++) {
+	  if (Uremap1(cCells)[nbmat + imat] < 0. && abs(Uremap1(cCells)[nbmat + imat]) < options->threshold) {
+	    //std::cout << " cell " << cCells << " --masse tres faiblement negative   "
+	    // << Uremap1(cCells)[nbmat + imat] << std::endl;
+	    Uremap1(cCells)[nbmat + imat] = 0.;
+	  }
+	  if (Uremap1(cCells)[2*nbmat + imat] < 0. && abs(Uremap1(cCells)[nbmat + imat]) < options->threshold) {
+	    //std::cout << " cell " << cCells << " --energie tres faiblement negative   "
+	    // << Uremap1(cCells)[2*nbmat + imat] << std::endl;
+	    Uremap1(cCells)[2*nbmat + imat] = 0.;
+	  }
+	}
+
         if (limiteurs->projectionAvecPlateauPente == 1) {
           // option ou on ne regarde pas la variation de rho, V et e
           // phi = (f1, f2, rho1*f1, rho2*f2, Vx, Vy, e1, e2
