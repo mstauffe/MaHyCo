@@ -17,7 +17,8 @@ for cas in $(cat list_of_cases_to_change.txt); do
 	cp $cas_dir/donnees.txt .
 	OMP_NUM_THREADS=3 ./mahyco donnees.txt
         paraview $cas_dir/reference/*.pvd &
-#paraview output/*.pvd &
+	#paraview output/*.pvd &
+        #diff output $cas_dir/reference
 	echo $cas
 	echo "Basculer Yes/No"
 	read reponse
