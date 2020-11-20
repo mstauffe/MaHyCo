@@ -30,13 +30,20 @@ class CasTest {
     int BiAdvectionVitX = 20;
     int BiAdvectionVitY = 21;
     int BiImplosion = 22;
-    int RiderTx = 23;
-    int RiderTy = 24;
-    int RiderT45 = 25;
-    int RiderRotation = 26;
-    int RiderVortex = 27;
-    int RiderDeformation = 28;
-    int RiderTimeReverse = 29;
+    int MonoRiderTx = 23;
+    int MonoRiderTy = 24;
+    int MonoRiderT45 = 25;
+    int MonoRiderRotation = 26;
+    int MonoRiderVortex = 27;
+    int MonoRiderDeformation = 28;
+    int MonoRiderTimeReverse = 29;
+    int RiderTx = 30;
+    int RiderTy = 31;
+    int RiderT45 = 32;
+    int RiderRotation = 33;
+    int RiderVortex = 34;
+    int RiderDeformation = 35;
+    int RiderTimeReverse = 36;
 
 
     int Nom = -1;

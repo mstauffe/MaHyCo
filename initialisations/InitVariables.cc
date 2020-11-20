@@ -72,12 +72,37 @@ void Initialisations::initVar() noexcept {
   } else if (test->Nom == test->BiImplosion) {
     initVarBiImplosion();
 
-  } else if (test->Nom == test->RiderTx) {
+  } else if (test->Nom == test->MonoRiderTx) {
+    initVarRiderMono({0.20, 0.20});
+
+  } else if (test->Nom == test->MonoRiderTy) {
+    initVarRiderMono({0.20, 0.20});
+
+  } else if (test->Nom == test->MonoRiderT45) {
+    initVarRiderMono({0.20, 0.20});
+    
+
+  } else if (test->Nom == test->MonoRiderRotation) {
+    initVarRiderMono({0.50, 0.75});
+
+  } else if (test->Nom == test->MonoRiderVortex) {
+    initVarRiderMono({0.50, 0.75});
+
+  } else if (test->Nom == test->MonoRiderDeformation) {
+    initVarRiderMono({0.50, 0.75});
+
+  } else if (test->Nom == test->MonoRiderTimeReverse) {
+    initVarRiderMono({0.50, 0.75});
+
+  }  else if (test->Nom == test->RiderTx) {
     initVarRider({0.20, 0.20});
 
   } else if (test->Nom == test->RiderTy) {
     initVarRider({0.20, 0.20});
 
+  } else if (test->Nom == test->RiderT45) {
+    initVarRider({0.20, 0.20});
+    
   } else if (test->Nom == test->RiderT45) {
     initVarRider({0.20, 0.20});
 

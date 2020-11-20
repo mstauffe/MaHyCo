@@ -39,10 +39,11 @@ void LectureDonneesClass::LectureDonnees(
         mesdonnees.ignore();
 
         // on en deduit le nombre de materiaux du calcul
-        if (test->Nom < test->BiUnitTestCase)
+        if (test->Nom < test->BiUnitTestCase) {
           o->nbmat = 1;
-        else
+	} else {
           o->nbmat = 2;
+	}
         if (test->Nom == test->BiTriplePoint) o->nbmat = 3;
 
         if (test->Nom == test->AdvectionX || test->Nom == test->AdvectionY ||
@@ -51,11 +52,20 @@ void LectureDonneesClass::LectureDonnees(
             test->Nom == test->AdvectionVitX ||
             test->Nom == test->AdvectionVitY ||
             test->Nom == test->BiAdvectionVitX ||
-            test->Nom == test->BiAdvectionVitY || test->Nom >= test->RiderTx)
+            test->Nom == test->BiAdvectionVitY || test->Nom >= test->MonoRiderTx) {
           o->sansLagrange = 1;
+	  std::cout << " Cas test d'advection pure " << std::endl;
+	}
 
         if (test->Nom == test->Implosion) o->nbmat = 2;
         if (test->Nom == test->BiImplosion) o->nbmat = 3;
+	if (test->Nom >= test->MonoRiderTx && test->Nom < test->RiderTx) {
+          o->nbmat = 1;
+	}
+	if (o->nbmat == 1)
+	  std::cout << " Cas test mono materiau "  << std::endl;
+	else if (o->nbmat == 2)
+	  std::cout << " Cas test bi materiau "  << std::endl;	  	  
       }
 
       else if (!strcmp(motcle, "NX")) {

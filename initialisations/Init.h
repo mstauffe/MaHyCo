@@ -140,6 +140,7 @@ class Initialisations {
   void initVarBiAdvection() noexcept;
   void initVarBiAdvectionVitesse() noexcept;
   void initVarRider(RealArray1D<dim> Xb) noexcept;
+  void initVarRiderMono(RealArray1D<dim> Xb) noexcept;
 };
 
 }  // namespace initlib
