@@ -29,9 +29,11 @@ class LectureDonneesClass {
       {"BiAdvectionX", 18},    {"BiAdvectionY", 19},  {"BiAdvectionVitX", 20},
       {"BiAdvectionVitY", 21}, {"BiImplosion", 22},   {"MonoRiderTx", 23},
       {"MonoRiderTy", 24},     {"MonoRiderT45", 25},      {"MonoRiderRotation", 26},
-      {"MonoRiderVortex", 27}, {"MonoRiderDeformation", 28}, {"MonoRiderTimeReverse", 29},
-      {"RiderTx", 30}, {"RiderTy", 31},  {"RiderT45", 32},      {"RiderRotation", 33},
-      {"RiderVortex", 34},     {"RiderDeformation", 35}, {"RiderTimeReverse", 36}};
+      {"MonoRiderVortex", 27}, {"MonoRiderDeformation", 28}, {"MonoRiderVortexTimeReverse", 29},
+      {"MonoRiderDeformationTimeReverse", 30}, {"RiderTx", 31},
+      {"RiderTy", 32},         {"RiderT45", 33},      {"RiderRotation", 34},
+      {"RiderVortex", 35},     {"RiderDeformation", 36}, {"RiderVortexTimeReverse", 37},
+      {"MonoRiderDeformationTimeReverse", 38}};
 
   std::unordered_map<string, int> schema_lagrange{
     {"Eucclhyd", 2000}, {"VNR", 2001}, {"CSTS", 2002}, {"MYR", 2003}, {"AUCUN", 2004}};

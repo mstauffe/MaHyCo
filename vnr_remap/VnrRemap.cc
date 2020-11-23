@@ -265,7 +265,8 @@ void Vnr::executeTimeLoopN() noexcept {
       if (options->sansLagrange == 1) {
 	// les cas d'advection doivent etre à vitesses constantes ? donc non
 	// projetees ? référence des cas d'advection à modifier
-	deep_copy(m_node_velocity_nplus1, m_node_velocity_n);
+	//deep_copy(m_node_velocity_nplus1, m_node_velocity_n);
+	updateVelocityWithoutLagrange();
       }
       computeNodeMass();         // avec la masse des mailles recalculée dans
                                  // remapVariables()

@@ -91,10 +91,13 @@ void Initialisations::initVar() noexcept {
   } else if (test->Nom == test->MonoRiderDeformation) {
     initVarRiderMono({0.50, 0.75});
 
-  } else if (test->Nom == test->MonoRiderTimeReverse) {
+  } else if (test->Nom == test->MonoRiderVortexTimeReverse) {
     initVarRiderMono({0.50, 0.75});
 
-  }  else if (test->Nom == test->RiderTx) {
+  } else if (test->Nom == test->MonoRiderDeformationTimeReverse) {
+    initVarRider({0.50, 0.75});
+
+  } else if (test->Nom == test->RiderTx) {
     initVarRider({0.20, 0.20});
 
   } else if (test->Nom == test->RiderTy) {
@@ -115,7 +118,10 @@ void Initialisations::initVar() noexcept {
   } else if (test->Nom == test->RiderDeformation) {
     initVarRider({0.50, 0.75});
 
-  } else if (test->Nom == test->RiderTimeReverse) {
+  } else if (test->Nom == test->RiderVortexTimeReverse) {
+    initVarRider({0.50, 0.75});
+
+  } else if (test->Nom == test->RiderDeformationTimeReverse) {
     initVarRider({0.50, 0.75});
 
   } else {

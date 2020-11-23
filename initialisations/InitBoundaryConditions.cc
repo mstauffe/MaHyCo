@@ -173,13 +173,20 @@ void Initialisations::initBoundaryConditions() noexcept {
              test->Nom == test->RiderRotation || test->Nom == test->RiderT45 ||
              test->Nom == test->RiderVortex ||
              test->Nom == test->RiderDeformation ||
-             test->Nom == test->RiderTimeReverse) {
-    cdl->leftBC = cdl->freeSurface;
-    cdl->rightBC = cdl->freeSurface;
-    cdl->topBC = cdl->freeSurface;
-    cdl->bottomBC = cdl->freeSurface;
-    cdl->rightCellBC = cdl->periodic;
-    cdl->topCellBC = cdl->periodic;
+             test->Nom == test->RiderVortexTimeReverse ||
+	     test->Nom == test->RiderDeformationTimeReverse ||
+	     test->Nom == test->MonoRiderTx || test->Nom == test->MonoRiderTy ||
+             test->Nom == test->MonoRiderRotation || test->Nom == test->MonoRiderT45 ||
+             test->Nom == test->MonoRiderVortex ||
+             test->Nom == test->MonoRiderDeformation ||
+             test->Nom == test->MonoRiderVortexTimeReverse ||
+	     test->Nom == test->MonoRiderDeformationTimeReverse) {
+    //cdl->leftBC = cdl->freeSurface;
+    //cdl->rightBC = cdl->freeSurface;
+    //cdl->topBC = cdl->freeSurface;
+    //cdl->bottomBC = cdl->freeSurface;
+    //cdl->rightCellBC = cdl->periodic;
+    //cdl->topCellBC = cdl->periodic;
   }
   cdl->FluxBC =
       cdl->leftFluxBC + cdl->rightFluxBC + cdl->bottomFluxBC + cdl->topFluxBC;
