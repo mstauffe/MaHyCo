@@ -94,26 +94,71 @@ class Vnr {
       m_global_total_energy_0;
   double m_total_masse_L, m_total_masse_T, m_total_masse_0;
 
+  // coordonnees
   Kokkos::View<RealArray1D<dim>*> m_node_coord_n;
-  Kokkos::View<RealArray1D<dim>*> m_node_coord_nplus1;
-  Kokkos::View<double**> m_node_cellvolume_n;
-  Kokkos::View<double**> m_node_cellvolume_nplus1;
+  Kokkos::View<RealArray1D<dim>*> m_cell_coord_n;
+  Kokkos::View<RealArray1D<dim>*> m_cell_coord_nplus1;
+  // volume
   Kokkos::View<double*> m_node_volume;
   Kokkos::View<double*> m_euler_volume;
+  
+  // densite
+  Kokkos::View<double*> m_density_n;
+  Kokkos::View<double*> m_density_nplus1;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_n;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_nplus1;
+  // masse
+  Kokkos::View<double*> m_cell_mass;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_cell_mass_env;
+  // masse aux noeuds
+  Kokkos::View<double*> m_node_mass;
+  // pression 
+  Kokkos::View<double*> m_pressure_n;
+  Kokkos::View<double*> m_pressure_nplus1;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_pressure_env_n;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_pressure_env_nplus1;
+  Kokkos::View<double*> m_pressure_env1;
+  Kokkos::View<double*> m_pressure_env2;
+  Kokkos::View<double*> m_pressure_env3;
+  // energie interne
+  Kokkos::View<double*> m_internal_energy_n;
+  Kokkos::View<double*> m_internal_energy_nplus1;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_n;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_nplus1;
+  // vitesse aux noeuds
+  Kokkos::View<RealArray1D<dim>*> m_node_velocity_n;
+  Kokkos::View<RealArray1D<dim>*> m_node_velocity_nplus1;
+  Kokkos::View<double*> m_x_velocity;
+  Kokkos::View<double*> m_y_velocity;
+  // vitesse aux mailles
+  Kokkos::View<RealArray1D<dim>*> m_node_coord_nplus1;
+  // vitesse du son
+  Kokkos::View<double*> m_speed_velocity_n;
+  Kokkos::View<double*> m_speed_velocity_nplus1;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_speed_velocity_env_n;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_speed_velocity_env_nplus1;
+  // fraction volumique
+  Kokkos::View<RealArray1D<nbmatmax>*> m_fracvol_env;
+  Kokkos::View<double*> m_fracvol_env1;
+  Kokkos::View<double*> m_fracvol_env2;
+  Kokkos::View<double*> m_fracvol_env3;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_node_fracvol;
+  // fraction massique
+  Kokkos::View<RealArray1D<nbmatmax>*> m_mass_fraction_env;
+  // sorties interface
+  Kokkos::View<double*> m_interface12;
+  Kokkos::View<double*> m_interface13;
+  Kokkos::View<double*> m_interface23;
+  // sortie energie et masse globales
   Kokkos::View<double*> m_total_energy_0;
   Kokkos::View<double*> m_total_energy_T;
   Kokkos::View<double*> m_total_energy_L;
   Kokkos::View<double*> m_global_masse_0;
   Kokkos::View<double*> m_global_masse_T;
   Kokkos::View<double*> m_global_masse_L;
-  Kokkos::View<double*> m_density_n;
-  Kokkos::View<double*> m_density_nplus1;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_n;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_nplus1;
-  Kokkos::View<double*> m_pressure_n;
-  Kokkos::View<double*> m_pressure_nplus1;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_pressure_env_n;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_pressure_env_nplus1;
+
+  Kokkos::View<double**> m_node_cellvolume_n;
+  Kokkos::View<double**> m_node_cellvolume_nplus1;
   Kokkos::View<double*> m_pseudo_viscosity_n;
   Kokkos::View<double*> m_pseudo_viscosity_nplus1;
   Kokkos::View<RealArray1D<nbmatmax>*> m_pseudo_viscosity_env_n;
@@ -124,36 +169,7 @@ class Vnr {
   Kokkos::View<RealArray1D<nbmatmax>*> m_tau_density_env_nplus1;
   Kokkos::View<double*> m_divu_n;
   Kokkos::View<double*> m_divu_nplus1;
-  Kokkos::View<double*> m_speed_velocity_n;
-  Kokkos::View<double*> m_speed_velocity_nplus1;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_speed_velocity_env_n;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_speed_velocity_env_nplus1;
-  Kokkos::View<double*> m_internal_energy_n;
-  Kokkos::View<double*> m_internal_energy_nplus1;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_n;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_nplus1;
-  Kokkos::View<RealArray1D<dim>*> m_node_velocity_n;
-  Kokkos::View<RealArray1D<dim>*> m_node_velocity_nplus1;
-  Kokkos::View<double*> m_x_velocity;
-  Kokkos::View<double*> m_y_velocity;
-  Kokkos::View<double*> m_node_mass;
-  Kokkos::View<double*> m_cell_mass;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_cell_mass_env;
-  Kokkos::View<RealArray1D<dim>*> m_cell_coord_n;
-  Kokkos::View<RealArray1D<dim>*> m_cell_coord_nplus1;
   Kokkos::View<RealArray1D<dim>**> m_cqs;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_mass_fraction_env;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_fracvol_env;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_node_fracvol;
-  Kokkos::View<double*> m_fracvol_env1;
-  Kokkos::View<double*> m_fracvol_env2;
-  Kokkos::View<double*> m_fracvol_env3;
-  Kokkos::View<double*> m_interface12;
-  Kokkos::View<double*> m_interface13;
-  Kokkos::View<double*> m_interface23;
-  Kokkos::View<double*> m_pressure_env1;
-  Kokkos::View<double*> m_pressure_env2;
-  Kokkos::View<double*> m_pressure_env3;
 
   utils::Timer global_timer;
   utils::Timer cpu_timer;

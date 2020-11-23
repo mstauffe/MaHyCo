@@ -349,7 +349,7 @@ void Remap::computeGradPhi1() noexcept {
  */
 void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
   if (varlp->x_then_y_n) {
-    // std::cout << " Phase Projection 1 Horizontale " << std::endl;
+    //std::cout << " Phase Projection 1 Horizontale " << std::endl;
     auto innerVerticalFaces(mesh->getInnerVerticalFaces());
     int nbInnerVerticalFaces(mesh->getNbInnerVerticalFaces());
     Kokkos::parallel_for(
@@ -408,7 +408,7 @@ void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
           }
         });
   } else {
-    // std::cout << " Phase Projection 1 Verticale " << std::endl;
+    //std::cout << " Phase Projection 1 Verticale " << std::endl;
     auto innerHorizontalFaces(mesh->getInnerHorizontalFaces());
     int nbInnerHorizontalFaces(mesh->getNbInnerHorizontalFaces());
     Kokkos::parallel_for(
@@ -522,6 +522,27 @@ void Remap::computeUremap1() noexcept {
         }
 
         Uremap1(cCells) = varlp->ULagrange(cCells) - reduction8;
+
+	for (int imat = 0; imat < nbmat; imat++) {
+	  if (Uremap1(cCells)[nbmat + imat] < 0.) {
+	    if (abs(Uremap1(cCells)[nbmat + imat]) > 1.e5 * options->threshold) 
+	      std::cout << " cell " << cCells << " proj 1 --masse tres faiblement negative   "
+			<< " avant " << Uremap1(cCells-1)[nbmat + imat]
+			<< " cell " << Uremap1(cCells)[nbmat + imat] 
+			<< " et volume " << Uremap1(cCells)[imat]
+			<< " apres " << Uremap1(cCells+1)[nbmat + imat]<< std::endl;
+	    Uremap1(cCells)[nbmat + imat] = 0.;
+	  }
+	  if (Uremap1(cCells)[2*nbmat + imat] < 0.) {
+	    if (abs(Uremap1(cCells)[nbmat + imat]) > 1.e5 * options->threshold)
+	      std::cout << " cell " << cCells << " --energie tres faiblement negative " 
+			<< " avant " << Uremap1(cCells-1)[2*nbmat + imat]
+			<< " cell " << Uremap1(cCells)[2*nbmat + imat]
+			<< " apres " << Uremap1(cCells+1)[2*nbmat + imat]
+			<< std::endl;
+	    Uremap1(cCells)[2*nbmat + imat] = 0.;
+	  }
+	}
 
         if (limiteurs->projectionAvecPlateauPente == 1) {
           // option ou on ne regarde pas la variation de rho, V et e

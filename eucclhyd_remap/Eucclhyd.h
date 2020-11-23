@@ -78,46 +78,74 @@ class Eucclhyd {
   int face_debug2 = -410;
   int test_debug = 1;
 
-  // Variables
+  // coordonnees
   Kokkos::View<RealArray1D<dim>*> m_node_coord;
   Kokkos::View<RealArray1D<dim>*> m_cell_coord;
   Kokkos::View<double*> m_cell_coord_x;
   Kokkos::View<double*> m_cell_coord_y;
-  Kokkos::View<RealArray1D<dim>**> m_lpc;
-  Kokkos::View<RealArray1D<dim>**> m_nplus;
-  Kokkos::View<RealArray1D<dim>**> m_nminus;
-  Kokkos::View<double**> m_lplus;
-  Kokkos::View<double**> m_lminus;
-  Kokkos::View<double*> m_pressure;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_pressure_env;
-  Kokkos::View<double*> m_cell_mass;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_cell_mass_env;
+  // volume
   Kokkos::View<double*> m_euler_volume;
   Kokkos::View<RealArray1D<nbmatmax>*> m_lagrange_volume;
-  Kokkos::View<double*> m_cell_perimeter;
-  Kokkos::View<double*> m_speed_velocity;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_speed_velocity_env;
-  Kokkos::View<double*> m_cell_deltat;
+  // densite
+  Kokkos::View<double*> m_density_n;
+  Kokkos::View<double*> m_density_nplus1;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_n;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_nplus1;
+  // masse
+  Kokkos::View<double*> m_cell_mass;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_cell_mass_env;
+  // masse aux noeuds
+  // pression 
+  Kokkos::View<double*> m_pressure;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_pressure_env;
+  Kokkos::View<double*> m_pressure_env1;
+  Kokkos::View<double*> m_pressure_env2;
+  Kokkos::View<double*> m_pressure_env3;
+  // energie interne
+  Kokkos::View<double*> m_internal_energy_n;
+  Kokkos::View<double*> m_internal_energy_nplus1;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_n;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_nplus1;
+  // vitesses
   Kokkos::View<RealArray1D<dim>*> m_node_velocity_n;
   Kokkos::View<RealArray1D<dim>*> m_node_velocity_nplus1;
+  // vitesse aux mailles
+  Kokkos::View<RealArray1D<dim>*> m_cell_velocity_n;
+  Kokkos::View<RealArray1D<dim>*> m_cell_velocity_nplus1;
+  // vitesse du son
+  Kokkos::View<double*> m_speed_velocity;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_speed_velocity_env;
+  // fraction volumique
+  Kokkos::View<RealArray1D<nbmatmax>*> m_fracvol_env;
+  Kokkos::View<double*> m_fracvol_env1;
+  Kokkos::View<double*> m_fracvol_env2;
+  Kokkos::View<double*> m_fracvol_env3;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_node_fracvol;
+  // fraction massique
+  Kokkos::View<RealArray1D<nbmatmax>*> m_mass_fraction_env;
+  // sorties interface
+  Kokkos::View<double*> m_interface12;
+  Kokkos::View<double*> m_interface13;
+  Kokkos::View<double*> m_interface23;
+  // sortie energie et masse globales
   Kokkos::View<double*> m_total_energy_0;
   Kokkos::View<double*> m_total_energy_T;
   Kokkos::View<double*> m_total_energy_L;
   Kokkos::View<double*> m_global_masse_0;
   Kokkos::View<double*> m_global_masse_T;
   Kokkos::View<double*> m_global_masse_L;
-  Kokkos::View<double*> m_density_n;
-  Kokkos::View<double*> m_density_nplus1;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_n;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_density_env_nplus1;
-  Kokkos::View<RealArray1D<dim>*> m_cell_velocity_n;
-  Kokkos::View<RealArray1D<dim>*> m_cell_velocity_nplus1;
+  
+  
+  
+  Kokkos::View<RealArray1D<dim>**> m_lpc;
+  Kokkos::View<RealArray1D<dim>**> m_nplus;
+  Kokkos::View<RealArray1D<dim>**> m_nminus;
+  Kokkos::View<double**> m_lplus;
+  Kokkos::View<double**> m_lminus;
+  Kokkos::View<double*> m_cell_perimeter;
+  Kokkos::View<double*> m_cell_deltat;
   Kokkos::View<double*> m_x_cell_velocity;
   Kokkos::View<double*> m_y_cell_velocity;
-  Kokkos::View<double*> m_internal_energy_n;
-  Kokkos::View<double*> m_internal_energy_nplus1;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_n;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_internal_energy_env_nplus1;
   Kokkos::View<double**> m_pressure_extrap;
   Kokkos::View<RealArray1D<nbmatmax>**> m_pressure_env_extrap;
   Kokkos::View<RealArray1D<dim>**> m_cell_velocity_extrap;
@@ -132,18 +160,6 @@ class Eucclhyd {
   Kokkos::View<RealArray2D<dim, dim>**> m_dissipation_matrix;
   Kokkos::View<RealArray2D<dim, dim>***> m_dissipation_matrix_env;
   Kokkos::View<RealArray2D<dim, dim>*> m_node_dissipation;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_mass_fraction_env;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_fracvol_env;
-  Kokkos::View<RealArray1D<nbmatmax>*> m_node_fracvol;
-  Kokkos::View<double*> m_fracvol_env1;
-  Kokkos::View<double*> m_fracvol_env2;
-  Kokkos::View<double*> m_fracvol_env3;
-  Kokkos::View<double*> m_interface12;
-  Kokkos::View<double*> m_interface13;
-  Kokkos::View<double*> m_interface23;
-  Kokkos::View<double*> m_pressure_env1;
-  Kokkos::View<double*> m_pressure_env2;
-  Kokkos::View<double*> m_pressure_env3;
 
   utils::Timer global_timer;
   utils::Timer cpu_timer;

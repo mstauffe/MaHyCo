@@ -23,21 +23,21 @@ void Initialisations::initVarAdvection() noexcept {
     if (r < 0.3) {
       m_fracvol_env_n0(cCells)[0] = 1.;
       m_mass_fraction_env_n0(cCells)[0] = 1.;
-      m_density_n0(cCells) = 1.;
+      m_density_n0(cCells) = 0.;
       m_pressure_n0(cCells) = 0.0;
       m_density_env_n0(cCells)[0] = 1.;
       m_pressure_env_n0(cCells)[0] = 0.0;
     } else if ((r > 0.3) && (r < 0.5)) {
       m_fracvol_env_n0(cCells)[0] = 1.;
       m_mass_fraction_env_n0(cCells)[0] = 1.;
-      m_density_n0(cCells) = 10.;
+      m_density_n0(cCells) = 1.;
       m_pressure_n0(cCells) = 0.0;
       m_density_env_n0(cCells)[0] = 10.0;
       m_pressure_env_n0(cCells)[0] = 0.0;
     } else if (r > 0.5) {
       m_fracvol_env_n0(cCells)[0] = 1.;
       m_mass_fraction_env_n0(cCells)[0] = 1.;
-      m_density_n0(cCells) = 1.;
+      m_density_n0(cCells) = 0.;
       m_pressure_n0(cCells) = 0.0;
       m_density_env_n0(cCells)[0] = 1.;
       m_pressure_env_n0(cCells)[0] = 0.0;

@@ -64,11 +64,12 @@ void Vnr::remapVariables() noexcept {
           varlp->mixte(cCells) = 0;
           varlp->pure(cCells) = imatpure;
         }
-        // -----
-        for (int imat = 0; imat < nbmat; imat++)
-          m_mass_fraction_env(cCells)[imat] =
+        // on ne recalcule par les mailles à masses nulles - cas advection
+	if (masset != 0.) 
+	  for (int imat = 0; imat < nbmat; imat++)
+	    m_mass_fraction_env(cCells)[imat] =
               varlp->Uremap2(cCells)[nbmat + imat] / masset;
-
+	
         // on enleve les petits fractions de volume aussi sur la fraction
         // massique et on normalise
         double fmasset = 0.;
@@ -199,6 +200,8 @@ void Vnr::remapVariables() noexcept {
         m_fracvol_env2(cCells) = m_fracvol_env(cCells)[1];
         m_fracvol_env3(cCells) = m_fracvol_env(cCells)[2];
 	m_interface12(cCells) =  m_fracvol_env2(cCells) * m_fracvol_env1(cCells);
+	m_interface13(cCells) = m_fracvol_env1(cCells) * m_fracvol_env3(cCells);
+	m_interface23(cCells) = m_fracvol_env2(cCells) * m_fracvol_env3(cCells);
         // pression
         m_pressure_env1(cCells) = m_pressure_env_nplus1(cCells)[0];
         m_pressure_env2(cCells) = m_pressure_env_nplus1(cCells)[1];
@@ -208,10 +211,15 @@ void Vnr::remapVariables() noexcept {
   Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
     // Vitesse am_x_velocity noeuds
     double massm_internal_energy_nodale_proj = varlp->UDualremap2(pNodes)[2];
-    m_node_velocity_nplus1(pNodes)[0] =
+    if (massm_internal_energy_nodale_proj != 0.) {
+      m_node_velocity_nplus1(pNodes)[0] =
         varlp->UDualremap2(pNodes)[0] / massm_internal_energy_nodale_proj;
-    m_node_velocity_nplus1(pNodes)[1] =
+      m_node_velocity_nplus1(pNodes)[1] =
         varlp->UDualremap2(pNodes)[1] / massm_internal_energy_nodale_proj;
+    } else {
+      // pour les cas d'advection - on garde la vitesse
+      m_node_velocity_nplus1(pNodes) = m_node_velocity_n(pNodes);
+    }
     // Energie cinétique
 
     // conservation energie totale avec (density_nplus1 * vol) au lieu de

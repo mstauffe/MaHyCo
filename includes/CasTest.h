@@ -36,14 +36,16 @@ class CasTest {
     int MonoRiderRotation = 26;
     int MonoRiderVortex = 27;
     int MonoRiderDeformation = 28;
-    int MonoRiderTimeReverse = 29;
-    int RiderTx = 30;
-    int RiderTy = 31;
-    int RiderT45 = 32;
-    int RiderRotation = 33;
-    int RiderVortex = 34;
-    int RiderDeformation = 35;
-    int RiderTimeReverse = 36;
+    int MonoRiderVortexTimeReverse = 29;
+    int MonoRiderDeformationTimeReverse = 30;
+    int RiderTx = 31;
+    int RiderTy = 32;
+    int RiderT45 = 33;
+    int RiderRotation = 34;
+    int RiderVortex = 35;
+    int RiderDeformation = 36;
+    int RiderVortexTimeReverse = 37;
+    int RiderDeformationTimeReverse = 38;
 
 
     int Nom = -1;

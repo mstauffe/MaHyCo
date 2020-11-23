@@ -31,24 +31,24 @@ void Initialisations::initVarRiderMono(RealArray1D<dim> Xb) noexcept {
           double theta = std::atan2(dd[1], dd[0]);
           double omega = 4. * Pi;
           m_cell_velocity_n0(cCells)[0] =
-              dd[0] * omega * std::sin(omega * 0. + theta);
+              -dd[0] * omega * std::sin(omega * 0. + theta);
           m_cell_velocity_n0(cCells)[1] =
-              -dd[1] * omega * std::cos(omega * 0. + theta);
+              dd[1] * omega * std::cos(omega * 0. + theta);
         }
-        if (test->Nom == test->MonoRiderVortex) {
-          RealArray1D<dim> dd = m_cell_coord_n0(cCells) - cc;
-          double Phi = 1. / Pi * sin(Pi * dd[0]) * sin(Pi * dd[1]);
-          m_cell_velocity_n0(cCells)[0] = Phi;
-          m_cell_velocity_n0(cCells)[1] = Phi;
+        if (test->Nom == test->MonoRiderVortex || test->Nom == test->MonoRiderVortexTimeReverse) {
+          RealArray1D<dim> dd = m_cell_coord_n0(cCells);
+          m_cell_velocity_n0(cCells)[0] = - 2. * std::cos(Pi * dd[1]) * std::sin(Pi * dd[1])
+	    * std::sin(Pi * dd[0]) * std::sin(Pi * dd[0]);
+          m_cell_velocity_n0(cCells)[1] =  2. * std::cos(Pi * dd[0]) * std::sin(Pi * dd[0])
+	    * std::sin(Pi * dd[1]) * std::sin(Pi * dd[1]);
+          //m_cell_velocity_n0(cCells)[0] = cos(Pi * dd[0]) * sin(Pi * dd[1]);
+          //m_cell_velocity_n0(cCells)[1] = sin(Pi * dd[0]) * cos(Pi * dd[1]);
         }
-        if (test->Nom == test->RiderDeformation) {
-          RealArray1D<dim> dd = m_cell_coord_n0(cCells) - cc;
-          double Phi = 1. / (4. * Pi) * sin(4. * Pi * (dd[0] + 0.5)) *
-                       sin(4. * Pi * (dd[1] + 0.5));
-          m_cell_velocity_n0(cCells)[0] = Phi;
-          m_cell_velocity_n0(cCells)[1] = Phi;
+	if (test->Nom == test->MonoRiderDeformation || test->Nom == test->MonoRiderDeformationTimeReverse) {
+	  RealArray1D<dim> dd = m_cell_coord_n0(cCells) - cc + .5;
+	  m_cell_velocity_n0(cCells)[0] = std::sin(4. * Pi * dd[0]) * std::sin(4. * Pi * dd[1]);
+	  m_cell_velocity_n0(cCells)[1] = std::cos(4. * Pi * dd[0]) * std::cos(4. * Pi * dd[1]);
         }
-
         // parametres maille
         double rmin(10.), rmax(0.);
         size_t pmin, pmax;
@@ -69,8 +69,8 @@ void Initialisations::initVarRiderMono(RealArray1D<dim> Xb) noexcept {
           if (rmax == rnode) pmax = pNodesOfCellC;
         }
         // Air partout
-        m_density_env_n0(cCells)[0] = 1.;
-        m_density_n0(cCells) = 1;
+        m_density_env_n0(cCells)[0] = 0.;
+        m_density_n0(cCells) = 0.;
 
         m_pressure_env_n0(cCells)[0] = 0.0;
         m_pressure_n0(cCells) = 0.0;
@@ -89,8 +89,8 @@ void Initialisations::initVarRiderMono(RealArray1D<dim> Xb) noexcept {
                             (m_cell_coord_n0(cCells)[1] - Xb[1]));
         if (rmax < rb) {
           // maille pure de bulle
-          m_density_env_n0(cCells)[0] = 2.0;
-          m_density_n0(cCells) = 2.0;
+          m_density_env_n0(cCells)[0] = 1.0;
+          m_density_n0(cCells) = 1.0;
 
           m_pressure_env_n0(cCells)[0] = 0.0;
           m_pressure_n0(cCells) = 0.0;
@@ -104,8 +104,8 @@ void Initialisations::initVarRiderMono(RealArray1D<dim> Xb) noexcept {
 
         } else if ((rmax >= rb) && (rmin < rb)) {
           double frac_b = (rb - rmin) / (rmax - rmin);
-          m_density_env_n0(cCells)[0] = 1. + (1. - frac_b);
-          m_density_n0(cCells) = 1. + (1. - frac_b);
+          m_density_env_n0(cCells)[0] =(1. - frac_b);
+          m_density_n0(cCells) = (1. - frac_b);
 
           m_pressure_env_n0(cCells)[0] = 0.0;
           m_pressure_n0(cCells) = 0.0;
@@ -131,18 +131,17 @@ void Initialisations::initVarRiderMono(RealArray1D<dim> Xb) noexcept {
       m_node_velocity_n0(pNodes)[0] = -r * omega * std::sin(omega * 0. + theta);
       m_node_velocity_n0(pNodes)[1] = r * omega * std::cos(omega * 0. + theta);
     }
-    if (test->Nom == test->MonoRiderVortex) {
-      RealArray1D<dim> dd = m_node_coord_n0(pNodes) - cc;
-      double Phi = 1. / Pi * sin(Pi * dd[0]) * sin(Pi * dd[1]);
-      m_node_velocity_n0(pNodes)[0] = Phi;
-      m_node_velocity_n0(pNodes)[1] = Phi;
+    if (test->Nom == test->MonoRiderVortex || test->Nom == test->MonoRiderVortexTimeReverse) {
+      RealArray1D<dim> dd = m_node_coord_n0(pNodes);
+      m_node_velocity_n0(pNodes)[0] =  - 2. * std::cos(Pi * dd[1]) * std::sin(Pi * dd[1])
+	    * std::sin(Pi * dd[0]) * std::sin(Pi * dd[0]);
+      m_node_velocity_n0(pNodes)[1] = 2. * std::cos(Pi * dd[0]) * std::sin(Pi * dd[0])
+	    * std::sin(Pi * dd[1]) * std::sin(Pi * dd[1]);
     }
-    if (test->Nom == test->MonoRiderDeformation) {
-      RealArray1D<dim> dd = m_node_coord_n0(pNodes) - cc;
-      double Phi = 1. / (4. * Pi) * sin(4. * Pi * (dd[0] + 0.5)) *
-                   sin(4. * Pi * (dd[1] + 0.5));
-      m_node_velocity_n0(pNodes)[0] = Phi;
-      m_node_velocity_n0(pNodes)[1] = Phi;
+    if (test->Nom == test->MonoRiderDeformation || test->Nom == test->MonoRiderDeformationTimeReverse) {
+      RealArray1D<dim> dd = m_node_coord_n0(pNodes) + .5;
+      m_node_velocity_n0(pNodes)[0] = std::sin(Pi * dd[0]) * std::sin(Pi * dd[1]);
+      m_node_velocity_n0(pNodes)[1] = std::cos(Pi * dd[0]) * std::cos(Pi * dd[1]);
     }
   });
 }
@@ -162,23 +161,23 @@ void Initialisations::initVarRider(RealArray1D<dim> Xb) noexcept {
           double theta = std::atan2(dd[1], dd[0]);
           double omega = 4. * Pi;
           m_cell_velocity_n0(cCells)[0] =
-              dd[0] * omega * std::sin(omega * 0. + theta);
+              -dd[0] * omega * std::sin(omega * 0. + theta);
           m_cell_velocity_n0(cCells)[1] =
-              -dd[1] * omega * std::cos(omega * 0. + theta);
+              dd[1] * omega * std::cos(omega * 0. + theta);
         }
-        if (test->Nom == test->RiderVortex) {
-          RealArray1D<dim> dd = m_cell_coord_n0(cCells) - cc;
-          double Phi = 1. / Pi * sin(Pi * dd[0]) * sin(Pi * dd[1]);
-          m_cell_velocity_n0(cCells)[0] = Phi;
-          m_cell_velocity_n0(cCells)[1] = Phi;
+        if (test->Nom == test->RiderVortex || test->Nom == test->RiderVortexTimeReverse) {
+          RealArray1D<dim> dd = m_cell_coord_n0(cCells);
+	  m_cell_velocity_n0(cCells)[0] =  - 2. * std::cos(Pi * dd[1]) * std::sin(Pi * dd[1])
+	    * std::sin(Pi * dd[0]) * std::sin(Pi * dd[0]);
+	  m_cell_velocity_n0(cCells)[1] = 2. * std::cos(Pi * dd[0]) * std::sin(Pi * dd[0])
+	    * std::sin(Pi * dd[1]) * std::sin(Pi * dd[1]);
         }
-        if (test->Nom == test->RiderDeformation) {
-          RealArray1D<dim> dd = m_cell_coord_n0(cCells) - cc;
-          double Phi = 1. / (4. * Pi) * sin(4. * Pi * (dd[0] + 0.5)) *
-                       sin(4. * Pi * (dd[1] + 0.5));
-          m_cell_velocity_n0(cCells)[0] = Phi;
-          m_cell_velocity_n0(cCells)[1] = Phi;
-        }
+	if (test->Nom == test->RiderDeformation || test->Nom == test->RiderDeformationTimeReverse) {
+	  RealArray1D<dim> dd = m_cell_coord_n0(cCells) + .5;
+	  m_cell_velocity_n0(cCells)[0] = std::sin(4. * Pi * dd[0]) * std::sin(4. * Pi * dd[1]);
+	  m_cell_velocity_n0(cCells)[1] = std::cos(4. * Pi * dd[0]) * std::cos(4. * Pi * dd[1]);
+	  
+	}
 
         // parametres maille
         double rmin(10.), rmax(0.);
@@ -277,18 +276,17 @@ void Initialisations::initVarRider(RealArray1D<dim> Xb) noexcept {
       m_node_velocity_n0(pNodes)[0] = -r * omega * std::sin(omega * 0. + theta);
       m_node_velocity_n0(pNodes)[1] = r * omega * std::cos(omega * 0. + theta);
     }
-    if (test->Nom == test->RiderVortex) {
-      RealArray1D<dim> dd = m_node_coord_n0(pNodes) - cc;
-      double Phi = 1. / Pi * sin(Pi * dd[0]) * sin(Pi * dd[1]);
-      m_node_velocity_n0(pNodes)[0] = Phi;
-      m_node_velocity_n0(pNodes)[1] = Phi;
+    if (test->Nom == test->RiderVortex || test->Nom == test->RiderVortexTimeReverse) {
+      RealArray1D<dim> dd = m_node_coord_n0(pNodes);
+      m_node_velocity_n0(pNodes)[0] =  - 2. * std::cos(Pi * dd[1]) * std::sin(Pi * dd[1])
+	    * std::sin(Pi * dd[0]) * std::sin(Pi * dd[0]);
+      m_node_velocity_n0(pNodes)[1] = 2. * std::cos(Pi * dd[0]) * std::sin(Pi * dd[0])
+	    * std::sin(Pi * dd[1]) * std::sin(Pi * dd[1]);
     }
-    if (test->Nom == test->RiderDeformation) {
-      RealArray1D<dim> dd = m_node_coord_n0(pNodes) - cc;
-      double Phi = 1. / (4. * Pi) * sin(4. * Pi * (dd[0] + 0.5)) *
-                   sin(4. * Pi * (dd[1] + 0.5));
-      m_node_velocity_n0(pNodes)[0] = Phi;
-      m_node_velocity_n0(pNodes)[1] = Phi;
+    if (test->Nom == test->RiderDeformation || test->Nom == test->RiderDeformationTimeReverse) {
+      RealArray1D<dim> dd = m_node_coord_n0(pNodes) + .5;
+      m_node_velocity_n0(pNodes)[0] = std::sin(Pi * dd[0]) * std::sin(Pi * dd[1]);
+      m_node_velocity_n0(pNodes)[1] = std::cos(Pi * dd[0]) * std::cos(Pi * dd[1]);
     }
   });
 }
