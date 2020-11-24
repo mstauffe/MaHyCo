@@ -10,13 +10,20 @@
 #include "types/MultiArray.h"     // for operator<<
 
 /**
- * Job remapCellcenteredVariable called @16.0 in executeTimeLoopN method.
- * In variables: Uremap2, v, x_then_y_n
- * Out variables: V_nplus1, m_internal_energy_nplus1, m_density_nplus1,
- * x_then_y_nplus1
+ *******************************************************************************
+ * \file remapVariables()
+ * \brief Calcul des variables aux mailles et aux noeuds qui ont ete projetees
+ *
+ * \param  varlp->Uremap2
+ * \return m_fracvol_env, m_mass_fraction_env
+ *         varlp->mixte, varlp->pure
+ *         m_density_nplus1, m_density_env_nplus1
+ *         m_internal_energy_nplus1, m_internal_energy_env_nplus1
+ *         m_cell_mass, m_cell_mass_env
+ *         m_node_velocity_nplus1, m_x_velocity, m_y_velocity
+ *******************************************************************************
  */
 void Vnr::remapVariables() noexcept {
-  m_global_total_energy_T = 0.;
   varlp->x_then_y_nplus1 = !(varlp->x_then_y_n);
   int nbmat = options->nbmat;
   // variables am_x_velocity cellulles
@@ -65,11 +72,11 @@ void Vnr::remapVariables() noexcept {
           varlp->pure(cCells) = imatpure;
         }
         // on ne recalcule par les mailles à masses nulles - cas advection
-	if (masset != 0.) 
-	  for (int imat = 0; imat < nbmat; imat++)
-	    m_mass_fraction_env(cCells)[imat] =
-              varlp->Uremap2(cCells)[nbmat + imat] / masset;
-	
+        if (masset != 0.)
+          for (int imat = 0; imat < nbmat; imat++)
+            m_mass_fraction_env(cCells)[imat] =
+                varlp->Uremap2(cCells)[nbmat + imat] / masset;
+
         // on enleve les petits fractions de volume aussi sur la fraction
         // massique et on normalise
         double fmasset = 0.;
@@ -199,9 +206,9 @@ void Vnr::remapVariables() noexcept {
         m_fracvol_env1(cCells) = m_fracvol_env(cCells)[0];
         m_fracvol_env2(cCells) = m_fracvol_env(cCells)[1];
         m_fracvol_env3(cCells) = m_fracvol_env(cCells)[2];
-	m_interface12(cCells) =  m_fracvol_env2(cCells) * m_fracvol_env1(cCells);
-	m_interface13(cCells) = m_fracvol_env1(cCells) * m_fracvol_env3(cCells);
-	m_interface23(cCells) = m_fracvol_env2(cCells) * m_fracvol_env3(cCells);
+        m_interface12(cCells) = m_fracvol_env2(cCells) * m_fracvol_env1(cCells);
+        m_interface13(cCells) = m_fracvol_env1(cCells) * m_fracvol_env3(cCells);
+        m_interface23(cCells) = m_fracvol_env2(cCells) * m_fracvol_env3(cCells);
         // pression
         m_pressure_env1(cCells) = m_pressure_env_nplus1(cCells)[0];
         m_pressure_env2(cCells) = m_pressure_env_nplus1(cCells)[1];
@@ -213,45 +220,44 @@ void Vnr::remapVariables() noexcept {
     double massm_internal_energy_nodale_proj = varlp->UDualremap2(pNodes)[2];
     if (massm_internal_energy_nodale_proj != 0.) {
       m_node_velocity_nplus1(pNodes)[0] =
-        varlp->UDualremap2(pNodes)[0] / massm_internal_energy_nodale_proj;
+          varlp->UDualremap2(pNodes)[0] / massm_internal_energy_nodale_proj;
       m_node_velocity_nplus1(pNodes)[1] =
-        varlp->UDualremap2(pNodes)[1] / massm_internal_energy_nodale_proj;
+          varlp->UDualremap2(pNodes)[1] / massm_internal_energy_nodale_proj;
     } else {
       // pour les cas d'advection - on garde la vitesse
       m_node_velocity_nplus1(pNodes) = m_node_velocity_n(pNodes);
     }
-    // Energie cinétique
-
-    // conservation energie totale avec (density_nplus1 * vol) au lieu de
-    // masset idem double delta_ec(0.); if (options->projectionConservative
-    // == 1)
-    //  delta_ec = varlp->Uremap2(cCells)[3 * nbmat + 2] / masset -
-    //                     0.5 * (V_nplus1[0] * V_nplus1[0] + V_nplus1[1] *
-    //                     V_nplus1[1]);
-    // if ((pNodes == 600) || (pNodes == 601) || (pNodes == 602))
-    //    std::cout << " pNodes " <<  pNodes << " sortie 2 remaillage  vx "
-    //    	    << varlp->UDualremap2(pNodes)[0] /
-    //    varlp->UDualremap2(pNodes)[2]
-    //   	    << " vy " << varlp->UDualremap2(pNodes)[1] /
-    //   varlp->UDualremap2(pNodes)[2]
-    // 	     << " m " << varlp->UDualremap2(pNodes)[2]
-    // 	     << " vit " << m_node_velocity_nplus1(pNodes) << std::endl;
-
+    // Energie cinétique a traite et conservation energie totale a faire
+    // vitesses pour les sorties
     m_x_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[0];
     m_y_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[1];
   });
-
+}
+/**
+ *******************************************************************************
+ * \file computeVariablesGlobalesInit()
+ * \brief Calcul de l'energie totale et la masse initiale du systeme
+ *
+ * \param  m_cell_velocity_nplus, m_density_nplus, m_euler_volume
+ * \return m_total_energy_T, m_global_masse_T,
+ *         m_global_total_energy_T, m_total_masse_T
+ *
+ *******************************************************************************
+ */
+void Vnr::computeVariablesGlobalesT() noexcept {
+  m_global_total_energy_T = 0.;
+  int nbmat = options->nbmat;
   Kokkos::parallel_for(
       "remapVariables", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         // m_total_energy_T(cCells) =
         //    (density_nplus1 * vol) * m_internal_energy_nplus1(cCells) +
         //    0.5 * (density_nplus1 * vol) * (V_nplus1[0] * V_nplus1[0] +
         //    V_nplus1[1] * V_nplus1[1]);
-        m_global_masse_T(cCells) = 0.;
+        m_total_masse_T(cCells) = 0.;
         for (int imat = 0; imat < nbmat; imat++)
-          m_global_masse_T(cCells) += m_density_env_nplus1(cCells)[imat] *
-                                      m_euler_volume(cCells) *
-                                      m_fracvol_env(cCells)[imat];
+          m_total_masse_T(cCells) += m_density_env_nplus1(cCells)[imat] *
+                                     m_euler_volume(cCells) *
+                                     m_fracvol_env(cCells)[imat];
         // m_mass_fraction_env(cCells)[imat] * (density_nplus1 * vol) ; //
         // m_density_env_nplus1(cCells)[imat] * vol_nplus1[imat];
       });
@@ -266,10 +272,10 @@ void Vnr::remapVariables() noexcept {
     Kokkos::Sum<double> reducerM(reductionM);
     Kokkos::parallel_reduce("reductionM", nbCells,
                             KOKKOS_LAMBDA(const int& cCells, double& x) {
-                              reducerM.join(x, m_global_masse_0(cCells));
+                              reducerM.join(x, m_total_masse_T(cCells));
                             },
                             reducerM);
   }
   m_global_total_energy_T = reductionE;
-  m_total_masse_T = reductionM;
+  m_global_total_masse_T = reductionM;
 }

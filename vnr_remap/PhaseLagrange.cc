@@ -7,26 +7,33 @@ using namespace nablalib;
 #include "utils/Utils.h"          // for Indexof
 
 /**
- * Job computeCellMass called @3.0 in simulate method.
- * In variables: X_EDGE_LENGTH, Y_EDGE_LENGTH, m_density_n0
- * Out variables: m_cell_mass
+ *******************************************************************************
+ * \file computeCellMass()
+ * \brief Calcul de la masse des mailles
+ *
+ * \param  m_euler_volume_n0, m_density_n0, m_mass_fraction_env
+ * \return m_cell_mass, m_cell_mass_env
+ *******************************************************************************
  */
 void Vnr::computeCellMass() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
     int nbmat = options->nbmat;
-    m_cell_mass(cCells) =  init->m_euler_volume_n0(cCells) *
-                          init->m_density_n0(cCells);
+    m_cell_mass(cCells) =
+        init->m_euler_volume_n0(cCells) * init->m_density_n0(cCells);
     for (int imat = 0; imat < nbmat; ++imat) {
       m_cell_mass_env(cCells)[imat] =
           m_mass_fraction_env(cCells)[imat] * m_cell_mass(cCells);
     }
   });
 }
-
 /**
- * Job computeNodeMass called @4.0 in simulate method.
- * In variables: m_cell_mass
- * Out variables: m
+ *******************************************************************************
+ * \file computeNodeMass()
+ * \brief Calcul de la masse nodale
+ *
+ * \param  m_cell_mass
+ * \return m_node_mass
+ *******************************************************************************
  */
 void Vnr::computeNodeMass() noexcept {
   Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
@@ -47,9 +54,14 @@ void Vnr::computeNodeMass() noexcept {
   });
 }
 /**
- * Job computeArtificialViscosity called @1.0 in executeTimeLoopN method.
- * In variables: m_node_cellvolume_n, m_speed_velocity_n, m_divu_n, gamma,
- * m_tau_density_n Out variables: m_pseudo_viscosity_nplus1
+ *******************************************************************************
+ * \file computeArtificialViscosity()
+ * \brief Calcul de la viscosité artificielle
+ *
+ * \param  m_node_cellvolume_n, m_tau_density_nplus1, m_speed_velocity_n,
+ *         m_divu_nplus1, m_fracvol_env
+ * \return m_pseudo_viscosity_nplus1, m_pseudo_viscosity_env_nplus1
+ *******************************************************************************
  */
 void Vnr::computeArtificialViscosity() noexcept {
   double reductionP(numeric_limits<double>::min());
@@ -72,7 +84,8 @@ void Vnr::computeArtificialViscosity() noexcept {
               sumR0(reduction0, m_node_cellvolume_n(cCells, pNodesOfCellC));
         }
       }
-      double gamma(eos->gamma[0]); // a changer en prenant une moyenne des gamma ?
+      double gamma(
+          eos->gamma[0]);  // a changer en prenant une moyenne des gamma ?
       m_pseudo_viscosity_nplus1(cCells) =
           1.0 / m_tau_density_nplus1(cCells) *
           (-0.5 * std::sqrt(reduction0) * m_speed_velocity_n(cCells) *
@@ -96,11 +109,14 @@ void Vnr::computeArtificialViscosity() noexcept {
           m_fracvol_env(cCells)[imat] * m_pseudo_viscosity_nplus1(cCells);
   });
 }
-
 /**
- * Job computeCornerNormal called @1.0 in executeTimeLoopN method.
- * In variables: m_node_coord_n
- * Out variables: C
+ *******************************************************************************
+ * \file computeCornerNormal()
+ * \brief Calcul des vecteurs de coin
+ *
+ * \param  m_node_coord_n
+ * \return m_cqs
+ *******************************************************************************
  */
 void Vnr::computeCornerNormal() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
@@ -126,9 +142,13 @@ void Vnr::computeCornerNormal() noexcept {
   });
 }
 /**
- * Job computeNodeVolume called @1.0 in executeTimeLoopN method.
- * In variables: m_node_cellvolume_n
- * Out variables: V
+ *******************************************************************************
+ * \file computeNodeVolume()
+ * \brief Calcul du volume de chaque noeud du maillage
+ *
+ * \param  m_node_cellvolume_n
+ * \return m_node_volume
+ *******************************************************************************
  */
 void Vnr::computeNodeVolume() noexcept {
   Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
@@ -151,9 +171,14 @@ void Vnr::computeNodeVolume() noexcept {
   });
 }
 /**
- * Job updateVelocity called @2.0 in executeTimeLoopN method.
- * In variables: C, m_pseudo_viscosity_nplus1, deltat_n, deltat_nplus1, m,
- * m_pressure_n, m_node_velocity_n Out variables: m_node_velocity_nplus1
+ *******************************************************************************
+ * \file updateVelocity()
+ * \brief Calcul de la vitesse
+ *
+ * \param  gt->deltat_nplus1, gt->deltat_n, m_node_velocity_n
+ *         m_pressure_n, m_pseudo_viscosity_n, m_cqs
+ * \return m_node_velocity_nplus1, m_x_velocity, m_y_velocity
+ *******************************************************************************
  */
 void Vnr::updateVelocity() noexcept {
   const double dt(0.5 * (gt->deltat_nplus1 + gt->deltat_n));
@@ -187,33 +212,36 @@ void Vnr::updateVelocity() noexcept {
   }
 }
 /**
- * Job updateVelocity called @2.0 in executeTimeLoopN method.
- * In variables: C, m_pseudo_viscosity_nplus1, deltat_n, deltat_nplus1, m,
- * m_pressure_n, m_node_velocity_n Out variables: m_node_velocity_nplus1
+ *******************************************************************************
+ * \file updateVelocityWithoutLagrange()
+ * \brief Calcul de la vitesse pour les cas d'advection pure
+ *
+ * \param  gt->t_nplus1, m_node_velocity_n0, m_node_velocity_n, m_node_coord_n
+ * \return m_node_velocity_nplus1
+ *******************************************************************************
  */
 void Vnr::updateVelocityWithoutLagrange() noexcept {
   deep_copy(m_node_velocity_nplus1, m_node_velocity_n);
-  Kokkos::parallel_for(
-    nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
-      if (test->Nom == test->RiderVortexTimeReverse ||
-	  test->Nom == test->MonoRiderVortexTimeReverse ||
-	  test->Nom == test->RiderDeformationTimeReverse ||
-	  test->Nom == test->MonoRiderDeformationTimeReverse) {
-	// centre rotation 0.5,0.5
-	RealArray1D<dim>  cc = {{0.5, 0.5}};
-	RealArray1D<dim>  dd = m_node_coord_n(pNodes) - cc;
-	double theta = std::atan2(dd[1], dd[0]);
-	double r = std::sqrt(dd[0] * dd[0] + dd[1] * dd[1]);  
-	double omega = 4.* Pi;
-	m_node_velocity_nplus1(pNodes)[0] = init->m_node_velocity_n0(pNodes)[0] * cos ( Pi * gt->t_nplus1 / 4.);
-	m_node_velocity_nplus1(pNodes)[1] = init->m_node_velocity_n0(pNodes)[1] * cos ( Pi * gt->t_nplus1 / 4.);
-      }
-    });
+  Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
+    if (test->Nom == test->RiderVortexTimeReverse ||
+        test->Nom == test->MonoRiderVortexTimeReverse ||
+        test->Nom == test->RiderDeformationTimeReverse ||
+        test->Nom == test->MonoRiderDeformationTimeReverse) {
+      m_node_velocity_nplus1(pNodes)[0] =
+          init->m_node_velocity_n0(pNodes)[0] * cos(Pi * gt->t_nplus1 / 4.);
+      m_node_velocity_nplus1(pNodes)[1] =
+          init->m_node_velocity_n0(pNodes)[1] * cos(Pi * gt->t_nplus1 / 4.);
+    }
+  });
 }
 /**
- * Job updatePosition called @3.0 in executeTimeLoopN method.
- * In variables: m_node_coord_n, deltat_nplus1, m_node_velocity_nplus1
- * Out variables: m_node_coord_nplus1
+ *******************************************************************************
+ * \file updatePosition()
+ * \brief Calcul de la position
+ *
+ * \param  gt->t_nplus1, m_node_velocity_nplus1, m_node_coord_n
+ * \return m_node_coord_nplus1
+ *******************************************************************************
  */
 void Vnr::updatePosition() noexcept {
   Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
@@ -223,9 +251,13 @@ void Vnr::updatePosition() noexcept {
   });
 }
 /**
- * Job initCellPos called @1.0 in simulate method.
- * In variables: m_node_coord_nplus1
- * Out variables: m_cell_coord_nplus1
+ *******************************************************************************
+ * \file updateCellPos()
+ * \brief Calcul de la position du centre de la maille
+ *
+ * \param  m_node_coord_nplus1
+ * \return m_cell_coord_nplus1
+ *******************************************************************************
  */
 void Vnr::updateCellPos() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
@@ -245,9 +277,13 @@ void Vnr::updateCellPos() noexcept {
   });
 }
 /**
- * Job computeSubVol called @4.0 in executeTimeLoopN method.
- * In variables: m_node_coord_nplus1, m_cell_coord_nplus1
- * Out variables: m_node_cellvolume_nplus1
+ *******************************************************************************
+ * \file computeSubVol()
+ * \brief Calcul des sous-volumes aux noeuds de chaque maille
+ *
+ * \param  m_node_coord_nplus1
+ * \return m_node_cellvolume_nplus1
+ *******************************************************************************
  */
 void Vnr::computeSubVol() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
@@ -279,9 +315,13 @@ void Vnr::computeSubVol() noexcept {
   });
 }
 /**
- * Job updateRho called @5.0 in executeTimeLoopN method.
- * In variables: m_node_cellvolume_nplus1, m_cell_mass
- * Out variables: m_density_nplus1
+ *******************************************************************************
+ * \file updateRho()
+ * \brief Calcul du volume lagrange et de la densité
+ *
+ * \param  m_node_cellvolume_nplus1, m_cell_mass_env, m_fracvol_env
+ * \return varlp->vLagrange, m_density_nplus1, m_density_env_nplus1
+ *******************************************************************************
  */
 void Vnr::updateRho() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
@@ -310,11 +350,15 @@ void Vnr::updateRho() noexcept {
     }
   });
 }
-
 /**
- * Job computeTau called @6.0 in executeTimeLoopN method.
- * In variables: m_density_n, m_density_nplus1
- * Out variables: m_tau_density_nplus1
+ *******************************************************************************
+ * \file computeTau()
+ * \brief Calcul de la variation du volume specifique (variation de 1/densite)
+ *        en moyenne et pour chaque materiau
+ *
+ * \param  m_density_env_nplus1, m_density_env_n, m_density_nplus1, m_density_n
+ * \return m_tau_density_nplus1, m_tau_density_env_nplus1
+ *******************************************************************************
  */
 void Vnr::computeTau() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
@@ -330,12 +374,17 @@ void Vnr::computeTau() noexcept {
     }
   });
 }
-
 /**
- * Job updateEnergy called @6.0 in executeTimeLoopN method.
- * In variables: m_pseudo_viscosity_nplus1, m_internal_energy_n, gamma,
- * m_pressure_n, m_density_n, m_density_nplus1 Out variables:
- * m_internal_energy_nplus1
+ *******************************************************************************
+ * \file updateEnergy()
+ * \brief Calcul de l'energie interne (seul le cas du gaz parfait est codé)
+ *
+ * \param  m_density_env_nplus1, m_density_env_n,
+ *         m_pseudo_viscosity_env_nplus1, m_pseudo_viscosity_env_n
+ *         m_pressure_env_n, m_mass_fraction_env
+ *
+ * \return m_internal_energy_env_nplus1, m_internal_energy_nplus1
+ *******************************************************************************
  */
 void Vnr::updateEnergy() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
@@ -376,11 +425,14 @@ void Vnr::updateEnergy() noexcept {
     }
   });
 }
-
 /**
- * Job computeDivU called @7.0 in executeTimeLoopN method.
- * In variables: deltat_nplus1, m_density_n, m_density_nplus1,
- * m_tau_density_nplus1 Out variables: m_divu_nplus1
+ *******************************************************************************
+ * \file computeDivU()
+ * \brief Calcul de la divergence de la vitesse
+ *
+ * \param  m_density_nplus1, m_density_n, gt->deltat_nplus1,
+ *m_tau_density_nplus1 \return m_divu_nplus1
+ *******************************************************************************
  */
 void Vnr::computeDivU() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
@@ -393,36 +445,50 @@ void Vnr::computeDivU() noexcept {
   });
 }
 /**
- * Job computeEOS called in executeTimeLoopN method.
+ *******************************************************************************
+ * \file computeEOS()
+ * \brief Appel aux differentes équations d'état
+ *
+ * \param  m_density_env_nplus1, m_internal_energy_env_nplus1
+ *         eos->gamma, eos->tension_limit
+ * \return m_pressure_env_nplus1, m_speed_velocity_env_nplus1
+ *******************************************************************************
  */
 void Vnr::computeEOS() {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-      for (int imat = 0; imat < options->nbmat; ++imat) {
-	double pression ; // = m_pressure_env_nplus1(cCells)[imat];
-	double density = m_density_env_nplus1(cCells)[imat];
-	double energy = m_internal_energy_env_nplus1(cCells)[imat];
-	double gamma = eos->gamma[imat];
-	double tension_limit = eos->tension_limit[imat];
-	double sound_speed ; // = m_speed_velocity_env_nplus1(cCells)[imat];
-	RealArray1D<2> sortie_eos; // pression puis sound_speed
-	if (eos->Nom[imat] == eos->PerfectGas)
-	  sortie_eos = eos->computeEOSGP(gamma, density, energy);
-	if (eos->Nom[imat] == eos->Void)
-	  sortie_eos = eos->computeEOSVoid(density, energy);
-	if (eos->Nom[imat] == eos->StiffenedGas)
-	  sortie_eos = eos->computeEOSSTIFG(gamma, tension_limit, density, energy);
-	if (eos->Nom[imat] == eos->Fictif)
-	  sortie_eos = eos->computeEOSFictif(gamma, density, energy);
-	if (eos->Nom[imat] == eos->SolidLinear)
-	  sortie_eos = eos->computeEOSSL(density, energy);
-	//
-	m_pressure_env_nplus1(cCells)[imat] = sortie_eos[0];
-	m_speed_velocity_env_nplus1(cCells)[imat] = sortie_eos[1];
-      }
-    });
+    for (int imat = 0; imat < options->nbmat; ++imat) {
+      double pression;  // = m_pressure_env_nplus1(cCells)[imat];
+      double density = m_density_env_nplus1(cCells)[imat];
+      double energy = m_internal_energy_env_nplus1(cCells)[imat];
+      double gamma = eos->gamma[imat];
+      double tension_limit = eos->tension_limit[imat];
+      double sound_speed;  // = m_speed_velocity_env_nplus1(cCells)[imat];
+      RealArray1D<2> sortie_eos;  // pression puis sound_speed
+      if (eos->Nom[imat] == eos->PerfectGas)
+        sortie_eos = eos->computeEOSGP(gamma, density, energy);
+      if (eos->Nom[imat] == eos->Void)
+        sortie_eos = eos->computeEOSVoid(density, energy);
+      if (eos->Nom[imat] == eos->StiffenedGas)
+        sortie_eos =
+            eos->computeEOSSTIFG(gamma, tension_limit, density, energy);
+      if (eos->Nom[imat] == eos->Fictif)
+        sortie_eos = eos->computeEOSFictif(gamma, density, energy);
+      if (eos->Nom[imat] == eos->SolidLinear)
+        sortie_eos = eos->computeEOSSL(density, energy);
+      //
+      m_pressure_env_nplus1(cCells)[imat] = sortie_eos[0];
+      m_speed_velocity_env_nplus1(cCells)[imat] = sortie_eos[1];
+    }
+  });
 }
 /**
- * Job computeEOS called in executeTimeLoopN method.
+ *******************************************************************************
+ * \file computePressionMoyenne()
+ * \brief Calcul de la pression moyenne
+ *
+ * \param  m_fracvol_env, m_pressure_env_nplus1, m_speed_velocity_env_nplus1
+ * \return m_pressure_nplus1, m_speed_velocity_nplus1
+ *******************************************************************************
  */
 void Vnr::computePressionMoyenne() noexcept {
   for (int cCells = 0; cCells < nbCells; cCells++) {

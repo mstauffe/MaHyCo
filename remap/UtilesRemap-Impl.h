@@ -130,7 +130,7 @@ RealArray1D<d> Remap::computeAndLimitGradPhi(
     // std::cout << " Passage gradient limite Genéralisé " << std::endl;
     for (size_t i = 0; i < d; i++) {
       res[i] =
-          fluxLimiterPP(projectionLimiterId, gradphiplus[i], gradphimoins[i],
+          fluxLimiterG(projectionLimiterId, gradphiplus[i], gradphimoins[i],
                         phi[i], phiplus[i], phimoins[i], h0, hplus, hmoins);
     }
     return res;
@@ -195,17 +195,17 @@ void Remap::computeFluxPP(RealArray1D<d> gradphi, RealArray1D<d> phi,
     {
       // Flux1m : integrale -inf,  -h0/2.+partie_positive_v
       flux1m =
-          INT2Y(-h0 / 2. + partie_positive_v, -h0 / 2., phimoins[i], xg, yg);
+          INTY(-h0 / 2. + partie_positive_v, -h0 / 2., phimoins[i], xg, yg);
       // Flux1m : integrale -inf,  -h0/2.
-      flux1 = INT2Y(-h0 / 2., -h0 / 2., phimoins[i], xg, yg);
+      flux1 = INTY(-h0 / 2., -h0 / 2., phimoins[i], xg, yg);
       // Flux2m : integrale -inf,  -h0/2.+partie_positive_v
-      flux2m = INT2Y(-h0 / 2. + partie_positive_v, xg, yg, xd, yd);
+      flux2m = INTY(-h0 / 2. + partie_positive_v, xg, yg, xd, yd);
       // Flux2 : integrale -inf,  -h0/2.
-      flux2 = INT2Y(-h0 / 2., xg, yg, xd, yd);
+      flux2 = INTY(-h0 / 2., xg, yg, xd, yd);
       // Flux3m : integrale -inf,  -h0/2.+partie_positive_v
-      flux3m = INT2Y(-h0 / 2. + partie_positive_v, xd, yd, h0 / 2., phiplus[i]);
+      flux3m = INTY(-h0 / 2. + partie_positive_v, xd, yd, h0 / 2., phiplus[i]);
       // Flux3 : integrale -inf,  -h0/2.
-      flux3 = INT2Y(-h0 / 2., xd, yd, h0 / 2., phiplus[i]);
+      flux3 = INTY(-h0 / 2., xd, yd, h0 / 2., phiplus[i]);
       // integrale positive
       Flux[i] = MathFunctions::max(
           ((flux1m - flux1) + (flux2m - flux2) + (flux3m - flux3)), 0.);
@@ -216,17 +216,17 @@ void Remap::computeFluxPP(RealArray1D<d> gradphi, RealArray1D<d> phi,
       // et calcul du flux dual si calcul_flux_dual=1
       if (calcul_flux_dual == 1) {
         // Flux1m : integrale -inf, partie_positive_dual_v
-        flux1m = INT2Y(partie_positive_dual_v, -h0 / 2., phimoins[i], xg, yg);
+        flux1m = INTY(partie_positive_dual_v, -h0 / 2., phimoins[i], xg, yg);
         // Flux1m : integrale -inf,  0..
-        flux1 = INT2Y(0., -h0 / 2., phimoins[i], xg, yg);
+        flux1 = INTY(0., -h0 / 2., phimoins[i], xg, yg);
         // Flux2m : integrale -inf, partie_positive_dual_v
-        flux2m = INT2Y(partie_positive_dual_v, xg, yg, xd, yd);
+        flux2m = INTY(partie_positive_dual_v, xg, yg, xd, yd);
         // Flux2 : integrale -inf, 0.
-        flux2 = INT2Y(0., xg, yg, xd, yd);
+        flux2 = INTY(0., xg, yg, xd, yd);
         // Flux3m : integrale -inf, partie_positive_dual_v
-        flux3m = INT2Y(partie_positive_dual_v, xd, yd, h0 / 2., phiplus[i]);
+        flux3m = INTY(partie_positive_dual_v, xd, yd, h0 / 2., phiplus[i]);
         // Flux3 : integrale -inf, 0.
-        flux3 = INT2Y(0., xd, yd, h0 / 2., phiplus[i]);
+        flux3 = INTY(0., xd, yd, h0 / 2., phiplus[i]);
         // integrale positive
         Flux_dual[i] = MathFunctions::max(
             ((flux1m - flux1) + (flux2m - flux2) + (flux3m - flux3)), 0.);
@@ -239,19 +239,19 @@ void Remap::computeFluxPP(RealArray1D<d> gradphi, RealArray1D<d> phi,
       // flux devant ou au dessus de cCells, integration entre
       // h0/2.-abs(face_normal_velocity)*deltat_n et h0/2.
       // Flux1 : integrale -inf,  h0/2.-partie_positive_v
-      flux1 = INT2Y(h0 / 2. - partie_positive_v, -h0 / 2., phimoins[i], xg, yg);
+      flux1 = INTY(h0 / 2. - partie_positive_v, -h0 / 2., phimoins[i], xg, yg);
       // Flux1m : integrale -inf,  -h0/2.
-      flux1m = INT2Y(h0 / 2., -h0 / 2., phimoins[i], xg, yg);
+      flux1m = INTY(h0 / 2., -h0 / 2., phimoins[i], xg, yg);
       //
       // Flux2 : integrale -inf,  h0/2.-partie_positive_v
-      flux2 = INT2Y(h0 / 2. - partie_positive_v, xg, yg, xd, yd);
+      flux2 = INTY(h0 / 2. - partie_positive_v, xg, yg, xd, yd);
       // Flux2m : integrale -inf,  -h0/2.
-      flux2m = INT2Y(h0 / 2., xg, yg, xd, yd);
+      flux2m = INTY(h0 / 2., xg, yg, xd, yd);
       //
       // Flux3 : integrale -inf,  h0/2.-partie_positive_v
-      flux3 = INT2Y(h0 / 2. - partie_positive_v, xd, yd, h0 / 2., phiplus[i]);
+      flux3 = INTY(h0 / 2. - partie_positive_v, xd, yd, h0 / 2., phiplus[i]);
       // Flux3m : integrale -inf,  -h0/2.
-      flux3m = INT2Y(h0 / 2., xd, yd, h0 / 2., phiplus[i]);
+      flux3m = INTY(h0 / 2., xd, yd, h0 / 2., phiplus[i]);
       //
       // integrale positive
       Flux[i] = MathFunctions::max(
@@ -375,19 +375,19 @@ void Remap::computeFluxPPPure(RealArray1D<d> gradphi, RealArray1D<d> phi,
     {
       // Flux1m : integrale -inf,  -h0/2.+partie_positive_v
       flux1m =
-          INT2Y(-h0 / 2. + partie_positive_v, -h0 / 2., phimoins[i], xg, yg);
+          INTY(-h0 / 2. + partie_positive_v, -h0 / 2., phimoins[i], xg, yg);
       // Flux1m : integrale -inf,  -h0/2.
-      flux1 = INT2Y(-h0 / 2., -h0 / 2., phimoins[i], xg, yg);
+      flux1 = INTY(-h0 / 2., -h0 / 2., phimoins[i], xg, yg);
       //
       // Flux2m : integrale -inf,  -h0/2.+partie_positive_v
-      flux2m = INT2Y(-h0 / 2. + partie_positive_v, xg, yg, xd, yd);
+      flux2m = INTY(-h0 / 2. + partie_positive_v, xg, yg, xd, yd);
       // Flux2 : integrale -inf,  -h0/2.
-      flux2 = INT2Y(-h0 / 2., xg, yg, xd, yd);
+      flux2 = INTY(-h0 / 2., xg, yg, xd, yd);
       //
       // Flux3m : integrale -inf,  -h0/2.+partie_positive_v
-      flux3m = INT2Y(-h0 / 2. + partie_positive_v, xd, yd, h0 / 2., phiplus[i]);
+      flux3m = INTY(-h0 / 2. + partie_positive_v, xd, yd, h0 / 2., phiplus[i]);
       // Flux3 : integrale -inf,  -h0/2.
-      flux3 = INT2Y(-h0 / 2., xd, yd, h0 / 2., phiplus[i]);
+      flux3 = INTY(-h0 / 2., xd, yd, h0 / 2., phiplus[i]);
       //
       // integrale positive
       Flux[i] = MathFunctions::max(
@@ -399,17 +399,17 @@ void Remap::computeFluxPPPure(RealArray1D<d> gradphi, RealArray1D<d> phi,
       // et calcul du flux dual si calcul_flux_dual=1
       if (calcul_flux_dual == 1) {
         // Flux1m : integrale -inf, partie_positive_dual_v
-        flux1m = INT2Y(partie_positive_dual_v, -h0 / 2., phimoins[i], xg, yg);
+        flux1m = INTY(partie_positive_dual_v, -h0 / 2., phimoins[i], xg, yg);
         // Flux1m : integrale -inf,  0..
-        flux1 = INT2Y(0., -h0 / 2., phimoins[i], xg, yg);
+        flux1 = INTY(0., -h0 / 2., phimoins[i], xg, yg);
         // Flux2m : integrale -inf, partie_positive_dual_v
-        flux2m = INT2Y(partie_positive_dual_v, xg, yg, xd, yd);
+        flux2m = INTY(partie_positive_dual_v, xg, yg, xd, yd);
         // Flux2 : integrale -inf, 0.
-        flux2 = INT2Y(0., xg, yg, xd, yd);
+        flux2 = INTY(0., xg, yg, xd, yd);
         // Flux3m : integrale -inf, partie_positive_dual_v
-        flux3m = INT2Y(partie_positive_dual_v, xd, yd, h0 / 2., phiplus[i]);
+        flux3m = INTY(partie_positive_dual_v, xd, yd, h0 / 2., phiplus[i]);
         // Flux3 : integrale -inf, 0.
-        flux3 = INT2Y(0., xd, yd, h0 / 2., phiplus[i]);
+        flux3 = INTY(0., xd, yd, h0 / 2., phiplus[i]);
         // integrale positive
         Flux_dual[i] = MathFunctions::max(
             ((flux1m - flux1) + (flux2m - flux2) + (flux3m - flux3)), 0.);
@@ -422,18 +422,18 @@ void Remap::computeFluxPPPure(RealArray1D<d> gradphi, RealArray1D<d> phi,
       // flux devant ou au dessus de cCells, integration entre
       // h0/2.-abs(face_normal_velocity)*deltat_n et h0/2.
       // Flux1 : integrale -inf,  h0/2.-partie_positive_v
-      flux1 = INT2Y(h0 / 2. - partie_positive_v, -h0 / 2., phimoins[i], xg, yg);
+      flux1 = INTY(h0 / 2. - partie_positive_v, -h0 / 2., phimoins[i], xg, yg);
       // Flux1m : integrale -inf,  -h0/2.
-      flux1m = INT2Y(h0 / 2., -h0 / 2., phimoins[i], xg, yg);
+      flux1m = INTY(h0 / 2., -h0 / 2., phimoins[i], xg, yg);
       // Flux2 : integrale -inf,  h0/2.-partie_positive_v
-      flux2 = INT2Y(h0 / 2. - partie_positive_v, xg, yg, xd, yd);
+      flux2 = INTY(h0 / 2. - partie_positive_v, xg, yg, xd, yd);
       // Flux2m : integrale -inf,  -h0/2.
-      flux2m = INT2Y(h0 / 2., xg, yg, xd, yd);
+      flux2m = INTY(h0 / 2., xg, yg, xd, yd);
       //
       // Flux3 : integrale -inf,  h0/2.-partie_positive_v
-      flux3 = INT2Y(h0 / 2. - partie_positive_v, xd, yd, h0 / 2., phiplus[i]);
+      flux3 = INTY(h0 / 2. - partie_positive_v, xd, yd, h0 / 2., phiplus[i]);
       // Flux3m : integrale -inf,  -h0/2.
-      flux3m = INT2Y(h0 / 2., xd, yd, h0 / 2., phiplus[i]);
+      flux3m = INTY(h0 / 2., xd, yd, h0 / 2., phiplus[i]);
       // integrale positive
       Flux[i] = MathFunctions::max(
           ((flux1m - flux1) + (flux2m - flux2) + (flux3m - flux3)), 0.);

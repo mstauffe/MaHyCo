@@ -80,7 +80,6 @@ void Initialisations::initVar() noexcept {
 
   } else if (test->Nom == test->MonoRiderT45) {
     initVarRiderMono({0.20, 0.20});
-    
 
   } else if (test->Nom == test->MonoRiderRotation) {
     initVarRiderMono({0.50, 0.75});
@@ -105,7 +104,7 @@ void Initialisations::initVar() noexcept {
 
   } else if (test->Nom == test->RiderT45) {
     initVarRider({0.20, 0.20});
-    
+
   } else if (test->Nom == test->RiderT45) {
     initVarRider({0.20, 0.20});
 

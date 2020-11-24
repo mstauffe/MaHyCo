@@ -4,9 +4,20 @@
 #include <iostream>  // for operator<<, endl, basic_o...
 #include "LectureDonnees.h"
 /**
- * Job LectureDonnees called by main.
- * In variables: fichier
- * Out variables: Options
+ *******************************************************************************
+ * \file LectureDonnees(..)
+ * \brief Lecture du fichier de donnees
+ *
+ * \param   Fichier donnees en argument
+ * \return SchemaLagrange* s : schéma du cas
+ *         Options* o : options du cas
+ *         SortieVariables* so : variables à sortir du cas
+ *         ConstantesMaillages* cstmesh : parametres du maillages
+ *         GestTemps* gt : gestion du temps ou du pas de temps
+ *         Limiteurs* l : limiteurs des projections (pente-borne, superbee...)
+ *         EquationDetat* eos : equations d'etat des matériaux
+ *         Test* test : nom du cas test
+ *******************************************************************************
  */
 void LectureDonneesClass::LectureDonnees(
     string Fichier, schemalagrangelib::SchemaLagrangeClass::SchemaLagrange* s,
@@ -41,9 +52,9 @@ void LectureDonneesClass::LectureDonnees(
         // on en deduit le nombre de materiaux du calcul
         if (test->Nom < test->BiUnitTestCase) {
           o->nbmat = 1;
-	} else {
+        } else {
           o->nbmat = 2;
-	}
+        }
         if (test->Nom == test->BiTriplePoint) o->nbmat = 3;
 
         if (test->Nom == test->AdvectionX || test->Nom == test->AdvectionY ||
@@ -52,20 +63,21 @@ void LectureDonneesClass::LectureDonnees(
             test->Nom == test->AdvectionVitX ||
             test->Nom == test->AdvectionVitY ||
             test->Nom == test->BiAdvectionVitX ||
-            test->Nom == test->BiAdvectionVitY || test->Nom >= test->MonoRiderTx) {
+            test->Nom == test->BiAdvectionVitY ||
+            test->Nom >= test->MonoRiderTx) {
           o->sansLagrange = 1;
-	  std::cout << " Cas test d'advection pure " << std::endl;
-	}
+          std::cout << " Cas test d'advection pure " << std::endl;
+        }
 
         if (test->Nom == test->Implosion) o->nbmat = 2;
         if (test->Nom == test->BiImplosion) o->nbmat = 3;
-	if (test->Nom >= test->MonoRiderTx && test->Nom < test->RiderTx) {
+        if (test->Nom >= test->MonoRiderTx && test->Nom < test->RiderTx) {
           o->nbmat = 1;
-	}
-	if (o->nbmat == 1)
-	  std::cout << " Cas test mono materiau "  << std::endl;
-	else if (o->nbmat == 2)
-	  std::cout << " Cas test bi materiau "  << std::endl;	  	  
+        }
+        if (o->nbmat == 1)
+          std::cout << " Cas test mono materiau " << std::endl;
+        else if (o->nbmat == 2)
+          std::cout << " Cas test bi materiau " << std::endl;
       }
 
       else if (!strcmp(motcle, "NX")) {

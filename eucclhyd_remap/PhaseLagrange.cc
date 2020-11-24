@@ -67,29 +67,30 @@ void Eucclhyd::computeCornerNormal() noexcept {
  */
 void Eucclhyd::computeEOS() {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-      for (int imat = 0; imat < options->nbmat; ++imat) {
-	double pression ; // m_pressure_env(cCells)[imat]
-	double density = m_density_env_n(cCells)[imat];
-	double energy = m_internal_energy_env_n(cCells)[imat];
-	double gamma = eos->gamma[imat];
-	double tension_limit = eos->tension_limit[imat];
-	double sound_speed ; // = m_speed_velocity_env_nplus1(cCells)[imat];
-	RealArray1D<2> sortie_eos; // pression puis sound_speed
-	if (eos->Nom[imat] == eos->PerfectGas)
-	  sortie_eos = eos->computeEOSGP(gamma, density, energy);
-	if (eos->Nom[imat] == eos->Void)
-	  sortie_eos = eos->computeEOSVoid(density, energy);
-	if (eos->Nom[imat] == eos->StiffenedGas)
-	  sortie_eos = eos->computeEOSSTIFG(gamma, tension_limit, density, energy);
-	if (eos->Nom[imat] == eos->Fictif)
-	  sortie_eos = eos->computeEOSFictif(gamma, density, energy);
-	if (eos->Nom[imat] == eos->SolidLinear)
-	  sortie_eos = eos->computeEOSSL(density, energy);
-	
-	m_pressure_env(cCells)[imat] = sortie_eos[0];
-	m_speed_velocity_env(cCells)[imat] = sortie_eos[1];
-      }
-    });
+    for (int imat = 0; imat < options->nbmat; ++imat) {
+      double pression;  // m_pressure_env(cCells)[imat]
+      double density = m_density_env_n(cCells)[imat];
+      double energy = m_internal_energy_env_n(cCells)[imat];
+      double gamma = eos->gamma[imat];
+      double tension_limit = eos->tension_limit[imat];
+      double sound_speed;  // = m_speed_velocity_env_nplus1(cCells)[imat];
+      RealArray1D<2> sortie_eos;  // pression puis sound_speed
+      if (eos->Nom[imat] == eos->PerfectGas)
+        sortie_eos = eos->computeEOSGP(gamma, density, energy);
+      if (eos->Nom[imat] == eos->Void)
+        sortie_eos = eos->computeEOSVoid(density, energy);
+      if (eos->Nom[imat] == eos->StiffenedGas)
+        sortie_eos =
+            eos->computeEOSSTIFG(gamma, tension_limit, density, energy);
+      if (eos->Nom[imat] == eos->Fictif)
+        sortie_eos = eos->computeEOSFictif(gamma, density, energy);
+      if (eos->Nom[imat] == eos->SolidLinear)
+        sortie_eos = eos->computeEOSSL(density, energy);
+
+      m_pressure_env(cCells)[imat] = sortie_eos[0];
+      m_speed_velocity_env(cCells)[imat] = sortie_eos[1];
+    }
+  });
 }
 /**
  * Job computeEOS called in executeTimeLoopN method.

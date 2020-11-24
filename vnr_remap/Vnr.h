@@ -92,7 +92,7 @@ class Vnr {
   double lastDump;
   double m_global_total_energy_L, m_global_total_energy_T,
       m_global_total_energy_0;
-  double m_total_masse_L, m_total_masse_T, m_total_masse_0;
+  double m_global_total_masse_L, m_global_total_masse_T, m_global_total_masse_0;
 
   // coordonnees
   Kokkos::View<RealArray1D<dim>*> m_node_coord_n;
@@ -101,7 +101,6 @@ class Vnr {
   // volume
   Kokkos::View<double*> m_node_volume;
   Kokkos::View<double*> m_euler_volume;
-  
   // densite
   Kokkos::View<double*> m_density_n;
   Kokkos::View<double*> m_density_nplus1;
@@ -153,9 +152,9 @@ class Vnr {
   Kokkos::View<double*> m_total_energy_0;
   Kokkos::View<double*> m_total_energy_T;
   Kokkos::View<double*> m_total_energy_L;
-  Kokkos::View<double*> m_global_masse_0;
-  Kokkos::View<double*> m_global_masse_T;
-  Kokkos::View<double*> m_global_masse_L;
+  Kokkos::View<double*> m_total_masse_0;
+  Kokkos::View<double*> m_total_masse_T;
+  Kokkos::View<double*> m_total_masse_L;
 
   Kokkos::View<double**> m_node_cellvolume_n;
   Kokkos::View<double**> m_node_cellvolume_nplus1;
@@ -221,9 +220,9 @@ class Vnr {
         m_total_energy_0("total_energy_0", nbCells),
         m_total_energy_T("total_energy_T", nbCells),
         m_total_energy_L("total_energy_L", nbCells),
-        m_global_masse_0("global_masse_0", nbCells),
-        m_global_masse_T("global_masse_T", nbCells),
-        m_global_masse_L("global_masse_L", nbCells),
+        m_total_masse_0("total_masse_0", nbCells),
+        m_total_masse_T("total_masse_T", nbCells),
+        m_total_masse_L("total_masse_L", nbCells),
         m_density_n("density_n", nbCells),
         m_density_nplus1("density_nplus1", nbCells),
         m_density_env_n("density_env_n", nbCells),
@@ -284,7 +283,11 @@ class Vnr {
  private:
   KOKKOS_INLINE_FUNCTION
   void computeDeltaT() noexcept;
-
+  void computeDeltaTinit() noexcept;
+  void computeVariablesGlobalesInit() noexcept;
+  void computeVariablesGlobalesT() noexcept;
+  void computeVariablesSortiesInit() noexcept;
+  
   KOKKOS_INLINE_FUNCTION
   void computeTime() noexcept;
 

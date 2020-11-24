@@ -1,7 +1,14 @@
 #include "Remap.h"                 // for Remap, Remap::Options
 #include "mesh/CartesianMesh2D.h"  // for CartesianMesh2D
 #include "utils/Utils.h"           // for indexOf
-
+/**
+ *******************************************************************************
+ * \file getLeftCells
+ * \brief retourne l'Id de la cellule à gauche d'une cellule donnee
+ * \param  cells
+ * \return cbId (ou cells si il n'y a pas de cellule à gauche)
+ *******************************************************************************
+ */
 int Remap::getLeftCells(const int cells) {
   int flLeftFaceOfCellC(mesh->getLeftFaceOfCell(cells));
   size_t flId(flLeftFaceOfCellC);
@@ -13,7 +20,14 @@ int Remap::getLeftCells(const int cells) {
   else
     return cbId;
 }
-
+/**
+ *******************************************************************************
+ * \file getRightCells
+ * \brief retourne l'Id de la cellule à droite d'une cellule donnee
+ * \param  cells
+ * \return cbId (ou cells si il n'y a pas de cellule à droite)
+ *******************************************************************************
+ */
 int Remap::getRightCells(const int cells) {
   int frRightFaceOfCellC(mesh->getRightFaceOfCell(cells));
   size_t frId(frRightFaceOfCellC);
@@ -25,7 +39,14 @@ int Remap::getRightCells(const int cells) {
   else
     return cfId;
 }
-
+/**
+ *******************************************************************************
+ * \file getBottomCells
+ * \brief retourne l'Id de la cellule en dessous d'une cellule donnee
+ * \param  cells
+ * \return cbId (ou cells si il n'y a pas de cellule en dessous)
+ *******************************************************************************
+ */
 int Remap::getBottomCells(const int cells) {
   int fbBottomFaceOfCellC(mesh->getBottomFaceOfCell(cells));
   size_t fbId(fbBottomFaceOfCellC);
@@ -37,7 +58,14 @@ int Remap::getBottomCells(const int cells) {
   else
     return cfId;
 }
-
+/**
+ *******************************************************************************
+ * \file getTopCells
+ * \brief retourne l'Id de la cellule au dessus d'une cellule donnee
+ * \param  cells
+ * \return cbId (ou cells si il n'y a pas de cellule au dessus)
+ *******************************************************************************
+ */
 int Remap::getTopCells(const int cells) {
   int ftTopFaceOfCellC(mesh->getTopFaceOfCell(cells));
   size_t ftId(ftTopFaceOfCellC);
@@ -49,7 +77,14 @@ int Remap::getTopCells(const int cells) {
   else
     return cbId;
 }
-
+/**
+ *******************************************************************************
+ * \file FacesOfNode
+ * \brief retourne le numero des faces horizontales ou verticales des noeuds
+ * \param  pNodes
+ * \return  VerticalFaceOfNode(pNodes)[0.1], HorizontalFaceOfNode(pNodes)[0.1]
+ *******************************************************************************
+ */
 void Remap::FacesOfNode() {
   Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
     const Id pId(pNodes);
