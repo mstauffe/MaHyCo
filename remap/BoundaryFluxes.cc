@@ -14,11 +14,11 @@
 /**
  *******************************************************************************
  * \file computeBoundaryFluxes()
- * \brief Calcul des conditions aux limites le flux sortant ou rentrant de la 
+ * \brief Calcul des conditions aux limites le flux sortant ou rentrant de la
  *        face frontiere est celui sortant ou rentrant le la face opposee
  *
  * \param  cdl, cCells, proj=1 ou 2 suivant l'etape de projection
- * \return Remap::computeRemapFlux(...) flux 
+ * \return Remap::computeRemapFlux(...) flux
  *******************************************************************************
  */
 RealArray1D<nbequamax> Remap::computeBoundaryFluxes(int proj, int cCells,

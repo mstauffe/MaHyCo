@@ -9,7 +9,8 @@
 /**
  *******************************************************************************
  * \file updateNodeBoundaryConditions()
- * \brief Mise à jour des conditions aux limites des valeurs aux noeuds du maillage
+ * \brief Mise à jour des conditions aux limites des valeurs aux noeuds du
+ *maillage
  *
  * \param  ConditionsLimites  cdl
  * \return m_node_velocity_nplus1
@@ -192,10 +193,11 @@ void Vnr::updateNodeBoundaryConditions() noexcept {
 /**
  *******************************************************************************
  * \file updateCellBoundaryConditions()
- * \brief Mise à jour des conditions aux limites des valeurs aux mailles du maillage
+ * \brief Mise à jour des conditions aux limites des valeurs aux mailles du
+ *maillage
  *
  * \param  ConditionsLimites  cdl
- * \return m_density_nplus1, m_internal_energy_nplus1, 
+ * \return m_density_nplus1, m_internal_energy_nplus1,
  *         m_density_env_nplus1, m_internal_energy_env_nplus1
  *******************************************************************************
  */

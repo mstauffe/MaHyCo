@@ -18,8 +18,8 @@ using namespace nablalib;
 void Vnr::computeCellMass() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
     int nbmat = options->nbmat;
-    m_cell_mass(cCells) =  init->m_euler_volume_n0(cCells) *
-                          init->m_density_n0(cCells);
+    m_cell_mass(cCells) =
+        init->m_euler_volume_n0(cCells) * init->m_density_n0(cCells);
     for (int imat = 0; imat < nbmat; ++imat) {
       m_cell_mass_env(cCells)[imat] =
           m_mass_fraction_env(cCells)[imat] * m_cell_mass(cCells);
@@ -84,7 +84,8 @@ void Vnr::computeArtificialViscosity() noexcept {
               sumR0(reduction0, m_node_cellvolume_n(cCells, pNodesOfCellC));
         }
       }
-      double gamma(eos->gamma[0]); // a changer en prenant une moyenne des gamma ?
+      double gamma(
+          eos->gamma[0]);  // a changer en prenant une moyenne des gamma ?
       m_pseudo_viscosity_nplus1(cCells) =
           1.0 / m_tau_density_nplus1(cCells) *
           (-0.5 * std::sqrt(reduction0) * m_speed_velocity_n(cCells) *
@@ -212,7 +213,7 @@ void Vnr::updateVelocity() noexcept {
 }
 /**
  *******************************************************************************
- * \file updateVelocityWithoutLagrange() 
+ * \file updateVelocityWithoutLagrange()
  * \brief Calcul de la vitesse pour les cas d'advection pure
  *
  * \param  gt->t_nplus1, m_node_velocity_n0, m_node_velocity_n, m_node_coord_n
@@ -221,16 +222,17 @@ void Vnr::updateVelocity() noexcept {
  */
 void Vnr::updateVelocityWithoutLagrange() noexcept {
   deep_copy(m_node_velocity_nplus1, m_node_velocity_n);
-  Kokkos::parallel_for(
-    nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
-      if (test->Nom == test->RiderVortexTimeReverse ||
-	  test->Nom == test->MonoRiderVortexTimeReverse ||
-	  test->Nom == test->RiderDeformationTimeReverse ||
-	  test->Nom == test->MonoRiderDeformationTimeReverse) {
-	m_node_velocity_nplus1(pNodes)[0] = init->m_node_velocity_n0(pNodes)[0] * cos ( Pi * gt->t_nplus1 / 4.);
-	m_node_velocity_nplus1(pNodes)[1] = init->m_node_velocity_n0(pNodes)[1] * cos ( Pi * gt->t_nplus1 / 4.);
-      }
-    });
+  Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
+    if (test->Nom == test->RiderVortexTimeReverse ||
+        test->Nom == test->MonoRiderVortexTimeReverse ||
+        test->Nom == test->RiderDeformationTimeReverse ||
+        test->Nom == test->MonoRiderDeformationTimeReverse) {
+      m_node_velocity_nplus1(pNodes)[0] =
+          init->m_node_velocity_n0(pNodes)[0] * cos(Pi * gt->t_nplus1 / 4.);
+      m_node_velocity_nplus1(pNodes)[1] =
+          init->m_node_velocity_n0(pNodes)[1] * cos(Pi * gt->t_nplus1 / 4.);
+    }
+  });
 }
 /**
  *******************************************************************************
@@ -315,7 +317,7 @@ void Vnr::computeSubVol() noexcept {
 /**
  *******************************************************************************
  * \file updateRho()
- * \brief Calcul du volume lagrange et de la densité 
+ * \brief Calcul du volume lagrange et de la densité
  *
  * \param  m_node_cellvolume_nplus1, m_cell_mass_env, m_fracvol_env
  * \return varlp->vLagrange, m_density_nplus1, m_density_env_nplus1
@@ -377,10 +379,10 @@ void Vnr::computeTau() noexcept {
  * \file updateEnergy()
  * \brief Calcul de l'energie interne (seul le cas du gaz parfait est codé)
  *
- * \param  m_density_env_nplus1, m_density_env_n, 
+ * \param  m_density_env_nplus1, m_density_env_n,
  *         m_pseudo_viscosity_env_nplus1, m_pseudo_viscosity_env_n
  *         m_pressure_env_n, m_mass_fraction_env
- *         
+ *
  * \return m_internal_energy_env_nplus1, m_internal_energy_nplus1
  *******************************************************************************
  */
@@ -428,8 +430,8 @@ void Vnr::updateEnergy() noexcept {
  * \file computeDivU()
  * \brief Calcul de la divergence de la vitesse
  *
- * \param  m_density_nplus1, m_density_n, gt->deltat_nplus1, m_tau_density_nplus1      
- * \return m_divu_nplus1
+ * \param  m_density_nplus1, m_density_n, gt->deltat_nplus1,
+ *m_tau_density_nplus1 \return m_divu_nplus1
  *******************************************************************************
  */
 void Vnr::computeDivU() noexcept {
@@ -454,29 +456,30 @@ void Vnr::computeDivU() noexcept {
  */
 void Vnr::computeEOS() {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-      for (int imat = 0; imat < options->nbmat; ++imat) {
-	double pression ; // = m_pressure_env_nplus1(cCells)[imat];
-	double density = m_density_env_nplus1(cCells)[imat];
-	double energy = m_internal_energy_env_nplus1(cCells)[imat];
-	double gamma = eos->gamma[imat];
-	double tension_limit = eos->tension_limit[imat];
-	double sound_speed ; // = m_speed_velocity_env_nplus1(cCells)[imat];
-	RealArray1D<2> sortie_eos; // pression puis sound_speed
-	if (eos->Nom[imat] == eos->PerfectGas)
-	  sortie_eos = eos->computeEOSGP(gamma, density, energy);
-	if (eos->Nom[imat] == eos->Void)
-	  sortie_eos = eos->computeEOSVoid(density, energy);
-	if (eos->Nom[imat] == eos->StiffenedGas)
-	  sortie_eos = eos->computeEOSSTIFG(gamma, tension_limit, density, energy);
-	if (eos->Nom[imat] == eos->Fictif)
-	  sortie_eos = eos->computeEOSFictif(gamma, density, energy);
-	if (eos->Nom[imat] == eos->SolidLinear)
-	  sortie_eos = eos->computeEOSSL(density, energy);
-	//
-	m_pressure_env_nplus1(cCells)[imat] = sortie_eos[0];
-	m_speed_velocity_env_nplus1(cCells)[imat] = sortie_eos[1];
-      }
-    });
+    for (int imat = 0; imat < options->nbmat; ++imat) {
+      double pression;  // = m_pressure_env_nplus1(cCells)[imat];
+      double density = m_density_env_nplus1(cCells)[imat];
+      double energy = m_internal_energy_env_nplus1(cCells)[imat];
+      double gamma = eos->gamma[imat];
+      double tension_limit = eos->tension_limit[imat];
+      double sound_speed;  // = m_speed_velocity_env_nplus1(cCells)[imat];
+      RealArray1D<2> sortie_eos;  // pression puis sound_speed
+      if (eos->Nom[imat] == eos->PerfectGas)
+        sortie_eos = eos->computeEOSGP(gamma, density, energy);
+      if (eos->Nom[imat] == eos->Void)
+        sortie_eos = eos->computeEOSVoid(density, energy);
+      if (eos->Nom[imat] == eos->StiffenedGas)
+        sortie_eos =
+            eos->computeEOSSTIFG(gamma, tension_limit, density, energy);
+      if (eos->Nom[imat] == eos->Fictif)
+        sortie_eos = eos->computeEOSFictif(gamma, density, energy);
+      if (eos->Nom[imat] == eos->SolidLinear)
+        sortie_eos = eos->computeEOSSL(density, energy);
+      //
+      m_pressure_env_nplus1(cCells)[imat] = sortie_eos[0];
+      m_speed_velocity_env_nplus1(cCells)[imat] = sortie_eos[1];
+    }
+  });
 }
 /**
  *******************************************************************************

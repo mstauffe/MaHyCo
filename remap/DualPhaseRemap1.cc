@@ -16,17 +16,17 @@
 /**
  *******************************************************************************
  * \file computeDualUremap1()
- * \brief phase de projection duale 
+ * \brief phase de projection duale
  *   etape 1 - horizontale et verticale suivant le cas
- *   calcul des flux de masses duales a partir des flux de masses primales 
- *   selon 3 methodes differentes (A1, A2, PB)  
+ *   calcul des flux de masses duales a partir des flux de masses primales
+ *   selon 3 methodes differentes (A1, A2, PB)
  *           getRightAndLeftFluxMasse...
  *     ou    getTopAndBottomFluxMasse...
- *   reconstruction de la vitesse a l'ordre 1 ou 2 
+ *   reconstruction de la vitesse a l'ordre 1 ou 2
  *           getLeftUpwindVelocity, getRightUpwindVelocity
  *     ou    getBottomUpwindVelocity, getTopUpwindVelocity
  *
- * \param  varlp->UDualLagrange 
+ * \param  varlp->UDualLagrange
  * \return UDualremap1, varlp->DualPhi
  *******************************************************************************
  */

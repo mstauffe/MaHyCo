@@ -19,9 +19,8 @@
  * \brief phase 1 de projection : premiere etapes
  *  calcul des gradients aux faces verticales ou horizontales suivant le cas
  *  calcul des longueurs des faces verticales ou horizontales suivant le cas
- *  calcul des largeurs de cellule dans le sens verticales ou horizontales suivant le cas
- * \param  
- * \return gradPhiFace1, LfLagrange, HvLagrange
+ *  calcul des largeurs de cellule dans le sens verticales ou horizontales
+ *suivant le cas \param \return gradPhiFace1, LfLagrange, HvLagrange
  *******************************************************************************
  */
 void Remap::computeGradPhiFace1() noexcept {
@@ -129,10 +128,10 @@ void Remap::computeGradPhiFace1() noexcept {
  *******************************************************************************
  * \file computeGradPhi()
  * \brief phase 1 de projection : seconde etape
- *        calcul du gradient aux mailles limites 
- *        calcul des flux pente-borne arriere ou avant aux mailles 
+ *        calcul du gradient aux mailles limites
+ *        calcul des flux pente-borne arriere ou avant aux mailles
  *                 à partir du gradient precedent
- * \param  
+ * \param
  * \return gradPhi1, deltaPhiFaceAr, deltaPhiFaceAv
  *******************************************************************************
  */
@@ -164,7 +163,7 @@ void Remap::computeGradPhi1() noexcept {
             int flFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), flId));
             // std::cout << " Phase 1 Horizontale " << std::endl;
             RealArray1D<dim> exy = {{1.0, 0.0}};
-		
+
             if (cbCells == -1) cbCells = cCells;
             if (cfCells == -1) cfCells = cCells;
             bool voisinage_pure =
@@ -184,16 +183,13 @@ void Remap::computeGradPhi1() noexcept {
                 HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells));
 
             if (limiteurs->projectionAvecPlateauPente == 1) {
-	      
-	      if (cstmesh->cylindrical_mesh) 
-		exy = varlp->faceNormal(flFaces);
-	  
+              if (cstmesh->cylindrical_mesh) exy = varlp->faceNormal(flFaces);
+
               double Flux_sortant_ar =
                   dot(varlp->outerFaceNormal(cCells, flFacesOfCellC), exy) *
                   varlp->faceNormalVelocity(flFaces);
-	      
-	      if (cstmesh->cylindrical_mesh) 
-		exy = varlp->faceNormal(frFaces);
+
+              if (cstmesh->cylindrical_mesh) exy = varlp->faceNormal(frFaces);
 
               double Flux_sortant_av =
                   dot(varlp->outerFaceNormal(cCells, frFacesOfCellC), exy) *
@@ -288,15 +284,13 @@ void Remap::computeGradPhi1() noexcept {
                 HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells));
 
             if (limiteurs->projectionAvecPlateauPente == 1) {
-	      if (cstmesh->cylindrical_mesh) 
-		exy = varlp->faceNormal(fbFaces);
+              if (cstmesh->cylindrical_mesh) exy = varlp->faceNormal(fbFaces);
 
               double Flux_sortant_av =
                   dot(varlp->outerFaceNormal(cCells, fbFacesOfCellC), exy) *
                   varlp->faceNormalVelocity(fbFaces);
-	      
-	      if (cstmesh->cylindrical_mesh) 
-		exy = varlp->faceNormal(ftFaces);
+
+              if (cstmesh->cylindrical_mesh) exy = varlp->faceNormal(ftFaces);
 
               double Flux_sortant_ar =
                   dot(varlp->outerFaceNormal(cCells, ftFacesOfCellC), exy) *
@@ -356,16 +350,15 @@ void Remap::computeGradPhi1() noexcept {
  *******************************************************************************
  * \file computeUpwindFaceQuantitiesForProjection1()
  * \brief  phase 1 de projection : troisieme etape
- *        calcul de phiFace1 
- *     qui contient la valeur reconstruite à l'ordre 1, 2 ou 3 des variables projetees
- *     qui contient les flux des variables projetees avec l'option pente-borne 
- * \param  
- * \return phiFace1 
+ *        calcul de phiFace1
+ *     qui contient la valeur reconstruite à l'ordre 1, 2 ou 3 des variables
+ *projetees qui contient les flux des variables projetees avec l'option
+ *pente-borne \param \return phiFace1
  *******************************************************************************
  */
 void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
   if (varlp->x_then_y_n) {
-    //std::cout << " Phase Projection 1 Horizontale " << std::endl;
+    // std::cout << " Phase Projection 1 Horizontale " << std::endl;
     auto innerVerticalFaces(mesh->getInnerVerticalFaces());
     int nbInnerVerticalFaces(mesh->getNbInnerVerticalFaces());
     Kokkos::parallel_for(
@@ -424,7 +417,7 @@ void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
           }
         });
   } else {
-    //std::cout << " Phase Projection 1 Verticale " << std::endl;
+    // std::cout << " Phase Projection 1 Verticale " << std::endl;
     auto innerHorizontalFaces(mesh->getInnerHorizontalFaces());
     int nbInnerHorizontalFaces(mesh->getNbInnerHorizontalFaces());
     Kokkos::parallel_for(
@@ -488,10 +481,10 @@ void Remap::computeUpwindFaceQuantitiesForProjection1() noexcept {
  *******************************************************************************
  * \file computeUremap1()
  * \brief phase 1 de projection : etape finale
- *        calcul de la variable Uremap1 par ajout ou retrait des flux 
+ *        calcul de la variable Uremap1 par ajout ou retrait des flux
           Mises à jour de l'indicateur mailles mixtes
           calcul de la valeur de Phi issu de Uremap1
- * \param  
+ * \param
  * \return Uremap1, varlp->mixte, varlp->pure, varlp->Phi
  *******************************************************************************
  */
@@ -515,24 +508,27 @@ void Remap::computeUremap1() noexcept {
             int fFaces(utils::indexOf(mesh->getFaces(), fId));
             int fFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), fId));
 
-	    if ((cstmesh->cylindrical_mesh !=1) || dot(varlp->faceNormal(fFaces), exy) > 0.) {
-              // stockage des flux aux faces pour la quantite de mouvement de Vnr
+            if ((cstmesh->cylindrical_mesh != 1) ||
+                dot(varlp->faceNormal(fFaces), exy) > 0.) {
+              // stockage des flux aux faces pour la quantite de mouvement de
+              // Vnr
               FluxFace1(cCells, fFacesOfCellC) = computeRemapFlux(
-		options->projectionOrder, limiteurs->projectionAvecPlateauPente,
-                varlp->faceNormalVelocity(fFaces), varlp->faceNormal(fFaces),
-                varlp->faceLength(fFaces), phiFace1(fFaces),
-                varlp->outerFaceNormal(cCells, fFacesOfCellC), exy,
-                gt->deltat_n);
-              reduction8 =
-                reduction8 +
-                (computeRemapFlux(options->projectionOrder,
-                                  limiteurs->projectionAvecPlateauPente,
-                                  varlp->faceNormalVelocity(fFaces),
-                                  varlp->faceNormal(fFaces),
-                                  varlp->faceLength(fFaces), phiFace1(fFaces),
-                                  varlp->outerFaceNormal(cCells, fFacesOfCellC),
-                                  exy, gt->deltat_n));
-	    }
+                  options->projectionOrder,
+                  limiteurs->projectionAvecPlateauPente,
+                  varlp->faceNormalVelocity(fFaces), varlp->faceNormal(fFaces),
+                  varlp->faceLength(fFaces), phiFace1(fFaces),
+                  varlp->outerFaceNormal(cCells, fFacesOfCellC), exy,
+                  gt->deltat_n);
+              reduction8 = reduction8 +
+                           (computeRemapFlux(
+                               options->projectionOrder,
+                               limiteurs->projectionAvecPlateauPente,
+                               varlp->faceNormalVelocity(fFaces),
+                               varlp->faceNormal(fFaces),
+                               varlp->faceLength(fFaces), phiFace1(fFaces),
+                               varlp->outerFaceNormal(cCells, fFacesOfCellC),
+                               exy, gt->deltat_n));
+            }
           }
           if (cdl->FluxBC > 0) {
             // flux exterieur eventuel
@@ -544,26 +540,28 @@ void Remap::computeUremap1() noexcept {
 
         Uremap1(cCells) = varlp->ULagrange(cCells) - reduction8;
 
-	for (int imat = 0; imat < nbmat; imat++) {
-	  if (Uremap1(cCells)[nbmat + imat] < 0.) {
-	    if (abs(Uremap1(cCells)[nbmat + imat]) > 1.e5 * options->threshold) 
-	      std::cout << " cell " << cCells << " proj 1 --masse tres faiblement negative   "
-			<< " avant " << Uremap1(cCells-1)[nbmat + imat]
-			<< " cell " << Uremap1(cCells)[nbmat + imat] 
-			<< " et volume " << Uremap1(cCells)[imat]
-			<< " apres " << Uremap1(cCells+1)[nbmat + imat]<< std::endl;
-	    Uremap1(cCells)[nbmat + imat] = 0.;
-	  }
-	  if (Uremap1(cCells)[2*nbmat + imat] < 0.) {
-	    if (abs(Uremap1(cCells)[nbmat + imat]) > 1.e5 * options->threshold)
-	      std::cout << " cell " << cCells << " --energie tres faiblement negative " 
-			<< " avant " << Uremap1(cCells-1)[2*nbmat + imat]
-			<< " cell " << Uremap1(cCells)[2*nbmat + imat]
-			<< " apres " << Uremap1(cCells+1)[2*nbmat + imat]
-			<< std::endl;
-	    Uremap1(cCells)[2*nbmat + imat] = 0.;
-	  }
-	}
+        for (int imat = 0; imat < nbmat; imat++) {
+          if (Uremap1(cCells)[nbmat + imat] < 0.) {
+            if (abs(Uremap1(cCells)[nbmat + imat]) > 1.e5 * options->threshold)
+              std::cout << " cell " << cCells
+                        << " proj 1 --masse tres faiblement negative   "
+                        << " avant " << Uremap1(cCells - 1)[nbmat + imat]
+                        << " cell " << Uremap1(cCells)[nbmat + imat]
+                        << " et volume " << Uremap1(cCells)[imat] << " apres "
+                        << Uremap1(cCells + 1)[nbmat + imat] << std::endl;
+            Uremap1(cCells)[nbmat + imat] = 0.;
+          }
+          if (Uremap1(cCells)[2 * nbmat + imat] < 0.) {
+            if (abs(Uremap1(cCells)[nbmat + imat]) > 1.e5 * options->threshold)
+              std::cout << " cell " << cCells
+                        << " --energie tres faiblement negative "
+                        << " avant " << Uremap1(cCells - 1)[2 * nbmat + imat]
+                        << " cell " << Uremap1(cCells)[2 * nbmat + imat]
+                        << " apres " << Uremap1(cCells + 1)[2 * nbmat + imat]
+                        << std::endl;
+            Uremap1(cCells)[2 * nbmat + imat] = 0.;
+          }
+        }
 
         if (limiteurs->projectionAvecPlateauPente == 1) {
           // option ou on ne regarde pas la variation de rho, V et e

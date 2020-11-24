@@ -80,9 +80,9 @@ int Remap::getTopCells(const int cells) {
 /**
  *******************************************************************************
  * \file FacesOfNode
- * \brief retourne le numero des faces horizontales ou verticales des noeuds 
+ * \brief retourne le numero des faces horizontales ou verticales des noeuds
  * \param  pNodes
- * \return  VerticalFaceOfNode(pNodes)[0.1], HorizontalFaceOfNode(pNodes)[0.1] 
+ * \return  VerticalFaceOfNode(pNodes)[0.1], HorizontalFaceOfNode(pNodes)[0.1]
  *******************************************************************************
  */
 void Remap::FacesOfNode() {

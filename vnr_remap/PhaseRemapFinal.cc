@@ -72,11 +72,11 @@ void Vnr::remapVariables() noexcept {
           varlp->pure(cCells) = imatpure;
         }
         // on ne recalcule par les mailles à masses nulles - cas advection
-	if (masset != 0.) 
-	  for (int imat = 0; imat < nbmat; imat++)
-	    m_mass_fraction_env(cCells)[imat] =
-              varlp->Uremap2(cCells)[nbmat + imat] / masset;
-	
+        if (masset != 0.)
+          for (int imat = 0; imat < nbmat; imat++)
+            m_mass_fraction_env(cCells)[imat] =
+                varlp->Uremap2(cCells)[nbmat + imat] / masset;
+
         // on enleve les petits fractions de volume aussi sur la fraction
         // massique et on normalise
         double fmasset = 0.;
@@ -206,9 +206,9 @@ void Vnr::remapVariables() noexcept {
         m_fracvol_env1(cCells) = m_fracvol_env(cCells)[0];
         m_fracvol_env2(cCells) = m_fracvol_env(cCells)[1];
         m_fracvol_env3(cCells) = m_fracvol_env(cCells)[2];
-	m_interface12(cCells) =  m_fracvol_env2(cCells) * m_fracvol_env1(cCells);
-	m_interface13(cCells) = m_fracvol_env1(cCells) * m_fracvol_env3(cCells);
-	m_interface23(cCells) = m_fracvol_env2(cCells) * m_fracvol_env3(cCells);
+        m_interface12(cCells) = m_fracvol_env2(cCells) * m_fracvol_env1(cCells);
+        m_interface13(cCells) = m_fracvol_env1(cCells) * m_fracvol_env3(cCells);
+        m_interface23(cCells) = m_fracvol_env2(cCells) * m_fracvol_env3(cCells);
         // pression
         m_pressure_env1(cCells) = m_pressure_env_nplus1(cCells)[0];
         m_pressure_env2(cCells) = m_pressure_env_nplus1(cCells)[1];
@@ -220,9 +220,9 @@ void Vnr::remapVariables() noexcept {
     double massm_internal_energy_nodale_proj = varlp->UDualremap2(pNodes)[2];
     if (massm_internal_energy_nodale_proj != 0.) {
       m_node_velocity_nplus1(pNodes)[0] =
-        varlp->UDualremap2(pNodes)[0] / massm_internal_energy_nodale_proj;
+          varlp->UDualremap2(pNodes)[0] / massm_internal_energy_nodale_proj;
       m_node_velocity_nplus1(pNodes)[1] =
-        varlp->UDualremap2(pNodes)[1] / massm_internal_energy_nodale_proj;
+          varlp->UDualremap2(pNodes)[1] / massm_internal_energy_nodale_proj;
     } else {
       // pour les cas d'advection - on garde la vitesse
       m_node_velocity_nplus1(pNodes) = m_node_velocity_n(pNodes);
@@ -239,9 +239,9 @@ void Vnr::remapVariables() noexcept {
  * \brief Calcul de l'energie totale et la masse initiale du systeme
  *
  * \param  m_cell_velocity_nplus, m_density_nplus, m_euler_volume
- * \return m_total_energy_T, m_global_masse_T, 
+ * \return m_total_energy_T, m_global_masse_T,
  *         m_global_total_energy_T, m_total_masse_T
- *         
+ *
  *******************************************************************************
  */
 void Vnr::computeVariablesGlobalesT() noexcept {
@@ -256,8 +256,8 @@ void Vnr::computeVariablesGlobalesT() noexcept {
         m_total_masse_T(cCells) = 0.;
         for (int imat = 0; imat < nbmat; imat++)
           m_total_masse_T(cCells) += m_density_env_nplus1(cCells)[imat] *
-                                      m_euler_volume(cCells) *
-                                      m_fracvol_env(cCells)[imat];
+                                     m_euler_volume(cCells) *
+                                     m_fracvol_env(cCells)[imat];
         // m_mass_fraction_env(cCells)[imat] * (density_nplus1 * vol) ; //
         // m_density_env_nplus1(cCells)[imat] * vol_nplus1[imat];
       });

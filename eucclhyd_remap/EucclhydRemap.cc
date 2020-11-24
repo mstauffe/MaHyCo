@@ -40,25 +40,33 @@ void Eucclhyd::dumpVariables() noexcept {
     std::map<string, double*> nodeVariables;
     std::map<string, double*> partVariables;
     if (so->pression)
-      cellVariables.insert(pair<string, double*>("Pressure", m_pressure.data()));
+      cellVariables.insert(
+          pair<string, double*>("Pressure", m_pressure.data()));
     if (so->densite)
-      cellVariables.insert(pair<string, double*>("Density", m_density_n.data()));
+      cellVariables.insert(
+          pair<string, double*>("Density", m_density_n.data()));
     if (so->energie_interne)
-      cellVariables.insert(pair<string, double*>("Energy", m_internal_energy_n.data()));
+      cellVariables.insert(
+          pair<string, double*>("Energy", m_internal_energy_n.data()));
     if (so->fraction_volumique) {
       cellVariables.insert(pair<string, double*>("F1", m_fracvol_env1.data()));
       cellVariables.insert(pair<string, double*>("F2", m_fracvol_env2.data()));
       cellVariables.insert(pair<string, double*>("F3", m_fracvol_env3.data()));
     }
     if (so->interface) {
-	cellVariables.insert(pair<string, double*>("interface12", m_interface12.data()));
-	cellVariables.insert(pair<string, double*>("interface23", m_interface23.data()));
-	cellVariables.insert(pair<string, double*>("interface13", m_interface13.data()));
-    }	
+      cellVariables.insert(
+          pair<string, double*>("interface12", m_interface12.data()));
+      cellVariables.insert(
+          pair<string, double*>("interface23", m_interface23.data()));
+      cellVariables.insert(
+          pair<string, double*>("interface13", m_interface13.data()));
+    }
     if (so->vitesse) {
-      cellVariables.insert(pair<string, double*>("VelocityX", m_x_cell_velocity.data()));
-      cellVariables.insert(pair<string, double*>("VelocityY", m_y_cell_velocity.data()));
-    }    
+      cellVariables.insert(
+          pair<string, double*>("VelocityX", m_x_cell_velocity.data()));
+      cellVariables.insert(
+          pair<string, double*>("VelocityY", m_y_cell_velocity.data()));
+    }
 
     partVariables.insert(pair<string, double*>(
         "VolumePart", particules->m_particle_volume.data()));
@@ -238,7 +246,8 @@ void Eucclhyd::computedeltat() noexcept {
       MathFunctions::min(gt->cfl * reduction10, gt->deltat_n * 1.05);
   if (gt->deltat_nplus1 < gt->deltat_min) {
     std::cerr << "Fin de la simulation par pas de temps minimum "
-      << gt->deltat_nplus1 << " < " << gt->deltat_min << " et " << reduction10 << std::endl;
+              << gt->deltat_nplus1 << " < " << gt->deltat_min << " et "
+              << reduction10 << std::endl;
     Kokkos::finalize();
     exit(1);
   }

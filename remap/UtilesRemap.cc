@@ -9,10 +9,10 @@
  *******************************************************************************
  * \file fluxLimiter
  * \brief retourne le valeur du limiteur demandé par la méthode classique
- *        qui suppose que les 3 mailles (utilise pour le calcul des gradient) 
+ *        qui suppose que les 3 mailles (utilise pour le calcul des gradient)
  *        ont la meme largeur
  * \param  r = gradmoins / gradplus ou gradplus / gradmoins
- * \return valeur du limiteur demandé 
+ * \return valeur du limiteur demandé
  *******************************************************************************
  */
 double Remap::fluxLimiter(int projectionLimiterId, double r) {
@@ -34,16 +34,15 @@ double Remap::fluxLimiter(int projectionLimiterId, double r) {
  *******************************************************************************
  * \file fluxLimiterG
  * \brief retourne le valeur du limiteur demandé par la méthode exacte
- *        qui ne suppose pas que les 3 mailles (utilise pour le calcul des gradient) 
- *        ont la meme largeur (h0 != hplus != hmoins)
- * \param  h0, hplus, hmoins, gradplus, gradmoins
- * \return valeur du limiteur demandé 
+ *        qui ne suppose pas que les 3 mailles (utilise pour le calcul des
+ *gradient) ont la meme largeur (h0 != hplus != hmoins) \param  h0, hplus,
+ *hmoins, gradplus, gradmoins \return valeur du limiteur demandé
  *******************************************************************************
  */
 double Remap::fluxLimiterG(int projectionLimiterId, double gradplus,
-                            double gradmoins, double y0, double yplus,
-                            double ymoins, double h0, double hplus,
-                            double hmoins) {
+                           double gradmoins, double y0, double yplus,
+                           double ymoins, double h0, double hplus,
+                           double hmoins) {
   double grady, gradM, gradMplus, gradMmoins;
   // limitation rupture de pente (formule 16 si on utilise pas le plateau pente)
   if (gradplus * gradmoins < 0.0) return 0.;
@@ -92,7 +91,7 @@ double Remap::fluxLimiterG(int projectionLimiterId, double gradplus,
  * \file computeY0
  * \brief calcul des Seuils de monotonie des reconstructions lineraires
  *  simple-pente pour l'option pente-borne
- * 
+ *
  * \param  h0, hplus, hmoins, y0, yplus, ymoins
  * \return y0plus, y0moins
  *******************************************************************************
@@ -152,8 +151,9 @@ double Remap::computeY0(int projectionLimiterId, double y0, double yplus,
 /**
  *******************************************************************************
  * \file computexgxd
- * \brief calcul des absisses des points d'appui de la reconstruction en 3 morceaux
- * 
+ * \brief calcul des absisses des points d'appui de la reconstruction en 3
+ *morceaux
+ *
  * \param  h0, hplus, hmoins, y0, yplus, ymoins
  * \return xg, xd
  *******************************************************************************
@@ -180,8 +180,9 @@ double Remap::computexgxd(double y0, double yplus, double ymoins, double h0,
 /**
  *******************************************************************************
  * \file computeygyd
- * \brief calcul des ordonnees des points d'appui de la reconstruction en 3 morceaux
- * 
+ * \brief calcul des ordonnees des points d'appui de la reconstruction en 3
+ *morceaux
+ *
  * \param  h0, hplus, hmoins, y0, yplus, ymoins
  * \return yg, yd
  *******************************************************************************
@@ -209,7 +210,7 @@ double Remap::computeygyd(double y0, double yplus, double ymoins, double h0,
 /**
  *******************************************************************************
  * \file INTY
- * \brief calcul de l'integrale de -infini à X de la fonction lineaire   
+ * \brief calcul de l'integrale de -infini à X de la fonction lineaire
  *    1_[x0,x1] ((x1 − x)y0 + (x − x0)y1)/(x1-x0)
  *    valant :
  *     y0 + 0.5 δ(y1 − y0)(x1 − x0)δ ou δ = S_[0,1]((X − x0)/(x1 − x0))

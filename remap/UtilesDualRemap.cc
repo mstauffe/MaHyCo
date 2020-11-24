@@ -9,8 +9,8 @@
 /**
  *******************************************************************************
  * \file getRightAndLeftFluxMasse1
- * \brief calcul des flux de masse sur les faces virtuelles 
- *       gauche et droite de la maille duale 
+ * \brief calcul des flux de masse sur les faces virtuelles
+ *       gauche et droite de la maille duale
  *       pour l'etape 1 de la projection
  * \param  FluxFace1 (flux de masse aux mailles)
  * \return RightFluxMasse, LeftFluxMasse
@@ -68,8 +68,8 @@ void Remap::getRightAndLeftFluxMasse1(const int nbmat, const size_t pNodes) {
 /**
  *******************************************************************************
  * \file getRightAndLeftFluxMasse2
- * \brief calcul des flux de masse sur les faces virtuelles 
- *       gauche et droite de la maille duale 
+ * \brief calcul des flux de masse sur les faces virtuelles
+ *       gauche et droite de la maille duale
  *       pour l'etape 2 de la projection
  * \param  FluxFace2 (flux de masse aux mailles)
  * \return RightFluxMasse, LeftFluxMasse
@@ -126,8 +126,8 @@ void Remap::getRightAndLeftFluxMasse2(const int nbmat, const size_t pNodes) {
 /**
  *******************************************************************************
  * \file getTopAndBottomFluxMasse1
- * \brief calcul des flux de masse sur les faces virtuelles 
- *       haute et basse de la maille duale 
+ * \brief calcul des flux de masse sur les faces virtuelles
+ *       haute et basse de la maille duale
  *       pour l'etape 1 de la projection
  * \param  FluxFace1 (flux de masse aux mailles)
  * \return TopFluxMasse, BottomFluxMasse
@@ -184,8 +184,8 @@ void Remap::getTopAndBottomFluxMasse1(const int nbmat, const size_t pNodes) {
 /**
  *******************************************************************************
  * \file getTopAndBottomFluxMasse2
- * \brief calcul des flux de masse sur les faces virtuelles 
- *       haute et basse de la maille duale 
+ * \brief calcul des flux de masse sur les faces virtuelles
+ *       haute et basse de la maille duale
  *       pour l'etape 2 de la projection
  * \param  FluxFace2 (flux de masse aux mailles)
  * \return TopFluxMasse, BottomFluxMasse

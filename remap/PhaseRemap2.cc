@@ -19,9 +19,8 @@
  * \brief phase 2 de projection : premiere etapes
  *  calcul des gradients aux faces verticales ou horizontales suivant le cas
  *  calcul des longueurs des faces verticales ou horizontales suivant le cas
- *  calcul des largeurs de cellule dans le sens verticales ou horizontales suivant le cas
- * \param  
- * \return gradPhiFace2, LfLagrange, HvLagrange
+ *  calcul des largeurs de cellule dans le sens verticales ou horizontales
+ *suivant le cas \param \return gradPhiFace2, LfLagrange, HvLagrange
  *******************************************************************************
  */
 void Remap::computeGradPhiFace2() noexcept {
@@ -127,10 +126,10 @@ void Remap::computeGradPhiFace2() noexcept {
  *******************************************************************************
  * \file computeGradPhi2()
  * \brief phase 2 de projection : seconde etape
- *        calcul du gradient aux mailles limites 
- *        calcul des flux pente-borne arriere ou avant aux mailles 
+ *        calcul du gradient aux mailles limites
+ *        calcul des flux pente-borne arriere ou avant aux mailles
  *                 à partir du gradient precedent
- * \param  
+ * \param
  * \return gradPhi2, deltaPhiFaceAr, deltaPhiFaceAv
  *******************************************************************************
  */
@@ -157,8 +156,8 @@ void Remap::computeGradPhi2() noexcept {
             int cbId(cbBackCellF);
             int cbCells(cbId);
             int ftFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), ftId));
-	    RealArray1D<dim> exy = {{0.0, 1.0}};
-	    
+            RealArray1D<dim> exy = {{0.0, 1.0}};
+
             if (cbCells == -1) cbCells = cCells;
             if (cfCells == -1) cfCells = cCells;
             bool voisinage_pure =
@@ -178,16 +177,13 @@ void Remap::computeGradPhi2() noexcept {
                 HvLagrange(cCells), HvLagrange(cbCells), HvLagrange(cfCells));
 
             if (limiteurs->projectionAvecPlateauPente == 1) {
-	      
-	      if (cstmesh->cylindrical_mesh) 
-		exy = varlp->faceNormal(fbFaces);
+              if (cstmesh->cylindrical_mesh) exy = varlp->faceNormal(fbFaces);
 
               double Flux_sortant_av =
                   dot(varlp->outerFaceNormal(cCells, fbFacesOfCellC), exy) *
                   varlp->faceNormalVelocity(fbFaces);
-	      
-	      if (cstmesh->cylindrical_mesh) 
-		exy = varlp->faceNormal(ftFaces);
+
+              if (cstmesh->cylindrical_mesh) exy = varlp->faceNormal(ftFaces);
 
               double Flux_sortant_ar =
                   dot(varlp->outerFaceNormal(cCells, ftFacesOfCellC), exy) *
@@ -283,16 +279,13 @@ void Remap::computeGradPhi2() noexcept {
                 HvLagrange(cCells), HvLagrange(cfCells), HvLagrange(cbCells));
             //
             if (limiteurs->projectionAvecPlateauPente == 1) {
-	      
-	      if (cstmesh->cylindrical_mesh) 
-		exy = varlp->faceNormal(flFaces);
-	      
+              if (cstmesh->cylindrical_mesh) exy = varlp->faceNormal(flFaces);
+
               double Flux_sortant_ar =
                   dot(varlp->outerFaceNormal(cCells, flFacesOfCellC), exy) *
                   varlp->faceNormalVelocity(flFaces);
-	      
-	      if (cstmesh->cylindrical_mesh) 
-		exy = varlp->faceNormal(frFaces);
+
+              if (cstmesh->cylindrical_mesh) exy = varlp->faceNormal(frFaces);
 
               double Flux_sortant_av =
                   dot(varlp->outerFaceNormal(cCells, frFacesOfCellC), exy) *
@@ -352,11 +345,10 @@ void Remap::computeGradPhi2() noexcept {
  *******************************************************************************
  * \file computeUpwindFaceQuantitiesForProjection2()
  * \brief  phase 2 de projection : troisieme etape
- *        calcul de phiFace1 
- *     qui contient la valeur reconstruite à l'ordre 1, 2 ou 3 des variables projetees
- *     qui contient les flux des variables projetees avec l'option pente-borne 
- * \param  
- * \return phiFace2
+ *        calcul de phiFace1
+ *     qui contient la valeur reconstruite à l'ordre 1, 2 ou 3 des variables
+ *projetees qui contient les flux des variables projetees avec l'option
+ *pente-borne \param \return phiFace2
  *******************************************************************************
  */
 void Remap::computeUpwindFaceQuantitiesForProjection2() noexcept {
@@ -485,10 +477,10 @@ void Remap::computeUpwindFaceQuantitiesForProjection2() noexcept {
  *******************************************************************************
  * \file computeUremap2()
  * \brief phase 2 de projection : etape finale
- *        calcul de la variable Uremap2 par ajout ou retrait des flux 
+ *        calcul de la variable Uremap2 par ajout ou retrait des flux
           Mises à jour de l'indicateur mailles mixtes
           calcul de la valeur de Phi issu de Uremap1
- * \param  
+ * \param
  * \return varlp->Uremap2, varlp->mixte, varlp->pure, varlp->Phi
  *******************************************************************************
  */
@@ -508,27 +500,29 @@ void Remap::computeUremap2() noexcept {
             int fFaces(utils::indexOf(mesh->getFaces(), fId));
             int fFacesOfCellC(utils::indexOf(mesh->getFacesOfCell(cId), fId));
 
-	    
-	    if ((cstmesh->cylindrical_mesh !=1) || dot(varlp->faceNormal(fFaces), exy) > 0.) {
-            // stockage des flux aux faces pour la quantite de mouvement de Vnr
-            FluxFace2(cCells, fFacesOfCellC) = (computeRemapFlux(
-                options->projectionOrder, limiteurs->projectionAvecPlateauPente,
-                varlp->faceNormalVelocity(fFaces), varlp->faceNormal(fFaces),
-                varlp->faceLength(fFaces), phiFace2(fFaces),
-                varlp->outerFaceNormal(cCells, fFacesOfCellC), exy,
-                gt->deltat_n));
-            reduction9 =
-                reduction9 +
-                (computeRemapFlux(options->projectionOrder,
-                                  limiteurs->projectionAvecPlateauPente,
-                                  varlp->faceNormalVelocity(fFaces),
-                                  varlp->faceNormal(fFaces),
-                                  varlp->faceLength(fFaces), phiFace2(fFaces),
-                                  varlp->outerFaceNormal(cCells, fFacesOfCellC),
-                                  exy, gt->deltat_n));
-            //
-            //
-	    }
+            if ((cstmesh->cylindrical_mesh != 1) ||
+                dot(varlp->faceNormal(fFaces), exy) > 0.) {
+              // stockage des flux aux faces pour la quantite de mouvement de
+              // Vnr
+              FluxFace2(cCells, fFacesOfCellC) = (computeRemapFlux(
+                  options->projectionOrder,
+                  limiteurs->projectionAvecPlateauPente,
+                  varlp->faceNormalVelocity(fFaces), varlp->faceNormal(fFaces),
+                  varlp->faceLength(fFaces), phiFace2(fFaces),
+                  varlp->outerFaceNormal(cCells, fFacesOfCellC), exy,
+                  gt->deltat_n));
+              reduction9 = reduction9 +
+                           (computeRemapFlux(
+                               options->projectionOrder,
+                               limiteurs->projectionAvecPlateauPente,
+                               varlp->faceNormalVelocity(fFaces),
+                               varlp->faceNormal(fFaces),
+                               varlp->faceLength(fFaces), phiFace2(fFaces),
+                               varlp->outerFaceNormal(cCells, fFacesOfCellC),
+                               exy, gt->deltat_n));
+              //
+              //
+            }
           }
           if (cdl->FluxBC > 0) {
             // flux exterieur
@@ -539,27 +533,33 @@ void Remap::computeUremap2() noexcept {
 
         varlp->Uremap2(cCells) = Uremap1(cCells) - reduction9;
 
-	int nbmat = options->nbmat;
-	for (int imat = 0; imat < nbmat; imat++) {
-	  if (varlp->Uremap2(cCells)[nbmat + imat] < 0.) {
-	    if (abs(varlp->Uremap2(cCells)[nbmat + imat]) > 1.e5 * options->threshold) 
-	      std::cout << " cell " << cCells << " proj 2 --masse tres faiblement negative   "
-			<< " avant " << varlp->Uremap2(cCells-1)[nbmat + imat]		
-			<< " cell " << varlp->Uremap2(cCells)[nbmat + imat]
-			<< " et volume " << varlp->Uremap2(cCells)[imat]
-			<< " apres " << varlp->Uremap2(cCells+1)[nbmat + imat]
-			<< std::endl;
-	    varlp->Uremap2(cCells)[nbmat + imat] = 0.;
-	  }
-	  if (varlp->Uremap2(cCells)[2*nbmat + imat] < 0.) {
-	    if (abs(varlp->Uremap2(cCells)[2*nbmat + imat]) > 1.e5 * options->threshold)
-	      std::cout << " cell " << cCells << " proj 2 --energie tres faiblement negative " 
-			<< " avant " << varlp->Uremap2(cCells-1)[2*nbmat + imat]
-			<< " cell " << varlp->Uremap2(cCells)[2*nbmat + imat]
-			<< " apres " << varlp->Uremap2(cCells+1)[2*nbmat + imat]
-			<< std::endl;
-	    varlp->Uremap2(cCells)[2*nbmat + imat] = 0.;
-	  }
-	}
+        int nbmat = options->nbmat;
+        for (int imat = 0; imat < nbmat; imat++) {
+          if (varlp->Uremap2(cCells)[nbmat + imat] < 0.) {
+            if (abs(varlp->Uremap2(cCells)[nbmat + imat]) >
+                1.e5 * options->threshold)
+              std::cout << " cell " << cCells
+                        << " proj 2 --masse tres faiblement negative   "
+                        << " avant " << varlp->Uremap2(cCells - 1)[nbmat + imat]
+                        << " cell " << varlp->Uremap2(cCells)[nbmat + imat]
+                        << " et volume " << varlp->Uremap2(cCells)[imat]
+                        << " apres " << varlp->Uremap2(cCells + 1)[nbmat + imat]
+                        << std::endl;
+            varlp->Uremap2(cCells)[nbmat + imat] = 0.;
+          }
+          if (varlp->Uremap2(cCells)[2 * nbmat + imat] < 0.) {
+            if (abs(varlp->Uremap2(cCells)[2 * nbmat + imat]) >
+                1.e5 * options->threshold)
+              std::cout << " cell " << cCells
+                        << " proj 2 --energie tres faiblement negative "
+                        << " avant "
+                        << varlp->Uremap2(cCells - 1)[2 * nbmat + imat]
+                        << " cell " << varlp->Uremap2(cCells)[2 * nbmat + imat]
+                        << " apres "
+                        << varlp->Uremap2(cCells + 1)[2 * nbmat + imat]
+                        << std::endl;
+            varlp->Uremap2(cCells)[2 * nbmat + imat] = 0.;
+          }
+        }
       });
 }
