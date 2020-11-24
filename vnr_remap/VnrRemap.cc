@@ -8,9 +8,13 @@ using namespace nablalib;
 #include "utils/Utils.h"  // for __RESET__, __BOLD__, __GREEN__
 
 /**
- * Job computeDeltaT called @1.0 in executeTimeLoopN method.
- * In variables: m_node_cellvolume_n, m_speed_velocity_n, deltat_n
- * Out variables: deltat_nplus1
+ *******************************************************************************
+ * \file computeDeltaT()
+ * \brief Calcul du pas de temps
+ *
+ * \param  m_speed_velocity_n, m_node_velocity_n, gt->deltat_n
+ * \return gt->deltat_nplus1
+ *******************************************************************************
  */
 void Vnr::computeDeltaT() noexcept {
   double reduction0;
@@ -51,22 +55,128 @@ void Vnr::computeDeltaT() noexcept {
       KokkosJoiner<double>(reduction0, numeric_limits<double>::max(), &minR0));
   gt->deltat_nplus1 = std::min(reduction0, 1.05 * gt->deltat_n);
 }
-
 /**
- * Job computeTime called @2.0 in executeTimeLoopN method.
- * In variables: deltat_nplus1, t_n
- * Out variables: t_nplus1
+ *******************************************************************************
+ * \file computeTime()
+ * \brief Calcul du temps courant
+ *
+ * \param  gt->t_n, gt->deltat_nplus1
+ * \return gt->t_nplus1
+ *******************************************************************************
  */
 void Vnr::computeTime() noexcept { gt->t_nplus1 = gt->t_n + gt->deltat_nplus1; }
-
 /**
- * Job SetUpTimeLoopN called @4.0 in simulate method.
- * In variables: m_node_cellvolume_n0, m_node_coord_n0, m_speed_velocity_n0,
- * m_cell_coord_n0, deltat_init, m_divu_n0, m_internal_energy_n0, m_pressure_n0,
- * m_density_n0, m_tau_density_n0, m_node_velocity_n0 Out variables:
- * m_node_cellvolume_n, m_node_coord_n, m_speed_velocity_n, m_cell_coord_n,
- * deltat_n, m_divu_n, m_internal_energy_n, m_pressure_n, m_density_n,
- * m_tau_density_n, m_node_velocity_n
+ *******************************************************************************
+ * \file computeDeltaTinit()
+ * \brief Calcul du pas de temps initial
+ *
+ * \param  m_speed_velocity_n0
+ * \return gt->deltat_init
+ *******************************************************************************
+ */
+void Vnr::computeDeltaTinit() noexcept {
+  double reduction0;
+    Kokkos::parallel_reduce(
+        nbCells,
+        KOKKOS_LAMBDA(const size_t& cCells, double& accu) {
+          const Id cId(cCells);
+          double reduction1(0.0);
+          {
+            const auto nodesOfCellC(mesh->getNodesOfCell(cId));
+            const size_t nbNodesOfCellC(nodesOfCellC.size());
+            for (size_t pNodesOfCellC = 0; pNodesOfCellC < nbNodesOfCellC;
+                 pNodesOfCellC++) {
+              reduction1 = sumR0(reduction1, init->m_node_cellvolume_n0(
+                                                 cCells, pNodesOfCellC));
+            }
+          }
+          accu = minR0(accu, 0.1 * std::sqrt(reduction1) /
+                                 init->m_speed_velocity_n0(cCells));
+        },
+        KokkosJoiner<double>(reduction0, numeric_limits<double>::max(),
+                             &minR0));
+    gt->deltat_init = reduction0 * 1.0E-6;
+    
+}
+/**
+ *******************************************************************************
+ * \file computeVariablesGlobalesInit()
+ * \brief Calcul de l'energie totale et la masse initiale du systeme
+ *
+ * \param  m_cell_velocity_n0, m_density_n0, m_euler_volume
+ * \return m_total_energy_0, m_global_masse_0, 
+ *         m_global_total_energy_0, m_total_masse_0
+ *         
+ *******************************************************************************
+ */
+void Vnr::computeVariablesGlobalesInit() noexcept {
+  m_global_total_energy_0 = 0.;
+  Kokkos::parallel_for(
+      "init_m_global_total_var_0", nbCells,
+      KOKKOS_LAMBDA(const int& cCells) {
+        m_total_energy_0(cCells) =
+            (init->m_density_n0(cCells) * m_euler_volume(cCells)) *
+            (init->m_internal_energy_n0(cCells) +
+             0.5 * (init->m_cell_velocity_n0(cCells)[0] *
+                        init->m_cell_velocity_n0(cCells)[0] +
+                    init->m_cell_velocity_n0(cCells)[1] *
+                        init->m_cell_velocity_n0(cCells)[1]));
+        m_total_masse_0(cCells) =
+            (init->m_density_n0(cCells) * m_euler_volume(cCells));
+      });
+  double reductionE(0.), reductionM(0.);
+  {
+    Kokkos::Sum<double> reducerE(reductionE);
+    Kokkos::parallel_reduce("reductionE", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerE.join(x, m_total_energy_0(cCells));
+                            },
+                            reducerE);
+    Kokkos::Sum<double> reducerM(reductionM);
+    Kokkos::parallel_reduce("reductionM", nbCells,
+                            KOKKOS_LAMBDA(const int& cCells, double& x) {
+                              reducerM.join(x, m_total_masse_0(cCells));
+                            },
+                            reducerM);
+  }
+  m_global_total_energy_0 = reductionE;
+  m_global_total_masse_0 = reductionM;
+}
+/**
+ *******************************************************************************
+ * \file computeVariablesSortiesInit()
+ * \brief Calcul des variables initiales pour les sorties
+ *
+ * \param  
+ * \return m_fracvol_env1, m_fracvol_env2, m_fracvol_env3
+ *         m_interface12, m_interface13, m_interface23
+ *         m_x_velocity, m_y_velocity
+ *******************************************************************************
+ */
+void Vnr::computeVariablesSortiesInit() noexcept {  
+  // pour les sorties au temps 0
+  Kokkos::parallel_for("sortie", nbCells, KOKKOS_LAMBDA(const int& cCells) {
+    // pour les sorties au temps 0:
+    m_fracvol_env1(cCells) = init->m_fracvol_env_n0(cCells)[0];
+    m_fracvol_env2(cCells) = init->m_fracvol_env_n0(cCells)[1];
+    m_fracvol_env3(cCells) = init->m_fracvol_env_n0(cCells)[2];
+    m_interface12(cCells) = m_fracvol_env1(cCells) * m_fracvol_env2(cCells);
+    m_interface13(cCells) = m_fracvol_env1(cCells) * m_fracvol_env3(cCells);
+    m_interface23(cCells) = m_fracvol_env2(cCells) * m_fracvol_env3(cCells);
+  });
+  Kokkos::parallel_for("sortie", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
+    m_x_velocity(pNodes) = init->m_node_velocity_n0(pNodes)[0];
+    m_y_velocity(pNodes) = init->m_node_velocity_n0(pNodes)[1];
+  });
+}
+/**
+ *******************************************************************************
+ * \file setUpTimeLoopN()
+ * \brief Initialisation de la boucle en temps
+ *
+ * \param  init->...
+ * \return m_...
+ *******************************************************************************
  */
 void Vnr::setUpTimeLoopN() noexcept {
   deep_copy(m_node_coord_n, init->m_node_coord_n0);
@@ -90,117 +200,15 @@ void Vnr::setUpTimeLoopN() noexcept {
   deep_copy(m_divu_n, init->m_divu_n0);
   deep_copy(m_speed_velocity_n, init->m_speed_velocity_n0);
   deep_copy(m_speed_velocity_env_n, init->m_speed_velocity_env_n0);
-
-  // if (test->Nom == test->SodCaseX || test->Nom == test->SodCaseY ||
-  //     test->Nom == test->BiSodCaseX || test->Nom == test->BiSodCaseY) {
-  //   // const ℝ δt_init = 1.0e-4;
-  //   gt->deltat_init = 1.0e-4;
-  //   gt->deltat_n = gt->deltat_init;
-  // } else if (test->Nom == test->BiShockBubble) {
-  //   gt->deltat_init = 1.e-7;
-  //   gt->deltat_n = 1.0e-7;
-  // } else if (test->Nom == test->SedovTestCase ||
-  //            test->Nom == test->BiSedovTestCase) {
-  //   // const ℝ δt_init = 1.0e-4;
-  //   gt->deltat_init = 1.0e-4;
-  //   gt->deltat_n = 1.0e-4;
-  // } else if (test->Nom == test->NohTestCase ||
-  //            test->Nom == test->BiNohTestCase) {
-  //   // const ℝ δt_init = 1.0e-4;
-  //   gt->deltat_init = 1.0e-4;
-  //   gt->deltat_n = 1.0e-4;
-  // } else if (test->Nom == test->TriplePoint ||
-  //            test->Nom == test->BiTriplePoint) {
-  //   // const ℝ δt_init = 1.0e-5; avec donnees adimensionnées
-  //   gt->deltat_init = 1.0e-5;  // avec pression de 1.e5 / 1.e-8
-  //   gt->deltat_n = 1.0e-5;
-  // }
-  if (options->sansLagrange == 0) {
-    double reduction0;
-    Kokkos::parallel_reduce(
-        nbCells,
-        KOKKOS_LAMBDA(const size_t& cCells, double& accu) {
-          const Id cId(cCells);
-          double reduction1(0.0);
-          {
-            const auto nodesOfCellC(mesh->getNodesOfCell(cId));
-            const size_t nbNodesOfCellC(nodesOfCellC.size());
-            for (size_t pNodesOfCellC = 0; pNodesOfCellC < nbNodesOfCellC;
-                 pNodesOfCellC++) {
-              reduction1 = sumR0(reduction1, init->m_node_cellvolume_n0(
-                                                 cCells, pNodesOfCellC));
-            }
-          }
-          accu = minR0(accu, 0.1 * std::sqrt(reduction1) /
-                                 init->m_speed_velocity_n0(cCells));
-        },
-        KokkosJoiner<double>(reduction0, numeric_limits<double>::max(),
-                             &minR0));
-    gt->deltat_init = reduction0 * 1.0E-6;
-  }
-  // gt->deltat_init dans le jeu de donnees si options->sansLagrange==1
-  // pour la suite du calcul
+  // pas de temps
   gt->deltat_n = gt->deltat_init;
-  // *******************************************************************
-  m_global_total_energy_0 = 0.;
-  Kokkos::parallel_for(
-      "init_m_global_total_energy_0", nbCells,
-      KOKKOS_LAMBDA(const int& cCells) {
-        m_total_energy_0(cCells) =
-            (init->m_density_n0(cCells) * m_euler_volume(cCells)) *
-            (init->m_internal_energy_n0(cCells) +
-             0.5 * (init->m_cell_velocity_n0(cCells)[0] *
-                        init->m_cell_velocity_n0(cCells)[0] +
-                    init->m_cell_velocity_n0(cCells)[1] *
-                        init->m_cell_velocity_n0(cCells)[1]));
-        m_global_masse_0(cCells) =
-            (init->m_density_n0(cCells) * m_euler_volume(cCells));
-      });
-  double reductionE(0.), reductionM(0.);
-  {
-    Kokkos::Sum<double> reducerE(reductionE);
-    Kokkos::parallel_reduce("reductionE", nbCells,
-                            KOKKOS_LAMBDA(const int& cCells, double& x) {
-                              reducerE.join(x, m_total_energy_0(cCells));
-                            },
-                            reducerE);
-    Kokkos::Sum<double> reducerM(reductionM);
-    Kokkos::parallel_reduce("reductionM", nbCells,
-                            KOKKOS_LAMBDA(const int& cCells, double& x) {
-                              reducerM.join(x, m_global_masse_0(cCells));
-                            },
-                            reducerM);
-  }
-  m_global_total_energy_0 = reductionE;
-  m_total_masse_0 = reductionM;
-  // pour les sorties au temps 0
-  Kokkos::parallel_for("sortie", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-    // pour les sorties au temps 0:
-    m_fracvol_env1(cCells) = init->m_fracvol_env_n0(cCells)[0];
-    m_fracvol_env2(cCells) = init->m_fracvol_env_n0(cCells)[1];
-    m_fracvol_env3(cCells) = init->m_fracvol_env_n0(cCells)[2];
-    m_interface12(cCells) = m_fracvol_env1(cCells) * m_fracvol_env2(cCells);
-    m_interface13(cCells) = m_fracvol_env1(cCells) * m_fracvol_env3(cCells);
-    m_interface23(cCells) = m_fracvol_env2(cCells) * m_fracvol_env3(cCells);
-  });
-  Kokkos::parallel_for("sortie", nbNodes, KOKKOS_LAMBDA(const int& pNodes) {
-    m_x_velocity(pNodes) = init->m_node_velocity_n0(pNodes)[0];
-    m_y_velocity(pNodes) = init->m_node_velocity_n0(pNodes)[1];
-  });
 }
-
 /**
- * Job ExecuteTimeLoopN called @5.0 in simulate method.
- * In variables: C, m_pseudo_viscosity_nplus1, m_node_cellvolume_n,
- * m_node_cellvolume_nplus1, m_node_coord_n, m_node_coord_nplus1,
- * m_speed_velocity_n, m_cell_mass, m_cell_coord_nplus1, deltat_n,
- * deltat_nplus1, m_divu_n, m_internal_energy_n, m_internal_energy_nplus1,
- * gamma, m, m_pressure_n, m_density_n, m_density_nplus1, t_n, m_tau_density_n,
- * m_tau_density_nplus1, m_node_velocity_n, m_node_velocity_nplus1 Out
- * variables: C, m_pseudo_viscosity_nplus1, m_node_cellvolume_nplus1, V,
- * m_node_coord_nplus1, m_speed_velocity_nplus1, deltat_nplus1, m_divu_nplus1,
- * m_internal_energy_nplus1, m_pressure_nplus1, m_density_nplus1, t_nplus1,
- * m_tau_density_nplus1, m_node_velocity_nplus1
+ *******************************************************************************
+ * \file executeTimeLoopN()
+ * \brief Execution de la boucle en temps
+ *
+ *******************************************************************************
  */
 void Vnr::executeTimeLoopN() noexcept {
   n = 0;
@@ -216,24 +224,24 @@ void Vnr::executeTimeLoopN() noexcept {
                 << setw(16) << gt->t_n << __RESET__;
     
     if (options->sansLagrange == 0) {
-      computeCornerNormal();  // @1.0
-      computeDeltaT();        // @1.0
-      computeNodeVolume();    // @1.0
+      computeCornerNormal(); 
+      computeDeltaT();        
+      computeNodeVolume();    
     } else {
       gt->deltat_nplus1 = gt->deltat_n;
     }
-    computeTime();    // @2.0
-    dumpVariables();  // @2.0
+    computeTime();    
+    dumpVariables();  
     
     if (options->sansLagrange == 0) {
-      updateVelocity();                    // @2.0
-      updateNodeBoundaryConditions();  // @2.0    
+      updateVelocity();                    
+      updateNodeBoundaryConditions();      
     } 
 
-    updatePosition();  // @3.0
+    updatePosition(); 
     updateCellPos();
-    computeSubVol();  // @4.0
-    updateRho();      // @5.0
+    computeSubVol();  
+    updateRho();      
 
     if (options->sansLagrange == 0) {
       computeTau();                  // @6.0
@@ -264,8 +272,7 @@ void Vnr::executeTimeLoopN() noexcept {
       remapVariables();
       if (options->sansLagrange == 1) {
 	// les cas d'advection doivent etre à vitesses constantes ? donc non
-	// projetees ? référence des cas d'advection à modifier
-	//deep_copy(m_node_velocity_nplus1, m_node_velocity_n);
+	// projetees 
 	updateVelocityWithoutLagrange();
       }
       computeNodeMass();         // avec la masse des mailles recalculée dans
@@ -273,12 +280,11 @@ void Vnr::executeTimeLoopN() noexcept {
       computeEOS();              // rappel EOS apres projection
       computePressionMoyenne();  // rappel Pression moyenne apres projection
     }
-
+    computeVariablesGlobalesT();
     // Evaluate loop condition with variables at time n
     continueLoop =
         (n + 1 < gt->max_time_iterations && gt->t_nplus1 < gt->final_time);
 
-    // if (gt->t_nplus1 > 0.05) limiteurs->projectionAvecPlateauPente = 1;
     if (continueLoop) {
       // Switch variables to prepare next iteration
       std::swap(varlp->x_then_y_nplus1, varlp->x_then_y_n);
@@ -335,7 +341,13 @@ void Vnr::executeTimeLoopN() noexcept {
   // force a last output at the end
   dumpVariables();
 }
-
+/**
+ *******************************************************************************
+ * \file dumpVariables()
+ * \brief Ecriture des sorties
+ *
+ *******************************************************************************
+ */
 void Vnr::dumpVariables() noexcept {
   nbCalls++;
   if (!writer.isDisabled() &&
@@ -358,8 +370,10 @@ void Vnr::dumpVariables() noexcept {
 	cellVariables.insert(pair<string, double*>("interface12", m_interface12.data()));
     }
     if (options->nbmat > 2 && options->AvecProjection == 1) {
-      if (so->fraction_volumique)
+      if (so->fraction_volumique) {
 	cellVariables.insert(pair<string, double*>("fracvol2", m_fracvol_env2.data()));
+	cellVariables.insert(pair<string, double*>("fracvol3", m_fracvol_env3.data()));
+      }
       if (so->interface)
 	cellVariables.insert(pair<string, double*>("interface23", m_interface23.data()));
 	cellVariables.insert(pair<string, double*>("interface13", m_interface13.data()));
@@ -377,7 +391,13 @@ void Vnr::dumpVariables() noexcept {
     cpu_timer.start();
   }
 }
-
+/**
+ *******************************************************************************
+ * \file simulate()
+ * \brief programme principale de lancement de la simulation
+ *
+ *******************************************************************************
+ */
 void Vnr::simulate() {
   std::cout << "\n"
             << __BLUE_BKG__ << __YELLOW__ << __BOLD__ << "\tStarting Vnr ..."
@@ -406,10 +426,6 @@ void Vnr::simulate() {
               << std::endl;
   }
 
-  // std::cout << "[" << __GREEN__ << "KOKKOS" << __RESET__ << "]    " <<
-  // __BOLD__ << (is_same<MyLayout,Kokkos::LayoutLeft>::value?"Left":"Right")"
-  // << __RESET__ << " layout" << std::endl;
-
   if (!writer.isDisabled())
     std::cout << "[" << __GREEN__ << "OUTPUT" << __RESET__
               << "]    VTK files stored in " << __BOLD__
@@ -420,16 +436,24 @@ void Vnr::simulate() {
               << __BOLD__ << "Disabled" << __RESET__ << std::endl;
 
   init->initBoundaryConditions();
-  init->initCellPos();  // @1.0
-  init->initVar();      // @2.0
-  init->initSubVol();   // @2.0
+  init->initCellPos();  
+  init->initVar();      
+  init->initSubVol();   
   init->initMeshGeometryForFaces();
-  remap->FacesOfNode();  // pour la conectivité Noeud-face
-  if (options->sansLagrange == 0) init->initPseudo();  // @3.0
-  setUpTimeLoopN();                                    // @4.0
-  computeCellMass();                                   // @3.0
-  computeNodeMass();                                   // @4.0
-  executeTimeLoopN();                                  // @5.0
+  remap->FacesOfNode();
+  
+  if (options->sansLagrange == 0) {
+    init->initPseudo();  
+    computeDeltaTinit();
+    computeVariablesGlobalesInit();
+  }
+  
+  computeVariablesSortiesInit();
+
+  setUpTimeLoopN();                                    
+  computeCellMass();                                   
+  computeNodeMass();                                   
+  executeTimeLoopN();                                  
 
   std::cout << __YELLOW__ << "\n\tDone ! Took " << __MAGENTA__ << __BOLD__
             << global_timer.print() << __RESET__ << std::endl;

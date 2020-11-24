@@ -13,7 +13,23 @@
 #include "types/MathFunctions.h"   // for dot
 #include "types/MultiArray.h"      // for operator<<
 #include "utils/Utils.h"           // for indexOf
-
+/**
+ *******************************************************************************
+ * \file computeDualUremap2()
+ * \brief phase de projection duale 
+ *   etape 2 - horizontale et verticale suivant le cas
+ *   calcul des flux de masses duales a partir des flux de masses primales 
+ *   selon 3 methodes differentes (A1, A2, PB)  
+ *           getRightAndLeftFluxMasse...
+ *     ou    getTopAndBottomFluxMasse...
+ *   reconstruction de la vitesse a l'ordre 1 ou 2 
+ *           getLeftUpwindVelocity, getRightUpwindVelocity
+ *     ou    getBottomUpwindVelocity, getTopUpwindVelocity
+ *
+ * \param  UDualremap1
+ * \return varlp->UDualremap2
+ *******************************************************************************
+ */
 void Remap::computeDualUremap2() noexcept {
   // calcul des flux de masses partielles
   if (varlp->x_then_y_n) {
@@ -99,11 +115,6 @@ void Remap::computeDualUremap2() noexcept {
       varlp->UDualremap2(pNode)[2] =
           UDualremap1(pNode)[2] + LeftFluxMasse(pNode) - RightFluxMasse(pNode);
 
-      // if (pNode == 300 || pNode == 301 || pNode == 302) {
-      //   std::cout << " H2 pNode " <<  pNode << " U1 " <<
-      //   UDualremap1(pNode)[2]
-      // 	    << " UDualremap2 " <<  varlp->UDualremap2(pNode)[2] << endl;
-      // }
       if (options->projectionOrder >= 1) {
         // recherche de la vitesse du decentrement upwind
         // Rightvitesse = vitesse(pNode) si RightFluxMasse(pNode) > 0 et

@@ -7,14 +7,20 @@ using namespace nablalib;
 #include "utils/Utils.h"          // for Indexof
 
 /**
- * Job computeFacedeltaxLagrange called @7.0 in executeTimeLoopN method.
- * In variables: XcLagrange, faceNormal
- * Out variables: deltaxLagrange
+ *******************************************************************************
+ * \file computeFaceQuantitesForRemap()
+ * \brief Calcul de quantites aux faces pour la projection : 
+ *    DxLagrange, du milieu, de la longueur des faces et de leur vitesse normale
+ *
+ * \param  varlp->XcLagrange, varlp->XLagrange, varlp->faceNormal
+ *         m_node_velocity_nplus1
+ * \return varlp->deltaxLagrange, varlp->XfLagrange, varlp->faceLengthLagrange, 
+ *         varlp->faceNormalVelocity
+ *******************************************************************************
  */
 void Vnr::computeFaceQuantitesForRemap() noexcept {
   auto Innerfaces(mesh->getInnerFaces());
   int nbInnerFaces(mesh->getNbInnerFaces());
-  // auto faces(mesh->getFaces());
   Kokkos::parallel_for(
       "computeFacedeltaxLagrange", nbInnerFaces,
       KOKKOS_LAMBDA(const int& fFaces) {
@@ -62,6 +68,15 @@ void Vnr::computeFaceQuantitesForRemap() noexcept {
             dot((0.5 * reduction5), varlp->faceNormal(fFaces));
       });
 }
+/**
+ *******************************************************************************
+ * \file computeCellQuantitesForRemap()
+ * \brief Calcul du centre des mailles pour la projection
+ *
+ * \param  varlp->XLagrange
+ * \return varlp->XcLagrange         
+ *******************************************************************************
+ */
 void Vnr::computeCellQuantitesForRemap() noexcept {
   Kokkos::parallel_for(
       "computeLagrangeVolumeAndCenterOfGravity", nbCells,
@@ -89,9 +104,40 @@ void Vnr::computeCellQuantitesForRemap() noexcept {
       });
 }
 /**
- * Job computeVariablesForRemap called in executeTimeLoopN method.
- * In variables: m_internal_energy_nplus1, m_density_nplus1,
- * Out variables: c, p
+ *******************************************************************************
+ * \file computeVariablesForRemap()
+ * \brief Remplissage des variables de la projection et de la projection duale
+ *         varlp->ULagrange (variables aux mailles) 
+ *                           de 0 à nbmat-1 : volume partiel, 
+ *                           de nbmat à 2*nbmat-1 : masse partielle
+ *                           de 2*nbmat à 3*nbmat-1 : energie partielle
+ *                           de 3*nbmat à 3*nbmat+1 : quantite de mouvement 
+ *                           3*nbmat+2 : enegie cinetique
+ *                           3*nbmat+3 : pseudo-viscosite * volume
+ * 
+ *         varlp->UDualLagrange (variables aux noeuds) 
+ *                           0 : masse
+ *                           1 à 2 : quantite de mouvement
+ *                           3 : energie cinetique
+ * 
+ *  Pour l'option projection avec limiteurs pente-borne
+ *
+ *         varlp->Phi (variables aux mailles)
+ *                           de 0 à nbmat-1 : fraction volumique
+ *                           de nbmat à 2*nbmat-1 : densite partielle
+ *                           de 2*nbmat à 3*nbmat-1 : energie specifique partielle
+ *                           de 3*nbmat à 3*nbmat+1 : vitesse 
+ *                           3*nbmat+2 : enegie cinetique specifique
+ *                           3*nbmat+3 : pseudo-viscosite
+ *
+ *         varlp->DualPhi (variables aux noeuds) 
+ *                           0 : densite moyenne
+ *                           1 à 2 : vitesse
+ *                           3 : energie cinetique specifique
+ * \param m_fracvol_env, varlp->vLagrange, m_mass_fraction_env, m_density_nplus1
+ *        m_internal_energy_nplus1, 
+ * \return varlp->ULagrange, varlp->UDualLagrange, varlp->Phi, varlp->DualPhi
+ *******************************************************************************
  */
 void Vnr::computeVariablesForRemap() noexcept {
   Kokkos::parallel_for(
@@ -112,12 +158,6 @@ void Vnr::computeVariablesForRemap() noexcept {
               m_mass_fraction_env(cCells)[imat] * varlp->vLagrange(cCells) *
               m_density_nplus1(cCells) * m_internal_energy_nplus1(cCells);
         }
-        // les vitesses et énergies cinétiques am_x_velocity cCells
-        // correspondent à  varlp->ULagrange(cCells)[3 * nbmat + 0] pour VitX à
-        // varlp->ULagrange(cCells)[3 * nbmat + 1] pour VitY à
-        // varlp->ULagrange(cCells)[3 * nbmat + 2] pour Ec n'existe pas en VnR
-        // --> tableau vide Ils sont am_x_velocity noeuds voir à la fin de la
-        // routine
         varlp->ULagrange(cCells)[3 * nbmat + 0] = 0.;
         varlp->ULagrange(cCells)[3 * nbmat + 1] = 0.;
         varlp->ULagrange(cCells)[3 * nbmat + 2] = 0.;
@@ -127,13 +167,6 @@ void Vnr::computeVariablesForRemap() noexcept {
             m_pseudo_viscosity_nplus1(cCells) * varlp->vLagrange(cCells);
 
         if (limiteurs->projectionAvecPlateauPente == 1) {
-          // option ou on ne regarde pas la variation de rho, V et e
-          // phi = (f1, f2, ..., rho1, rho2, ... e1, e2, ... Vx, Vy,
-          // ce qui permet d'ecrire le flm_x_velocity telque
-          // Flm_x_velocity = (dv1 = f1dv, dv2=f2*dv, dm1=rho1*df1,
-          // dm2=rho2*df2, d(m1e1) = e1*dm1,  d(m2e2) = e2*dm2 d(mV) =
-          // V*(dm1+dm2) dans computeFlm_x_velocityPP
-
           double somme_volume = 0.;
           for (int imat = 0; imat < nbmat; imat++) {
             somme_volume += varlp->ULagrange(cCells)[imat];
@@ -174,6 +207,8 @@ void Vnr::computeVariablesForRemap() noexcept {
         }
         varlp->rLagrange(cCells) = m_density_nplus1(cCells);
       });
+  
+  // variables duales
   Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
     // Position fin de phase Lagrange
     varlp->XLagrange(pNodes) = m_node_coord_nplus1(pNodes);
@@ -202,12 +237,5 @@ void Vnr::computeVariablesForRemap() noexcept {
                                        m_node_velocity_nplus1(pNodes)[0] +
                                    m_node_velocity_nplus1(pNodes)[1] *
                                        m_node_velocity_nplus1(pNodes)[1]);
-
-    // if ((pNodes == 600) || (pNodes == 601) || (pNodes == 602))
-    //    std::cout << " pNodes " <<  pNodes << " sortie Lagrange "
-    //  	    << varlp->UDualLagrange(pNodes)[0]
-    //  	    << "  " << varlp->UDualLagrange(pNodes)[1]
-    // 	     << "  " << varlp->UDualLagrange(pNodes)[2]
-    // 	     << " vit " << m_node_velocity_nplus1(pNodes) << std::endl;
   });
 }

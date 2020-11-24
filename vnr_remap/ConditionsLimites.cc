@@ -7,7 +7,13 @@
 #include "../includes/Freefunctions.h"
 
 /**
- * Job updateNodeBoundaryConditions 
+ *******************************************************************************
+ * \file updateNodeBoundaryConditions()
+ * \brief Mise à jour des conditions aux limites des valeurs aux noeuds du maillage
+ *
+ * \param  ConditionsLimites  cdl
+ * \return m_node_velocity_nplus1
+ *******************************************************************************
  */
 void Vnr::updateNodeBoundaryConditions() noexcept {
   const double dt(0.5 * (gt->deltat_nplus1 + gt->deltat_n));
@@ -183,6 +189,16 @@ void Vnr::updateNodeBoundaryConditions() noexcept {
           m_node_velocity_nplus1(pNodes) = cdl->rightBCValue;
       });
 }
+/**
+ *******************************************************************************
+ * \file updateCellBoundaryConditions()
+ * \brief Mise à jour des conditions aux limites des valeurs aux mailles du maillage
+ *
+ * \param  ConditionsLimites  cdl
+ * \return m_density_nplus1, m_internal_energy_nplus1, 
+ *         m_density_env_nplus1, m_internal_energy_env_nplus1
+ *******************************************************************************
+ */
 void Vnr::updateCellBoundaryConditions() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCell) {
     if (cdl->rightCellBC == cdl->periodic) {

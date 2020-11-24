@@ -14,9 +14,15 @@
 #include "utils/Utils.h"           // for indexOf
 
 /**
- * Job computeGradPhiFace2 called @12.0 in executeTimeLoopN method.
- * In variables: Uremap1, deltaxLagrange, projectionOrder, vLagrange,
- * varlp->x_then_y_n Out variables: gradPhiFace2
+ *******************************************************************************
+ * \file computeGradPhiFace2()
+ * \brief phase 2 de projection : premiere etapes
+ *  calcul des gradients aux faces verticales ou horizontales suivant le cas
+ *  calcul des longueurs des faces verticales ou horizontales suivant le cas
+ *  calcul des largeurs de cellule dans le sens verticales ou horizontales suivant le cas
+ * \param  
+ * \return gradPhiFace2, LfLagrange, HvLagrange
+ *******************************************************************************
  */
 void Remap::computeGradPhiFace2() noexcept {
   if (options->projectionOrder > 1) {
@@ -117,11 +123,16 @@ void Remap::computeGradPhiFace2() noexcept {
     }
   }
 }
-
 /**
- * Job computeGradPhi2 called @13.0 in executeTimeLoopN method.
- * In variables: gradPhiFace2, projectionLimiterId, projectionOrder,
- * varlp->x_then_y_n Out variables: gradPhi2
+ *******************************************************************************
+ * \file computeGradPhi2()
+ * \brief phase 2 de projection : seconde etape
+ *        calcul du gradient aux mailles limites 
+ *        calcul des flux pente-borne arriere ou avant aux mailles 
+ *                 à partir du gradient precedent
+ * \param  
+ * \return gradPhi2, deltaPhiFaceAr, deltaPhiFaceAv
+ *******************************************************************************
  */
 void Remap::computeGradPhi2() noexcept {
   if (options->projectionOrder > 1) {
@@ -337,12 +348,16 @@ void Remap::computeGradPhi2() noexcept {
     }
   }
 }
-
 /**
- * Job computeUpwindFaceQuantitiesForProjection2 called @14.0 in
- * executeTimeLoopN method. In variables: Uremap1, XcLagrange, Xf,
- * deltaxLagrange, faceNormal, faceNormalVelocity, gradPhi2, vLagrange,
- * varlp->x_then_y_n Out variables: phiFace2
+ *******************************************************************************
+ * \file computeUpwindFaceQuantitiesForProjection2()
+ * \brief  phase 2 de projection : troisieme etape
+ *        calcul de phiFace1 
+ *     qui contient la valeur reconstruite à l'ordre 1, 2 ou 3 des variables projetees
+ *     qui contient les flux des variables projetees avec l'option pente-borne 
+ * \param  
+ * \return phiFace2
+ *******************************************************************************
  */
 void Remap::computeUpwindFaceQuantitiesForProjection2() noexcept {
   if (varlp->x_then_y_n) {
@@ -466,11 +481,16 @@ void Remap::computeUpwindFaceQuantitiesForProjection2() noexcept {
         });
   }
 }
-
 /**
- * Job computeUremap2 called @15.0 in executeTimeLoopN method.
- * In variables: Uremap1, deltat_n, faceLength, faceNormal, faceNormalVelocity,
- * outerFaceNormal, phiFace2, varlp->x_then_y_n Out variables: Uremap2
+ *******************************************************************************
+ * \file computeUremap2()
+ * \brief phase 2 de projection : etape finale
+ *        calcul de la variable Uremap2 par ajout ou retrait des flux 
+          Mises à jour de l'indicateur mailles mixtes
+          calcul de la valeur de Phi issu de Uremap1
+ * \param  
+ * \return varlp->Uremap2, varlp->mixte, varlp->pure, varlp->Phi
+ *******************************************************************************
  */
 void Remap::computeUremap2() noexcept {
   RealArray1D<dim> exy = xThenYToDirection(!(varlp->x_then_y_n));

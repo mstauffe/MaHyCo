@@ -6,7 +6,16 @@
 #include "Remap.h"                // for Remap, Remap::Options
 #include "types/MathFunctions.h"  // for min, max
 #include "utils/Utils.h"          // for indexOf
-
+/**
+ *******************************************************************************
+ * \file getRightAndLeftFluxMasse1
+ * \brief calcul des flux de masse sur les faces virtuelles 
+ *       gauche et droite de la maille duale 
+ *       pour l'etape 1 de la projection
+ * \param  FluxFace1 (flux de masse aux mailles)
+ * \return RightFluxMasse, LeftFluxMasse
+ *******************************************************************************
+ */
 void Remap::getRightAndLeftFluxMasse1(const int nbmat, const size_t pNodes) {
   // construction des mailles et faces associées pour recuperer les
   // flux de masses aux faces à gauche et à droite
@@ -46,22 +55,7 @@ void Remap::getRightAndLeftFluxMasse1(const int nbmat, const size_t pNodes) {
            FluxFace1(cbCell2, flOfcbCell2)[nbmat + imat] *
                varlp->outerFaceNormal(cbCell2, flOfcbCell2)[0]);
     }
-    // if (pNodes == 300 || pNodes == 301 || pNodes == 302) {
-    // std::cout << " H1 pNode " <<  pNodes << " left " << LeftFluxMasse(pNodes)
-    // 	      << " FluxFace1(cfCell1, fOfcfCell1)[nbmat+imat] " <<
-    // FluxFace1(cfCell1, fOfcfCell1)[nbmat+imat]
-    // 	      << " FluxFace1(cfCell1, frOfcfCell1)[nbmat+imat] " <<
-    // FluxFace1(cfCell1, frOfcfCell1)[nbmat+imat]
-    // 	      << std::endl;
-    // std::cout << " H1 pNode " <<  pNodes << " FluxFace1(cfCell2,
-    // fOfcfCell2)[nbmat+imat] "
-    // 	      << FluxFace1(cfCell2, fOfcfCell2)[nbmat+imat]
-    // 	      << std::endl;
-    // std::cout << " H1 pNode " <<  pNodes << " FluxFace1(cfCell2,
-    // frOfcfCell2)[nbmat+imat] "
-    // 	      << FluxFace1(cfCell2, frOfcfCell2)[nbmat+imat]
-    // 	      << std::endl;
-    // }
+
     if (nbfaces != 0) {
       RightFluxMassePartielle(pNodes)[imat] /= nbfaces;
       LeftFluxMassePartielle(pNodes)[imat] /= nbfaces;
@@ -71,6 +65,16 @@ void Remap::getRightAndLeftFluxMasse1(const int nbmat, const size_t pNodes) {
     LeftFluxMasse(pNodes) += LeftFluxMassePartielle(pNodes)[imat];
   }
 }
+/**
+ *******************************************************************************
+ * \file getRightAndLeftFluxMasse2
+ * \brief calcul des flux de masse sur les faces virtuelles 
+ *       gauche et droite de la maille duale 
+ *       pour l'etape 2 de la projection
+ * \param  FluxFace2 (flux de masse aux mailles)
+ * \return RightFluxMasse, LeftFluxMasse
+ *******************************************************************************
+ */
 void Remap::getRightAndLeftFluxMasse2(const int nbmat, const size_t pNodes) {
   // construction des mailles et faces associées pour recuperer les
   // flux de masses aux faces à gauche et à droite
@@ -110,22 +114,6 @@ void Remap::getRightAndLeftFluxMasse2(const int nbmat, const size_t pNodes) {
            FluxFace2(cbCell2, flOfcbCell2)[nbmat + imat] *
                varlp->outerFaceNormal(cbCell2, flOfcbCell2)[0]);
     }
-    // if (pNodes == 300 || pNodes == 301 || pNodes == 302) {
-    // std::cout << " H2 pNode " <<  pNodes << " left " << LeftFluxMasse(pNodes)
-    // 	      << " FluxFace2(cfCell1, fOfcfCell1)[nbmat+imat] " <<
-    // FluxFace2(cfCell1, fOfcfCell1)[nbmat+imat]
-    // 	      << " FluxFace2(cfCell1, frOfcfCell1)[nbmat+imat] " <<
-    // FluxFace2(cfCell1, frOfcfCell1)[nbmat+imat]
-    // 	      << std::endl;
-    // std::cout << " H1 pNode " <<  pNodes << " FluxFace2(cfCell2,
-    // fOfcfCell2)[nbmat+imat] "
-    // 	      << FluxFace2(cfCell2, fOfcfCell2)[nbmat+imat]
-    // 	      << std::endl;
-    // std::cout << " H1 pNode " <<  pNodes << " FluxFace2(cfCell2,
-    // frOfcfCell2)[nbmat+imat] "
-    // 	      << FluxFace2(cfCell2, frOfcfCell2)[nbmat+imat]
-    // 	      << std::endl;
-    // }
     if (nbfaces != 0) {
       RightFluxMassePartielle(pNodes)[imat] /= nbfaces;
       LeftFluxMassePartielle(pNodes)[imat] /= nbfaces;
@@ -135,7 +123,16 @@ void Remap::getRightAndLeftFluxMasse2(const int nbmat, const size_t pNodes) {
     LeftFluxMasse(pNodes) += LeftFluxMassePartielle(pNodes)[imat];
   }
 }
-
+/**
+ *******************************************************************************
+ * \file getTopAndBottomFluxMasse1
+ * \brief calcul des flux de masse sur les faces virtuelles 
+ *       haute et basse de la maille duale 
+ *       pour l'etape 1 de la projection
+ * \param  FluxFace1 (flux de masse aux mailles)
+ * \return TopFluxMasse, BottomFluxMasse
+ *******************************************************************************
+ */
 void Remap::getTopAndBottomFluxMasse1(const int nbmat, const size_t pNodes) {
   // construction des mailles et faces associées pour recuperer les
   // flux de masses aux faces dessus et dessous
@@ -184,6 +181,16 @@ void Remap::getTopAndBottomFluxMasse1(const int nbmat, const size_t pNodes) {
     BottomFluxMasse(pNodes) += BottomFluxMassePartielle(pNodes)[imat];
   }
 }
+/**
+ *******************************************************************************
+ * \file getTopAndBottomFluxMasse2
+ * \brief calcul des flux de masse sur les faces virtuelles 
+ *       haute et basse de la maille duale 
+ *       pour l'etape 2 de la projection
+ * \param  FluxFace2 (flux de masse aux mailles)
+ * \return TopFluxMasse, BottomFluxMasse
+ *******************************************************************************
+ */
 void Remap::getTopAndBottomFluxMasse2(const int nbmat, const size_t pNodes) {
   // construction des mailles et faces associées pour recuperer les
   // flux de masses aux faces dessus et dessous

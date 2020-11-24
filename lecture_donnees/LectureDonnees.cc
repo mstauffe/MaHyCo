@@ -4,9 +4,20 @@
 #include <iostream>  // for operator<<, endl, basic_o...
 #include "LectureDonnees.h"
 /**
- * Job LectureDonnees called by main.
- * In variables: fichier
- * Out variables: Options
+ *******************************************************************************
+ * \file LectureDonnees(..)
+ * \brief Lecture du fichier de donnees
+ *
+ * \param   Fichier donnees en argument
+ * \return SchemaLagrange* s : schéma du cas
+ *         Options* o : options du cas
+ *         SortieVariables* so : variables à sortir du cas
+ *         ConstantesMaillages* cstmesh : parametres du maillages
+ *         GestTemps* gt : gestion du temps ou du pas de temps
+ *         Limiteurs* l : limiteurs des projections (pente-borne, superbee...)
+ *         EquationDetat* eos : equations d'etat des matériaux
+ *         Test* test : nom du cas test
+ *******************************************************************************
  */
 void LectureDonneesClass::LectureDonnees(
     string Fichier, schemalagrangelib::SchemaLagrangeClass::SchemaLagrange* s,

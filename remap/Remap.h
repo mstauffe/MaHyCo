@@ -201,7 +201,7 @@ class Remap {
   void getTopAndBottomFluxMassePB2(const int nbmat, const size_t pNodes);
 
   double fluxLimiter(int projectionLimiterId, double r);
-  double fluxLimiterPP(int projectionLimiterId, double gradplus,
+  double fluxLimiterG(int projectionLimiterId, double gradplus,
                        double gradmoins, double y0, double yplus, double ymoins,
                        double h0, double hplus, double hmoins);
   double computeY0(int projectionLimiterId, double y0, double yplus,
@@ -212,7 +212,6 @@ class Remap {
   double computeygyd(double y0, double yplus, double ymoins, double h0,
                      double y0plus, double y0moins, double grady, int type);
   double INTY(double X, double x0, double y0, double x1, double y1);
-  double INT2Y(double X, double x0, double y0, double x1, double y1);
 
   void getTopUpwindVelocity(const size_t TopNode, const size_t pNode,
                             RealArray1D<nbequamax> gradDualPhiT,

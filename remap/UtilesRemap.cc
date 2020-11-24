@@ -5,7 +5,16 @@
 
 #include "Remap.h"                // for Remap, Remap::Options
 #include "types/MathFunctions.h"  // for min, max
-
+/**
+ *******************************************************************************
+ * \file fluxLimiter
+ * \brief retourne le valeur du limiteur demandé par la méthode classique
+ *        qui suppose que les 3 mailles (utilise pour le calcul des gradient) 
+ *        ont la meme largeur
+ * \param  r = gradmoins / gradplus ou gradplus / gradmoins
+ * \return valeur du limiteur demandé 
+ *******************************************************************************
+ */
 double Remap::fluxLimiter(int projectionLimiterId, double r) {
   if (projectionLimiterId == limiteurs->minmod) {
     return MathFunctions::max(0.0, MathFunctions::min(1.0, r));
@@ -21,8 +30,17 @@ double Remap::fluxLimiter(int projectionLimiterId, double r) {
   } else
     return 0.0;  // ordre 1
 }
-
-double Remap::fluxLimiterPP(int projectionLimiterId, double gradplus,
+/**
+ *******************************************************************************
+ * \file fluxLimiterG
+ * \brief retourne le valeur du limiteur demandé par la méthode exacte
+ *        qui ne suppose pas que les 3 mailles (utilise pour le calcul des gradient) 
+ *        ont la meme largeur (h0 != hplus != hmoins)
+ * \param  h0, hplus, hmoins, gradplus, gradmoins
+ * \return valeur du limiteur demandé 
+ *******************************************************************************
+ */
+double Remap::fluxLimiterG(int projectionLimiterId, double gradplus,
                             double gradmoins, double y0, double yplus,
                             double ymoins, double h0, double hplus,
                             double hmoins) {
@@ -58,7 +76,6 @@ double Remap::fluxLimiterPP(int projectionLimiterId, double gradplus,
     double lambdamoins = (h0 / 2. + hmoins) / (h0 + hplus + hmoins);
     grady = lambdamoins * gradplus + lambdaplus * gradmoins;
   }
-
   // limitation simple-pente (formule 10)
   gradMplus = gradplus * (h0 + hplus) / h0;
   gradMmoins = gradmoins * (h0 + hmoins) / h0;
@@ -70,7 +87,16 @@ double Remap::fluxLimiterPP(int projectionLimiterId, double gradplus,
 
   return grady;
 }
-
+/**
+ *******************************************************************************
+ * \file computeY0
+ * \brief calcul des Seuils de monotonie des reconstructions lineraires
+ *  simple-pente pour l'option pente-borne
+ * 
+ * \param  h0, hplus, hmoins, y0, yplus, ymoins
+ * \return y0plus, y0moins
+ *******************************************************************************
+ */
 double Remap::computeY0(int projectionLimiterId, double y0, double yplus,
                         double ymoins, double h0, double hplus, double hmoins,
                         int type) {
@@ -123,7 +149,15 @@ double Remap::computeY0(int projectionLimiterId, double y0, double yplus,
   else
     return 0.0;  // lancer forcement avec type 0 ou 1 mais warning compile
 }
-
+/**
+ *******************************************************************************
+ * \file computexgxd
+ * \brief calcul des absisses des points d'appui de la reconstruction en 3 morceaux
+ * 
+ * \param  h0, hplus, hmoins, y0, yplus, ymoins
+ * \return xg, xd
+ *******************************************************************************
+ */
 double Remap::computexgxd(double y0, double yplus, double ymoins, double h0,
                           double y0plus, double y0moins, int type) {
   // retourne {{xg, xd}}
@@ -143,7 +177,15 @@ double Remap::computexgxd(double y0, double yplus, double ymoins, double h0,
   else
     return 0.0;  // lancer forcement avec type 0 ou 1 mais warning compile
 }
-
+/**
+ *******************************************************************************
+ * \file computeygyd
+ * \brief calcul des ordonnees des points d'appui de la reconstruction en 3 morceaux
+ * 
+ * \param  h0, hplus, hmoins, y0, yplus, ymoins
+ * \return yg, yd
+ *******************************************************************************
+ */
 double Remap::computeygyd(double y0, double yplus, double ymoins, double h0,
                           double y0plus, double y0moins, double grady,
                           int type) {
@@ -164,21 +206,23 @@ double Remap::computeygyd(double y0, double yplus, double ymoins, double h0,
   else
     return 0.0;  // lancer forcement avec type 0 ou 1 mais warning compile
 }
-
+/**
+ *******************************************************************************
+ * \file INTY
+ * \brief calcul de l'integrale de -infini à X de la fonction lineaire   
+ *    1_[x0,x1] ((x1 − x)y0 + (x − x0)y1)/(x1-x0)
+ *    valant :
+ *     y0 + 0.5 δ(y1 − y0)(x1 − x0)δ ou δ = S_[0,1]((X − x0)/(x1 − x0))
+ *     zt S_[0,1](x) = min{max{x, 0}, 1}
+ * \param  X, x0, y0, x1, y1
+ * \return  valeur de l'integral
+ *******************************************************************************
+ */
 double Remap::INTY(double X, double x0, double y0, double x1, double y1) {
-  double flux = 0.;
-  double Xbar = MathFunctions::min(MathFunctions::max(x0, X), x1);
-  // std::cout << " Xbar  " << Xbar << std::endl;
-  if (abs(x1 - x0) > 1.e-14)
-    flux = (y0 + 0.5 * ((Xbar - x0) / (x1 - x0)) * (y1 - y0)) * (Xbar - x0);
-  return flux;
-}
-
-double Remap::INT2Y(double X, double x0, double y0, double x1, double y1) {
   double flux = 0.;
   // std::cout << " x0 " << x0 << std::endl;
   // std::cout << " x1 " << x1 << std::endl;
-  if (abs(x1 - x0) > 1.e-14) {
+  if (abs(x1 - x0) > options->threshold) {
     double eta =
         MathFunctions::min(MathFunctions::max(0., (X - x0) / (x1 - x0)), 1.);
     // std::cout << " eta " << eta << std::endl;
