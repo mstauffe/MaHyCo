@@ -13,16 +13,25 @@ using namespace nablalib;
 int main(int argc, char* argv[]) {
   // initialisation de Kokkos
   Kokkos::initialize(argc, argv);
-  // class utilisable
+  // class utilisables
+  // schema numerique lagrange
   auto scheme = new schemalagrangelib::SchemaLagrangeClass::SchemaLagrange();
+  // options des schemas 
   auto o = new optionschemalib::OptionsSchema::Options();
+  // conditions aux limites
   auto cl = new conditionslimiteslib::ConditionsLimites::Cdl();
+  // limiteurs de la projection
   auto lim = new limiteurslib::LimiteursClass::Limiteurs();
+  // equations d'état
   auto eos = new eoslib::EquationDetat();
+  // cas Test
   auto test = new castestlib::CasTest::Test();
+  // paraemetres du maillage
   auto cstmesh =
       new cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages();
+  // gestion du temps et pas de temps de la simulation
   auto gt = new gesttempslib::GestionTempsClass::GestTemps();
+  // choix des variables a sortir
   auto so = new sortielib::Sortie::SortieVariables();
   string output;
   // Lecture des donnees
@@ -41,29 +50,37 @@ int main(int argc, char* argv[]) {
 
   // appel au schéma Lagrange Eucclhyd + schéma de projection ADI (en option)
   if (scheme->schema == scheme->Eucclhyd) {
+    // variables de projection 
     auto varlp = new variableslagremaplib::VariablesLagRemap(nm);
+    // variables et fonctions de l'initialisation
     auto init = new initlib::Initialisations(o, eos, nm, cstmesh, varlp, cl, test);
+    // variables et fonctions du schema particulaires
     auto part = new particleslib::SchemaParticules(nm, cstmesh, gt, test);
+    // fonctions de la projection 
     auto proj = new Remap(o, cstmesh, gt, cl, lim, nm, varlp);
+    //
     auto c =
       new Eucclhyd(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, init, so, output);
     c->simulate();
     delete varlp;
     delete init;
     delete part;
-    //delete c;
   
   } else if (scheme->schema == scheme->VNR) {
+    // variables de projection 
     auto varlp = new variableslagremaplib::VariablesLagRemap(nm);
+    // variables et fonctions de l'initialisation
     auto init = new initlib::Initialisations(o, eos, nm, cstmesh, varlp, cl, test);
+    // variables et fonctions du schema particulaires
     auto part = new particleslib::SchemaParticules(nm, cstmesh, gt, test);
+    // fonctions de la projection 
     auto proj = new Remap(o, cstmesh, gt, cl, lim, nm, varlp);
+    // 
     auto c = new Vnr(o, cstmesh, gt, test, cl, lim, part, eos, nm, varlp, proj, init, so, output);
     c->simulate();
     delete varlp;
     delete init;
     delete part;
-    //delete c;
   }
   delete o;
   // delete nm;
