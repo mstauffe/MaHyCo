@@ -543,7 +543,7 @@ void Vnr::updateEnergy() noexcept {
 /**
  *******************************************************************************
  * \file updateEnergyForTotalEnergyConservation()
- * \brief Calcul de l'energie interne (seul le cas du gaz parfait est codé)
+ * \brief Calcul des corrections CSTS d'energie interne 
  *
  * \param
  *         m_pseudo_viscosity_env_nplus1, m_pseudo_viscosity_env_n
@@ -585,7 +585,8 @@ void Vnr::updateEnergyForTotalEnergyConservation() noexcept {
  * \brief Calcul de la divergence de la vitesse
  *
  * \param  m_density_nplus1, m_density_n, gt->deltat_nplus1,
- *m_tau_density_nplus1 \return m_divu_nplus1
+ *        m_tau_density_nplus1 
+ * \return m_divu_nplus1
  *******************************************************************************
  */
 void Vnr::computeDivU() noexcept {

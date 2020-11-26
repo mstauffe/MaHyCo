@@ -221,68 +221,98 @@ void Vnr::executeTimeLoopN() noexcept {
                 << setw(16) << gt->t_n << __RESET__;
 
     if (options->sansLagrange == 0) {
+      // calcul des m_cqs_n
       computeCornerNormal();
-      if (scheme->schema == scheme->CSTS) updateVelocitybackward(); // si CSTS
+      // retour a la vitesse en n-1/2 : m_velocity_n
+      if (scheme->schema == scheme->CSTS) updateVelocitybackward();
+      // calcul du volume de chaque noeud du maillage : m_node_cellvolume_n
       computeNodeVolume();
+      // Calcul du pas de temps : gt->deltat_nplus1
       computeDeltaT();
     } else {
       gt->deltat_nplus1 = gt->deltat_n;
     }
+    // Calcul du temps courant : gt->t_nplus1
     computeTime();
+    // Sorties 
     dumpVariables();
 
     if (options->sansLagrange == 0) {
+      // Calcul de la vitesse en n+1/2 : m_velocity_nplus1
       updateVelocity();
+      // Conditions aux limites de vitesses
       updateNodeBoundaryConditions();
     }
-
+    // Calcul des positions en n+1 : m_node_coord_nplus1 
     updatePosition();
+    // Calcul du centre des mailles : m_cell_coord_nplus1
     updateCellPos();
+    // Calcul des sous-volumes aux noeuds : m_node_cellvolume_nplus1
     computeSubVol();
+    // Calcul du volume lagrange et de la densité : m_density_nplus1
     updateRho();
 
     if (options->sansLagrange == 0) {
-      updateCornerNormal();     
-      computeTau();                  
-      computeDivU();                 
-      computeArtificialViscosity();  
+      // Calcul des m_cqs_nplus1
+      updateCornerNormal();
+      // Calcul de la variation du volume specifique
+      computeTau();
+      // Calcul de la divergence de la vitesse : m_divu_nplus1
+      computeDivU();
+      // Calcul de la viscosité artificielle : m_pseudo_viscosity_nplus1
+      computeArtificialViscosity();
+      // Calcul de l'energie interne
       updateEnergy();
+      // Calcul des corrections CSTS d'energie interne
       if (scheme->schema == scheme->CSTS)
 	updateEnergyForTotalEnergyConservation();
-      computeEOS();                  
-      computePressionMoyenne();      
+      // Appel aux differentes équations d'état : m_pressure_env_nplus1
+      computeEOS();
+      // Calcul de la pression moyenne : m_pressure_nplus1
+      computePressionMoyenne();
+      // Calcul de la vitesse de n+1/2 a n+1 : m_node_velocity_nplus1
       if (scheme->schema == scheme->CSTS)
 	updateVelocityforward();  
     } else {
       deep_copy(m_internal_energy_nplus1, m_internal_energy_n);
     }
+    // Calcul des conditions aux limites dans les mailles
     updateCellBoundaryConditions();
 
     if (options->AvecProjection == 1) {
+      // Remplissage des variables de la projection et de la projection duale
       computeVariablesForRemap();
+      // Calcul du centre des mailles pour la projection
       computeCellQuantitesForRemap();
+      // Calcul de quantites aux faces pour la projection
       computeFaceQuantitesForRemap();
+      // phase de projection : premiere direction
       remap->computeGradPhiFace1();
       remap->computeGradPhi1();
       remap->computeUpwindFaceQuantitiesForProjection1();
       remap->computeUremap1();
       remap->computeDualUremap1();
+      // phase de projection : seconde direction
       remap->computeGradPhiFace2();
       remap->computeGradPhi2();
       remap->computeUpwindFaceQuantitiesForProjection2();
       remap->computeUremap2();
       remap->computeDualUremap2();
+      // Calcul des variables aux mailles et aux noeuds qui ont ete projetees
       remapVariables();
       if (options->sansLagrange == 1) {
-        // les cas d'advection doivent etre à vitesses constantes donc non
-        // projetees
+        // les cas d'advection doivent etre à vitesses constantes
         updateVelocityWithoutLagrange();
       }
+      // Calcul de la masse nodale : m_node_mass
       computeNodeMass();         // avec la masse des mailles recalculée dans
                                  // remapVariables()
+      // Appel aux differentes équations d'état : m_pressure_env_nplus1
       computeEOS();              // rappel EOS apres projection
+      // Calcul de la pression moyenne : m_pressure_nplus1
       computePressionMoyenne();  // rappel Pression moyenne apres projection
     }
+    // Calcul de l'energie totale et la masse initiale du systeme
     computeVariablesGlobalesT();
     // Evaluate loop condition with variables at time n
     continueLoop =
