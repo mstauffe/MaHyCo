@@ -224,13 +224,17 @@ void Vnr::updateVelocityWithoutLagrange() noexcept {
   deep_copy(m_node_velocity_nplus1, m_node_velocity_n);
   Kokkos::parallel_for(nbNodes, KOKKOS_LAMBDA(const size_t& pNodes) {
     if (test->Nom == test->RiderVortexTimeReverse ||
-        test->Nom == test->MonoRiderVortexTimeReverse ||
-        test->Nom == test->RiderDeformationTimeReverse ||
-        test->Nom == test->MonoRiderDeformationTimeReverse) {
+        test->Nom == test->MonoRiderVortexTimeReverse ) {
       m_node_velocity_nplus1(pNodes)[0] =
           init->m_node_velocity_n0(pNodes)[0] * cos(Pi * gt->t_nplus1 / 4.);
       m_node_velocity_nplus1(pNodes)[1] =
           init->m_node_velocity_n0(pNodes)[1] * cos(Pi * gt->t_nplus1 / 4.);
+    } else if ( test->Nom == test->RiderDeformationTimeReverse ||
+		test->Nom == test->MonoRiderDeformationTimeReverse) {
+      m_node_velocity_nplus1(pNodes)[0] =
+          init->m_node_velocity_n0(pNodes)[0] * cos(Pi * gt->t_nplus1 / 2.);
+      m_node_velocity_nplus1(pNodes)[1] =
+          init->m_node_velocity_n0(pNodes)[1] * cos(Pi * gt->t_nplus1 / 2.);
     }
   });
 }

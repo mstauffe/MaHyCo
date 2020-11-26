@@ -4,7 +4,17 @@
 #include "Remap.h"  // for Remap, Remap::Opt...
 //#include "types/ArrayOperations.h"
 #include "types/MathFunctions.h"
-
+/**
+ *******************************************************************************
+ * \file computeDualVerticalGradPhi
+ * \brief Calcul du grandient des variables duales verticales
+ *        par appel à computeAndLimitGradPhi
+ *        construction des grandients top et bottom et des largeurs h des 
+ *        mailles duales
+ * \param  pNodes
+ * \return valeur du gradient Vertical dual et limité
+ *******************************************************************************
+ */
 template <size_t d>
 RealArray1D<d> Remap::computeDualVerticalGradPhi(RealArray1D<d> grad_top,
                                                  RealArray1D<d> grad_bottom,
@@ -58,6 +68,17 @@ RealArray1D<d> Remap::computeDualVerticalGradPhi(RealArray1D<d> grad_top,
   //   pNode << " " <<  TopNode << " " << TopTopNode << std::endl;
   return res;
 }
+/**
+ *******************************************************************************
+ * \file computeDualHorizontalGradPhi
+ * \brief Calcul du grandient des variables duales Horizontal
+ *        par appel à computeAndLimitGradPhi
+ *        construction des grandients right et left et des largeurs h des 
+ *        mailles duales
+ * \param  pNodes
+ * \return valeur du gradient Horizontal dual et limité
+ *******************************************************************************
+ */
 template <size_t d>
 RealArray1D<d> Remap::computeDualHorizontalGradPhi(RealArray1D<d> grad_right,
                                                    RealArray1D<d> grad_left,
@@ -107,7 +128,16 @@ RealArray1D<d> Remap::computeDualHorizontalGradPhi(RealArray1D<d> grad_right,
   // std::cout << " Nodes " << pNode << " gradH " << res << std::endl;
   return res;
 }
-
+/**
+ *******************************************************************************
+ * \file computeAndLimitGradPhi
+ * \brief Calcul du grandient des variables données en arguments (phi) à partir
+ *        des valeurs en des mailles amont (phimoins, largeur hmoins) 
+ *        et en aval (phiplus, largeur hplus)  
+ * \param   gradphiplus, gradphimoins, phi, phiplus, phimoins, h0, hplus, hmoins
+ * \return valeur du gradient limité de chaque variables phi
+ *******************************************************************************
+ */
 template <size_t d>
 RealArray1D<d> Remap::computeAndLimitGradPhi(
     int projectionLimiterId, RealArray1D<d> gradphiplus,
@@ -136,7 +166,15 @@ RealArray1D<d> Remap::computeAndLimitGradPhi(
     return res;
   }
 }
-
+/**
+ *******************************************************************************
+ * \file computeVecFluxOrdre3
+ * \brief Calcul des flux d'ordre 3 à partir des valeurs des variables 
+ *  sur 6 mailles mmm,mm,m,p,pp,ppp
+ * \param 
+ * \return flux des variables phi
+ *******************************************************************************
+ */
 template <size_t d>
 RealArray1D<d> Remap::computeVecFluxOrdre3(
     RealArray1D<d> phimmm, RealArray1D<d> phimm, RealArray1D<d> phim,
@@ -151,6 +189,30 @@ RealArray1D<d> Remap::computeVecFluxOrdre3(
   }
   return res;
 }
+/**
+ *******************************************************************************
+ * \file computeFluxPP
+ * \brief Calcul des flux pente-borne à partir des valeurs des variables 
+ *  sur 3 mailles moins, 0, plus
+ *  On integre sur -h0/2 et -h0/2.+partie_positive_v pour le flux à gauche (type 0)
+ *  On integre sur  h0/2.-partie_positive_v et h0/2 pour le flux à droite (type 1)
+ *
+ *  pour les mailles mixtes ou celles à voisinages mixtes 
+ *     on deduit des flux des volumes partiels, les flux des masses partielles
+ *     dm = rho * dv
+ *     on deduit des flux des masses partielles, les flux d'energie et de vitesse
+ *     d(me) = e * (dm)
+ *     rho est soit la valeur dans la maille de la densite 
+ *     soit et une valeur reconstruite a par des flux (option complet)
+ *     e celle dans la maille de l'energie interne
+ *     soit et une valeur reconstruite a par des flux (option complet)
+ *
+ *  On calcule de la meme facon des flux "duales" en integrant
+ *  entre 0 et partie_positive_v pour le flux duale 
+ * \param 
+ * \return flux des variables phi
+ *******************************************************************************
+ */
 template <size_t d>
 void Remap::computeFluxPP(RealArray1D<d> gradphi, RealArray1D<d> phi,
                           RealArray1D<d> phiplus, RealArray1D<d> phimoins,
@@ -329,6 +391,30 @@ void Remap::computeFluxPP(RealArray1D<d> gradphi, RealArray1D<d> phi,
 
   return;
 }
+/**
+ *******************************************************************************
+ * \file computeFluxPPPure
+ * \brief Calcul des flux pente-borne à partir des valeurs des variables 
+ *  sur 3 mailles moins, 0, plus
+ *  utilises pour les mailles pures à voisinages pures, 
+ *  On integre sur -h0/2 et -h0/2.+partie_positive_v pour le flux à gauche (type 0)
+ *  On integre sur  h0/2.-partie_positive_v et h0/2 pour le flux à droite (type 1)
+ *
+ *     on deduit des flux des volumes partiels, les flux des masses partielles
+ *     dm = rho * dv
+ *     on deduit des flux des masses partielles, les flux d'energie et de vitesse
+ *     d(me) = e * (dm)
+ *     rho est soit la valeur dans la maille de la densite 
+ *     soit et une valeur reconstruite a par des flux (option complet)
+ *     e celle dans la maille de l'energie interne
+ *     soit et une valeur reconstruite a par des flux (option complet)
+ *
+ *  On calcule de la meme facon des flux "duales" en integrant
+ *  entre 0 et partie_positive_v pour le flux duale 
+ * \param 
+ * \return Flux, Flux_dual
+ *******************************************************************************
+ */
 template <size_t d>
 void Remap::computeFluxPPPure(RealArray1D<d> gradphi, RealArray1D<d> phi,
                               RealArray1D<d> phiplus, RealArray1D<d> phimoins,
@@ -504,7 +590,14 @@ void Remap::computeFluxPPPure(RealArray1D<d> gradphi, RealArray1D<d> phi,
   if (partie_positive_dual_v == 0.) *pFlux_dual = Uzero;
   return;
 }
-
+/**
+ *******************************************************************************
+ * \file computeUpwindFaceQuantities
+ * \brief Calcul des variables reconstruites pour l'ordre 2 et 3 classiques
+ * \param  
+ * \return valeur de phi 
+ *******************************************************************************
+ */
 template <size_t d>
 RealArray1D<d> Remap::computeUpwindFaceQuantities(
     RealArray1D<dim> face_normal, double face_normal_velocity, double delta_x,
@@ -516,7 +609,18 @@ RealArray1D<d> Remap::computeUpwindFaceQuantities(
   else
     return phi_cf + (dot((x_f - x_cf), face_normal) * grad_phi_cf);
 }
-
+/**
+ *******************************************************************************
+ * \file computeRemapFlux
+ * \brief Calcul final des flux
+ *  cas classique : phi_face * v * dt * l * (n.ex ou n.ey)
+ *  phi_face contient la valeur de phi reconstruite à l'ordre voulu
+ *  cas pente-borne : phi_face * l * (n.ex ou n.ey)
+ *  phi_face contient deja le flux integre
+ * \param  
+ * \return valeur de phi 
+ *******************************************************************************
+ */
 template <size_t d>
 RealArray1D<d> Remap::computeRemapFlux(
     int projectionOrder, int projectionAvecPlateauPente,
