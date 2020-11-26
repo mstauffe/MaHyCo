@@ -115,7 +115,7 @@ void Vnr::computeArtificialViscosity() noexcept {
  * \brief Calcul des vecteurs de coin
  *
  * \param  m_node_coord_n
- * \return m_cqs
+ * \return m_cqs_n
  *******************************************************************************
  */
 void Vnr::computeCornerNormal() noexcept {
@@ -134,9 +134,40 @@ void Vnr::computeCornerNormal() noexcept {
         const size_t pNodes(pId);
         const size_t pPlus1Nodes(pPlus1Id);
         const size_t pMinus1Nodes(pMinus1Id);
-        m_cqs(cCells, pNodesOfCellC) =
+        m_cqs_n(cCells, pNodesOfCellC) =
             computeLpcNpc(m_node_coord_n(pNodes), m_node_coord_n(pPlus1Nodes),
                           m_node_coord_n(pMinus1Nodes));
+      }
+    }
+  });
+}/**
+ *******************************************************************************
+ * \file updateCornerNormal()
+ * \brief Calcul des vecteurs de coin à tn+1
+ *
+ * \param  m_node_coord_nplus1
+ * \return m_cqs_nplus
+ *******************************************************************************
+ */
+void Vnr::updateCornerNormal() noexcept {
+  Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
+    const Id cId(cCells);
+    {
+      const auto nodesOfCellC(mesh->getNodesOfCell(cId));
+      const size_t nbNodesOfCellC(nodesOfCellC.size());
+      for (size_t pNodesOfCellC = 0; pNodesOfCellC < nbNodesOfCellC;
+           pNodesOfCellC++) {
+        const Id pId(nodesOfCellC[pNodesOfCellC]);
+        const Id pPlus1Id(
+            nodesOfCellC[(pNodesOfCellC + 1 + nbNodesOfCell) % nbNodesOfCell]);
+        const Id pMinus1Id(
+            nodesOfCellC[(pNodesOfCellC - 1 + nbNodesOfCell) % nbNodesOfCell]);
+        const size_t pNodes(pId);
+        const size_t pPlus1Nodes(pPlus1Id);
+        const size_t pMinus1Nodes(pMinus1Id);
+        m_cqs_nplus1(cCells, pNodesOfCellC) =
+            computeLpcNpc(m_node_coord_nplus1(pNodes), m_node_coord_nplus1(pPlus1Nodes),
+                          m_node_coord_nplus1(pMinus1Nodes));
       }
     }
   });
@@ -176,7 +207,7 @@ void Vnr::computeNodeVolume() noexcept {
  * \brief Calcul de la vitesse
  *
  * \param  gt->deltat_nplus1, gt->deltat_n, m_node_velocity_n
- *         m_pressure_n, m_pseudo_viscosity_n, m_cqs
+ *         m_pressure_n, m_pseudo_viscosity_n, m_cqs_n
  * \return m_node_velocity_nplus1, m_x_velocity, m_y_velocity
  *******************************************************************************
  */
@@ -201,13 +232,93 @@ void Vnr::updateVelocity() noexcept {
                   utils::indexOf(mesh->getNodesOfCell(cId), pId));
               reduction0 = sumR1(reduction0, (m_pressure_n(cCells) +
                                               m_pseudo_viscosity_n(cCells)) *
-                                                 m_cqs(cCells, pNodesOfCellC));
+                                                 m_cqs_n(cCells, pNodesOfCellC));
             }
           }
           m_node_velocity_nplus1(pNodes) =
               m_node_velocity_n(pNodes) + dt / m_node_mass(pNodes) * reduction0;
           m_x_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[0];
           m_y_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[1];
+        });
+  }
+}
+/**
+ *******************************************************************************
+ * \file updateVelocitybackward()
+ * \brief Calcul de la vitesse de n a n-1/2
+ *
+ * \param  gt->deltat_n, m_node_velocity_n
+ *         m_pressure_n, m_pseudo_viscosity_n, m_cqs_n
+ * \return m_node_velocity_nplus1
+ *******************************************************************************
+ */
+void Vnr::updateVelocitybackward() noexcept {
+  const double dt(-0.5 * gt->deltat_n);
+  {
+    const auto innerNodes(mesh->getInnerNodes());
+    const size_t nbInnerNodes(mesh->getNbInnerNodes());
+    Kokkos::parallel_for(
+        nbInnerNodes, KOKKOS_LAMBDA(const size_t& pInnerNodes) {
+          const Id pId(innerNodes[pInnerNodes]);
+          const size_t pNodes(pId);
+          RealArray1D<2> reduction0({0.0, 0.0});
+          {
+            const auto cellsOfNodeP(mesh->getCellsOfNode(pId));
+            const size_t nbCellsOfNodeP(cellsOfNodeP.size());
+            for (size_t cCellsOfNodeP = 0; cCellsOfNodeP < nbCellsOfNodeP;
+                 cCellsOfNodeP++) {
+              const Id cId(cellsOfNodeP[cCellsOfNodeP]);
+              const size_t cCells(cId);
+              const size_t pNodesOfCellC(
+                  utils::indexOf(mesh->getNodesOfCell(cId), pId));
+              reduction0 = sumR1(reduction0, (m_pressure_n(cCells) +
+                                              m_pseudo_viscosity_n(cCells)) *
+                                                 m_cqs_n(cCells, pNodesOfCellC));
+            }
+          }
+          m_node_velocity_n(pNodes) =
+              m_node_velocity_n(pNodes) + dt / m_node_mass(pNodes) * reduction0;
+        });
+  }
+}/**
+ *******************************************************************************
+ * \file updateVelocityforward()
+ * \brief Calcul de la vitesse de n+1/2 a n+1
+ *
+ * \param  gt->deltat_nplus, m_node_velocity_n
+ *         m_pressure_nplus, m_pseudo_viscosity_nplus, m_cqs (calcule juste avant)
+ * \return m_node_velocity_nplus1
+ *******************************************************************************
+ */
+void Vnr::updateVelocityforward() noexcept {
+  const double dt(0.5 * gt->deltat_nplus1);
+  {
+    const auto innerNodes(mesh->getInnerNodes());
+    const size_t nbInnerNodes(mesh->getNbInnerNodes());
+    Kokkos::parallel_for(
+        nbInnerNodes, KOKKOS_LAMBDA(const size_t& pInnerNodes) {
+          const Id pId(innerNodes[pInnerNodes]);
+          const size_t pNodes(pId);
+          RealArray1D<2> reduction0({0.0, 0.0});
+          {
+            const auto cellsOfNodeP(mesh->getCellsOfNode(pId));
+            const size_t nbCellsOfNodeP(cellsOfNodeP.size());
+            for (size_t cCellsOfNodeP = 0; cCellsOfNodeP < nbCellsOfNodeP;
+                 cCellsOfNodeP++) {
+              const Id cId(cellsOfNodeP[cCellsOfNodeP]);
+              const size_t cCells(cId);
+              const size_t pNodesOfCellC(
+                  utils::indexOf(mesh->getNodesOfCell(cId), pId));
+              reduction0 = sumR1(reduction0, (m_pressure_nplus1(cCells) +
+                                              m_pseudo_viscosity_nplus1(cCells)) *
+                                                 m_cqs_n(cCells, pNodesOfCellC));
+            }
+          }
+          m_node_velocity_nplus1(pNodes) =
+              m_node_velocity_nplus1(pNodes) + dt / m_node_mass(pNodes) * reduction0;
+          m_x_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[0];
+          m_y_velocity(pNodes) = m_node_velocity_nplus1(pNodes)[1];
+	 
         });
   }
 }
@@ -431,6 +542,45 @@ void Vnr::updateEnergy() noexcept {
 }
 /**
  *******************************************************************************
+ * \file updateEnergyForTotalEnergyConservation()
+ * \brief Calcul de l'energie interne (seul le cas du gaz parfait est codé)
+ *
+ * \param
+ *         m_pseudo_viscosity_env_nplus1, m_pseudo_viscosity_env_n
+ *         m_pressure_env_n, m_mass_fraction_env
+ *
+ * \return m_internal_energy_env_nplus1, m_internal_energy_nplus1
+ *******************************************************************************
+ */
+void Vnr::updateEnergyForTotalEnergyConservation() noexcept {
+  Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
+    m_internal_energy_nplus1(cCells) = 0.;
+    double correction(0.);
+    const Id cId(cCells);
+    const auto nodesOfCellC(mesh->getNodesOfCell(cId));
+    const size_t nbNodesOfCellC(nodesOfCellC.size());
+    for (int imat = 0; imat < options->nbmat; ++imat) {
+      for (size_t pNodesOfCellC = 0; pNodesOfCellC < nbNodesOfCellC;
+           pNodesOfCellC++) {
+	const Id pId(nodesOfCellC[pNodesOfCellC]);
+	const size_t pNodes(pId);
+	correction += 0.25 * m_fracvol_env(cCells)[imat] *
+	  (m_pressure_env_n(cCells)[imat] +
+	   m_pseudo_viscosity_env_n(cCells)[imat]) *
+	  dot(m_cqs_n(cCells, pNodesOfCellC),
+	      (m_node_velocity_nplus1(pNodes) - m_node_velocity_n(pNodes))) *
+	  (gt->deltat_nplus1 - gt->deltat_n);
+      }
+      m_internal_energy_env_nplus1(cCells)[imat] += correction;
+      m_internal_energy_nplus1(cCells) +=
+	m_mass_fraction_env(cCells)[imat] *
+	m_internal_energy_env_nplus1(cCells)[imat];
+    }
+  });
+}
+      
+/**
+ *******************************************************************************
  * \file computeDivU()
  * \brief Calcul de la divergence de la vitesse
  *
@@ -445,7 +595,7 @@ void Vnr::computeDivU() noexcept {
         (1.0 / m_density_nplus1(cCells) - 1.0 / m_density_n(cCells)) /
         m_tau_density_nplus1(cCells);
     // a changer comme le calcul du DV, utiliser les
-    // m_cqs(cCells,pNodesOfCellC)
+    // m_cqs_n(cCells,pNodesOfCellC)
   });
 }
 /**

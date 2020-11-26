@@ -222,8 +222,9 @@ void Vnr::executeTimeLoopN() noexcept {
 
     if (options->sansLagrange == 0) {
       computeCornerNormal();
-      computeDeltaT();
+      if (scheme->schema == scheme->CSTS) updateVelocitybackward(); // si CSTS
       computeNodeVolume();
+      computeDeltaT();
     } else {
       gt->deltat_nplus1 = gt->deltat_n;
     }
@@ -241,12 +242,17 @@ void Vnr::executeTimeLoopN() noexcept {
     updateRho();
 
     if (options->sansLagrange == 0) {
-      computeTau();                  // @6.0
-      computeDivU();                 // @7.0
-      computeArtificialViscosity();  // @1.0
-      updateEnergy();                // @6.0
-      computeEOS();                  // @7.0
-      computePressionMoyenne();      // @7.0
+      updateCornerNormal();     
+      computeTau();                  
+      computeDivU();                 
+      computeArtificialViscosity();  
+      updateEnergy();
+      if (scheme->schema == scheme->CSTS)
+	updateEnergyForTotalEnergyConservation();
+      computeEOS();                  
+      computePressionMoyenne();      
+      if (scheme->schema == scheme->CSTS)
+	updateVelocityforward();  
     } else {
       deep_copy(m_internal_energy_nplus1, m_internal_energy_n);
     }
@@ -268,7 +274,7 @@ void Vnr::executeTimeLoopN() noexcept {
       remap->computeDualUremap2();
       remapVariables();
       if (options->sansLagrange == 1) {
-        // les cas d'advection doivent etre à vitesses constantes ? donc non
+        // les cas d'advection doivent etre à vitesses constantes donc non
         // projetees
         updateVelocityWithoutLagrange();
       }

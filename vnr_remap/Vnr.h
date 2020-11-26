@@ -25,6 +25,7 @@
 #include "../includes/GestionTemps.h"
 #include "../includes/Limiteurs.h"
 #include "../includes/Options.h"
+#include "../includes/SchemaLagrange.h"
 #include "../includes/Sortie.h"
 #include "../includes/VariablesLagRemap.h"
 #include "../initialisations/Init.h"
@@ -70,6 +71,7 @@ class Vnr {
  private:
   // Mesh (can depend on previous definitions)
   CartesianMesh2D* mesh;
+  schemalagrangelib::SchemaLagrangeClass::SchemaLagrange* scheme;
   optionschemalib::OptionsSchema::Options* options;
   sortielib::Sortie::SortieVariables* so;
   castestlib::CasTest::Test* test;
@@ -168,7 +170,8 @@ class Vnr {
   Kokkos::View<RealArray1D<nbmatmax>*> m_tau_density_env_nplus1;
   Kokkos::View<double*> m_divu_n;
   Kokkos::View<double*> m_divu_nplus1;
-  Kokkos::View<RealArray1D<dim>**> m_cqs;
+  Kokkos::View<RealArray1D<dim>**> m_cqs_n;
+  Kokkos::View<RealArray1D<dim>**> m_cqs_nplus1;
 
   utils::Timer global_timer;
   utils::Timer cpu_timer;
@@ -178,7 +181,8 @@ class Vnr {
       Kokkos::DefaultExecutionSpace::impl_max_hardware_threads();
 
  public:
-  Vnr(optionschemalib::OptionsSchema::Options* aOptions,
+ Vnr(schemalagrangelib::SchemaLagrangeClass::SchemaLagrange* ascheme,
+      optionschemalib::OptionsSchema::Options* aOptions,
       cstmeshlib::ConstantesMaillagesClass::ConstantesMaillages* acstmesh,
       gesttempslib::GestionTempsClass::GestTemps* agt,
       castestlib::CasTest::Test* aTest,
@@ -190,7 +194,8 @@ class Vnr {
       initlib::Initialisations* ainit, 
       sortielib::Sortie::SortieVariables* asorties,
       string output)
-      : options(aOptions),
+      : scheme(ascheme),
+        options(aOptions),
         cstmesh(acstmesh),
         gt(agt),
         test(aTest),
@@ -271,7 +276,8 @@ class Vnr {
         m_interface12("interface12", nbCells),
         m_interface23("interface23", nbCells),
         m_interface13("interface13", nbCells),
-        m_cqs("cqs", nbCells, nbNodesOfCell) {
+        m_cqs_n("cqs_n", nbCells, nbNodesOfCell),
+        m_cqs_nplus1("cqs_nplus1", nbCells, nbNodesOfCell) {
     // Copy node coordinates
     const auto& gNodes = mesh->getGeometry()->getNodes();
     for (size_t rNodes = 0; rNodes < nbNodes; rNodes++) {
@@ -304,8 +310,11 @@ class Vnr {
   void computeArtificialViscosity() noexcept;
 
   void computeCornerNormal() noexcept;
+  void updateCornerNormal() noexcept;
 
   void updateVelocity() noexcept;
+  void updateVelocitybackward() noexcept;
+  void updateVelocityforward() noexcept;
 
   void updateVelocityWithoutLagrange() noexcept;
   
@@ -326,7 +335,8 @@ class Vnr {
   void computeTau() noexcept;
 
   void updateEnergy() noexcept;
-
+  void updateEnergyForTotalEnergyConservation() noexcept;
+  
   void computeDivU() noexcept;
 
   void computeEOS();
