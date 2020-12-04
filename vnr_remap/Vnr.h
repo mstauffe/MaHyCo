@@ -93,8 +93,8 @@ class Vnr {
   int n, nbCalls;
   double lastDump;
   double m_global_total_energy_L, m_global_total_energy_T,
-      m_global_total_energy_0;
-  double m_global_total_masse_L, m_global_total_masse_T, m_global_total_masse_0;
+    m_global_total_energy_0, m_global_total_energy_L0;
+  double m_global_total_masse_L, m_global_total_masse_T, m_global_total_masse_0, m_global_total_masse_L0;
 
   // coordonnees
   Kokkos::View<RealArray1D<dim>*> m_node_coord_n;
@@ -103,6 +103,8 @@ class Vnr {
   // volume
   Kokkos::View<double*> m_node_volume;
   Kokkos::View<double*> m_euler_volume;
+  Kokkos::View<double*> m_lagrange_volume_n;
+  Kokkos::View<double*> m_lagrange_volume_nplus1;
   // densite
   Kokkos::View<double*> m_density_n;
   Kokkos::View<double*> m_density_nplus1;
@@ -154,9 +156,11 @@ class Vnr {
   Kokkos::View<double*> m_total_energy_0;
   Kokkos::View<double*> m_total_energy_T;
   Kokkos::View<double*> m_total_energy_L;
+  Kokkos::View<double*> m_total_energy_L0;
   Kokkos::View<double*> m_total_masse_0;
   Kokkos::View<double*> m_total_masse_T;
   Kokkos::View<double*> m_total_masse_L;
+  Kokkos::View<double*> m_total_masse_L0;
 
   Kokkos::View<double**> m_node_cellvolume_n;
   Kokkos::View<double**> m_node_cellvolume_nplus1;
@@ -168,6 +172,10 @@ class Vnr {
   Kokkos::View<double*> m_tau_density_nplus1;
   Kokkos::View<RealArray1D<nbmatmax>*> m_tau_density_env_n;
   Kokkos::View<RealArray1D<nbmatmax>*> m_tau_density_env_nplus1;
+  Kokkos::View<double*> m_tau_volume_n;
+  Kokkos::View<double*> m_tau_volume_nplus1;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_tau_volume_env_n;
+  Kokkos::View<RealArray1D<nbmatmax>*> m_tau_volume_env_nplus1;
   Kokkos::View<double*> m_divu_n;
   Kokkos::View<double*> m_divu_nplus1;
   Kokkos::View<RealArray1D<dim>**> m_cqs_n;
@@ -225,9 +233,11 @@ class Vnr {
         m_total_energy_0("total_energy_0", nbCells),
         m_total_energy_T("total_energy_T", nbCells),
         m_total_energy_L("total_energy_L", nbCells),
+        m_total_energy_L0("total_energy_L0", nbCells),
         m_total_masse_0("total_masse_0", nbCells),
         m_total_masse_T("total_masse_T", nbCells),
         m_total_masse_L("total_masse_L", nbCells),
+        m_total_masse_L0("total_masse_L0", nbCells),
         m_density_n("density_n", nbCells),
         m_density_nplus1("density_nplus1", nbCells),
         m_density_env_n("density_env_n", nbCells),
@@ -247,6 +257,10 @@ class Vnr {
         m_tau_density_nplus1("tau_density_nplus1", nbCells),
         m_tau_density_env_n("tau_density_env_n", nbCells),
         m_tau_density_env_nplus1("tau_density_env_nplus1", nbCells),
+        m_tau_volume_n("tau_volume_n", nbCells),
+        m_tau_volume_nplus1("tau_volume_nplus1", nbCells),
+        m_tau_volume_env_n("tau_volume_env_n", nbCells),
+        m_tau_volume_env_nplus1("tau_volume_env_nplus1", nbCells),
         m_divu_n("divu_n", nbCells),
         m_divu_nplus1("divu_nplus1", nbCells),
         m_speed_velocity_n("speed_velocity_n", nbCells),
@@ -267,6 +281,8 @@ class Vnr {
         m_cell_coord_n("cell_coord_n", nbCells),
         m_cell_coord_nplus1("cell_coord_nplus1", nbCells),
         m_euler_volume("euler_volume", nbCells),
+        m_lagrange_volume_n("lagrange_volume_n", nbCells),
+        m_lagrange_volume_nplus1("lagrange_volume_nplus1", nbCells),
         m_mass_fraction_env("mass_fraction_env", nbCells),
         m_fracvol_env("fracvol_env", nbCells),
         m_node_fracvol("node_fracvol", nbNodes),
@@ -291,6 +307,8 @@ class Vnr {
   void computeDeltaT() noexcept;
   void computeDeltaTinit() noexcept;
   void computeVariablesGlobalesInit() noexcept;
+  void computeVariablesGlobalesL0() noexcept;
+  void computeVariablesGlobalesL() noexcept;
   void computeVariablesGlobalesT() noexcept;
   void computeVariablesSortiesInit() noexcept;
   
@@ -335,6 +353,7 @@ class Vnr {
   void computeTau() noexcept;
 
   void updateEnergy() noexcept;
+  void updateEnergycqs() noexcept;
   void updateEnergyForTotalEnergyConservation() noexcept;
   
   void computeDivU() noexcept;

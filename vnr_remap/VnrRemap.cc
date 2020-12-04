@@ -53,6 +53,7 @@ void Vnr::computeDeltaT() noexcept {
                             (Aveccfleuler * uc + m_speed_velocity_n(cCells)));
       },
       KokkosJoiner<double>(reduction0, numeric_limits<double>::max(), &minR0));
+  
   gt->deltat_nplus1 = std::min(reduction0, 1.05 * gt->deltat_n);
 }
 /**
@@ -112,14 +113,13 @@ void Vnr::computeVariablesGlobalesInit() noexcept {
   Kokkos::parallel_for(
       "init_m_global_total_var_0", nbCells, KOKKOS_LAMBDA(const int& cCells) {
         m_total_energy_0(cCells) =
-            (init->m_density_n0(cCells) * m_euler_volume(cCells)) *
+	  m_cell_mass(cCells) *
             (init->m_internal_energy_n0(cCells) +
              0.5 * (init->m_cell_velocity_n0(cCells)[0] *
                         init->m_cell_velocity_n0(cCells)[0] +
                     init->m_cell_velocity_n0(cCells)[1] *
                         init->m_cell_velocity_n0(cCells)[1]));
-        m_total_masse_0(cCells) =
-            (init->m_density_n0(cCells) * m_euler_volume(cCells));
+        m_total_masse_0(cCells) = m_cell_mass(cCells);
       });
   double reductionE(0.), reductionM(0.);
   {
@@ -179,6 +179,7 @@ void Vnr::setUpTimeLoopN() noexcept {
   deep_copy(m_node_coord_n, init->m_node_coord_n0);
   deep_copy(m_cell_coord_n, init->m_cell_coord_n0);
   deep_copy(m_euler_volume, init->m_euler_volume_n0);
+  deep_copy(m_lagrange_volume_n, init->m_euler_volume_n0);
   deep_copy(m_density_n, init->m_density_n0);
   deep_copy(m_density_env_n, init->m_density_env_n0);
   deep_copy(m_internal_energy_n, init->m_internal_energy_n0);
@@ -219,12 +220,14 @@ void Vnr::executeTimeLoopN() noexcept {
                 << __RESET__ "] t = " << __BOLD__
                 << setiosflags(std::ios::scientific) << setprecision(8)
                 << setw(16) << gt->t_n << __RESET__;
-
+    // Calcul de l'energie totale et la masse du systeme en debut de Lagrange
+    computeVariablesGlobalesL0();
+    
     if (options->sansLagrange == 0) {
       // calcul des m_cqs_n
       computeCornerNormal();
       // retour a la vitesse en n-1/2 : m_velocity_n
-      if (scheme->schema == scheme->CSTS) updateVelocitybackward();
+      if (scheme->schema == scheme->CSTS && options->AvecProjection == 1) updateVelocitybackward();
       // calcul du volume de chaque noeud du maillage : m_node_cellvolume_n
       computeNodeVolume();
       // Calcul du pas de temps : gt->deltat_nplus1
@@ -261,25 +264,31 @@ void Vnr::executeTimeLoopN() noexcept {
       computeDivU();
       // Calcul de la viscosité artificielle : m_pseudo_viscosity_nplus1
       computeArtificialViscosity();
-      // Calcul de l'energie interne
-      updateEnergy();
       // Calcul des corrections CSTS d'energie interne
-      if (scheme->schema == scheme->CSTS)
+      if (scheme->schema == scheme->CSTS) {
+	// Calcul de l'energie interne
+	updateEnergycqs();
 	updateEnergyForTotalEnergyConservation();
+      } else {
+	// Calcul de l'energie interne
+	updateEnergy();
+      }	
       // Appel aux differentes équations d'état : m_pressure_env_nplus1
       computeEOS();
       // Calcul de la pression moyenne : m_pressure_nplus1
       computePressionMoyenne();
-      // Calcul de la vitesse de n+1/2 a n+1 : m_node_velocity_nplus1
-      if (scheme->schema == scheme->CSTS)
-	updateVelocityforward();  
     } else {
       deep_copy(m_internal_energy_nplus1, m_internal_energy_n);
     }
     // Calcul des conditions aux limites dans les mailles
     updateCellBoundaryConditions();
-
+    // Calcul des quantites apres la phase Lagrange
+    computeVariablesGlobalesL();
+    
     if (options->AvecProjection == 1) {
+      // Calcul de la vitesse de n+1/2 a n+1 : m_node_velocity_nplus1
+      if (scheme->schema == scheme->CSTS)
+	updateVelocityforward();  
       // Remplissage des variables de la projection et de la projection duale
       computeVariablesForRemap();
       // Calcul du centre des mailles pour la projection
@@ -310,14 +319,14 @@ void Vnr::executeTimeLoopN() noexcept {
       // Appel aux differentes équations d'état : m_pressure_env_nplus1
       computeEOS();              // rappel EOS apres projection
       // Calcul de la pression moyenne : m_pressure_nplus1
-      computePressionMoyenne();  // rappel Pression moyenne apres projection
+      computePressionMoyenne();  // rappel Pression moyenne apres projection     
+      // Calcul des quantites apres la phase de projection
+      computeVariablesGlobalesT();
     }
-    // Calcul de l'energie totale et la masse initiale du systeme
-    computeVariablesGlobalesT();
     // Evaluate loop condition with variables at time n
     continueLoop =
         (n + 1 < gt->max_time_iterations && gt->t_nplus1 < gt->final_time);
-
+					 
     if (continueLoop) {
       // Switch variables to prepare next iteration
       std::swap(varlp->x_then_y_nplus1, varlp->x_then_y_n);
@@ -331,6 +340,8 @@ void Vnr::executeTimeLoopN() noexcept {
       std::swap(m_pseudo_viscosity_env_nplus1, m_pseudo_viscosity_env_n);
       std::swap(m_tau_density_nplus1, m_tau_density_n);
       std::swap(m_tau_density_env_nplus1, m_tau_density_env_n);
+      std::swap(m_tau_volume_nplus1, m_tau_volume_n);
+      std::swap(m_tau_volume_env_nplus1, m_tau_volume_env_n);
       std::swap(m_divu_nplus1, m_divu_n);
       std::swap(m_speed_velocity_nplus1, m_speed_velocity_n);
       std::swap(m_speed_velocity_env_nplus1, m_speed_velocity_env_n);
@@ -341,10 +352,32 @@ void Vnr::executeTimeLoopN() noexcept {
         std::swap(m_cell_coord_nplus1, m_cell_coord_n);
         std::swap(m_node_cellvolume_nplus1, m_node_cellvolume_n);
         std::swap(m_node_coord_nplus1, m_node_coord_n);
+	std::swap(m_lagrange_volume_nplus1, m_lagrange_volume_n);
       }
     }
-
-    std::cout << " DT  = " << gt->deltat_nplus1 << std::endl;
+    std::cout << "  "  << std::endl;
+    ofstream fichierE(options->fichier_sortie1D, ios::app);  // ouverture en écriture avec effacement du fichier ouvert
+    //ofstream fichierM("Mtotale.txt", ios::app);  // ouverture en écriture avec effacement du fichier ouvert
+ 
+    if(fichierE)
+        {
+	  fichierE  << gt->t_n << " " << m_global_total_energy_L;	  
+	  if (options->AvecProjection == 1)
+	    fichierE  << " " << m_global_total_energy_T << std::endl;
+	  else
+	    fichierE  << std::endl;
+	}
+    // if(fichierM)
+    //     {
+    // 	  fichierM << gt->t_n << " " << m_global_total_masse_L;
+	  
+    // 	  if (options->AvecProjection == 1)
+    // 	    fichierM  <<  " " << m_global_total_masse_T << std::endl;
+    // 	  else
+    // 	    fichierE  << std::endl;
+    // 	}
+											   
+    // std::cout << " DT  = " << gt->deltat_nplus1 << std::endl;
     cpu_timer.stop();
     global_timer.stop();
 
@@ -489,14 +522,13 @@ void Vnr::simulate() {
   if (options->sansLagrange == 0) {
     init->initPseudo();
     computeDeltaTinit();
-    computeVariablesGlobalesInit();
   }
-
-  computeVariablesSortiesInit();
 
   setUpTimeLoopN();
   computeCellMass();
   computeNodeMass();
+  computeVariablesGlobalesInit();
+  computeVariablesSortiesInit();
   executeTimeLoopN();
 
   std::cout << __YELLOW__ << "\n\tDone ! Took " << __MAGENTA__ << __BOLD__

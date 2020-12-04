@@ -249,7 +249,7 @@ void Vnr::remapVariables() noexcept {
 	    delta_ec += 0.25 * ( ec_proj - ec_reconst);
 	  }
 	}
-	delta_ec = max(0., delta_ec);
+	//delta_ec = max(0., delta_ec);
 	for (int imat = 0; imat < nbmat; imat++)
 	  m_internal_energy_env_nplus1(cCells)[imat] += m_mass_fraction_env(cCells)[imat] * delta_ec;
 	m_internal_energy_nplus1(cCells) += delta_ec;
@@ -258,8 +258,8 @@ void Vnr::remapVariables() noexcept {
 }
 /**
  *******************************************************************************
- * \file computeVariablesGlobalesInit()
- * \brief Calcul de l'energie totale et la masse initiale du systeme
+ * \file computeVariablesGlobalesT()
+ * \brief Calcul de l'energie totale et la masse initiale du systeme apres projection
  *
  * \param  m_cell_velocity_nplus, m_density_nplus, m_euler_volume
  * \return m_total_energy_T, m_global_masse_T,
@@ -272,10 +272,20 @@ void Vnr::computeVariablesGlobalesT() noexcept {
   int nbmat = options->nbmat;
   Kokkos::parallel_for(
       "remapVariables", nbCells, KOKKOS_LAMBDA(const int& cCells) {
-        // m_total_energy_T(cCells) =
-        //    (density_nplus1 * vol) * m_internal_energy_nplus1(cCells) +
-        //    0.5 * (density_nplus1 * vol) * (V_nplus1[0] * V_nplus1[0] +
-        //    V_nplus1[1] * V_nplus1[1]);
+	const Id cId(cCells);
+	const auto nodesOfCellC(mesh->getNodesOfCell(cId));
+	const size_t nbNodesOfCellC(nodesOfCellC.size());
+	double ec_reconst(0.);
+	for (size_t pNodesOfCellC = 0; pNodesOfCellC < nbNodesOfCellC;
+	     pNodesOfCellC++) {
+	  const Id pId(nodesOfCellC[pNodesOfCellC]);
+	  const size_t pNodes(pId);
+	  ec_reconst += 0.25 * 0.5 *
+	    (m_node_velocity_nplus1(pNodes)[0] * m_node_velocity_nplus1(pNodes)[0] +
+	     m_node_velocity_nplus1(pNodes)[1] * m_node_velocity_nplus1(pNodes)[1]);
+	}
+        m_total_energy_T(cCells) = m_density_nplus1(cCells) * m_euler_volume(cCells) *
+	  (m_internal_energy_nplus1(cCells) + ec_reconst);
         m_total_masse_T(cCells) = 0.;
         for (int imat = 0; imat < nbmat; imat++)
           m_total_masse_T(cCells) += m_density_env_nplus1(cCells)[imat] *
