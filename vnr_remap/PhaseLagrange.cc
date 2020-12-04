@@ -579,6 +579,7 @@ void Vnr::updateEnergycqs() noexcept {
     m_internal_energy_nplus1(cCells) = 0.;
     for (int imat = 0; imat < options->nbmat; ++imat) {
       m_internal_energy_env_nplus1(cCells)[imat] = 0.;
+      if (m_density_env_nplus1(cCells)[imat] > options->threshold) {
         // calcul du DV a changer utiliser divU
         double pseudo(0.);
         if ((options->pseudo_centree == 1) &&
@@ -626,6 +627,7 @@ void Vnr::updateEnergycqs() noexcept {
 	m_internal_energy_nplus1(cCells) +=
 	    m_mass_fraction_env(cCells)[imat] *
 	    m_internal_energy_env_nplus1(cCells)[imat];
+      }
     }
   });
 }
@@ -643,35 +645,37 @@ void Vnr::updateEnergycqs() noexcept {
  */
 void Vnr::updateEnergyForTotalEnergyConservation() noexcept {
   Kokkos::parallel_for(nbCells, KOKKOS_LAMBDA(const size_t& cCells) {
-    m_internal_energy_nplus1(cCells) = 0.;
-    double correction(0.);
-    const Id cId(cCells);
-    const auto nodesOfCellC(mesh->getNodesOfCell(cId));
-    const size_t nbNodesOfCellC(nodesOfCellC.size());
-    for (int imat = 0; imat < options->nbmat; ++imat) {
-      for (size_t pNodesOfCellC = 0; pNodesOfCellC < nbNodesOfCellC;
-           pNodesOfCellC++) {
-	const Id pId(nodesOfCellC[pNodesOfCellC]);
-	const size_t pNodes(pId);
-	// correction energie cinetiaue
-	correction += 0.25 * m_fracvol_env(cCells)[imat] *
-	  (m_pressure_env_n(cCells)[imat] +
-	   m_pseudo_viscosity_env_n(cCells)[imat]) *
-	  dot(m_cqs_n(cCells, pNodesOfCellC),
-	      (m_node_velocity_nplus1(pNodes) - m_node_velocity_n(pNodes))) *
-	  (gt->deltat_nplus1 - gt->deltat_n) / m_cell_mass_env(cCells)[imat];
-	// correction pseudo
-	correction += (m_pseudo_viscosity_env_nplus1(cCells)[imat]
-		       - m_pseudo_viscosity_env_n(cCells)[imat])
-	  * dot(m_cqs_n(cCells, pNodesOfCellC), m_node_velocity_n(pNodes))
-	  * gt->deltat_n;	  
+      m_internal_energy_nplus1(cCells) = 0.;
+      double correction(0.);
+      const Id cId(cCells);
+      const auto nodesOfCellC(mesh->getNodesOfCell(cId));
+      const size_t nbNodesOfCellC(nodesOfCellC.size());
+      for (int imat = 0; imat < options->nbmat; ++imat) {
+	if (m_density_env_nplus1(cCells)[imat] > options->threshold) {
+	  for (size_t pNodesOfCellC = 0; pNodesOfCellC < nbNodesOfCellC;
+	       pNodesOfCellC++) {
+	    const Id pId(nodesOfCellC[pNodesOfCellC]);
+	    const size_t pNodes(pId);
+	    // correction energie cinetiaue
+	    correction += 0.25 * m_fracvol_env(cCells)[imat] *
+	      (m_pressure_env_n(cCells)[imat] +
+	       m_pseudo_viscosity_env_n(cCells)[imat]) *
+	      dot(m_cqs_n(cCells, pNodesOfCellC),
+		  (m_node_velocity_nplus1(pNodes) - m_node_velocity_n(pNodes))) *
+	      (gt->deltat_nplus1 - gt->deltat_n) / m_cell_mass_env(cCells)[imat];
+	    // correction pseudo
+	    correction += (m_pseudo_viscosity_env_nplus1(cCells)[imat]
+			   - m_pseudo_viscosity_env_n(cCells)[imat])
+	      * dot(m_cqs_n(cCells, pNodesOfCellC), m_node_velocity_n(pNodes))
+	      * gt->deltat_n;	  
+	  }
+	  //if (correction > 1.e-16) std::cout << cCells << " correction " << correction << std::endl;
+	  m_internal_energy_env_nplus1(cCells)[imat] += correction;
+	  m_internal_energy_nplus1(cCells) +=
+	    m_mass_fraction_env(cCells)[imat] *
+	    m_internal_energy_env_nplus1(cCells)[imat];
+	}
       }
-      //if (correction > 1.e-16) std::cout << cCells << " correction " << correction << std::endl;
-      m_internal_energy_env_nplus1(cCells)[imat] += correction;
-      m_internal_energy_nplus1(cCells) +=
-	m_mass_fraction_env(cCells)[imat] *
-	m_internal_energy_env_nplus1(cCells)[imat];
-    }
   });
 }
       
